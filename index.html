@@ -82,7 +82,7 @@
           <select class="filter-select" id="levelFilter"></select>
         </div>
 
-        <div class="table-wrap" id="tableWrap"></div>
+        <div class="cards-grid" id="tableWrap"></div>
       </section>
 
       <!-- ================= CALENDAR PAGE ================= -->
@@ -117,10 +117,17 @@
         <div class="field"><label id="lblFirstName" for="firstName"></label><input type="text" id="firstName" required></div>
         <div class="field"><label id="lblLastName" for="lastName"></label><input type="text" id="lastName" required></div>
       </div>
-      <div class="field"><label id="lblLevel" for="level"></label><select id="level" required></select></div>
+      <div class="field-row">
+        <div class="field"><label id="lblLevel" for="level"></label><select id="level" required></select></div>
+        <div class="field"><label id="lblGender" for="gender"></label><select id="gender" required>
+          <option value="" id="genderPlaceholderOpt"></option>
+          <option value="male" id="genderMaleOpt"></option>
+          <option value="female" id="genderFemaleOpt"></option>
+        </select></div>
+      </div>
       <div class="field-row">
         <div class="field"><label id="lblStartDate" for="startDate"></label><input type="date" id="startDate" required></div>
-        <div class="field"><label id="lblEndDate" for="endDate"><span id="lblEndDateText"></span> <span class="optional" id="lblEndDateOptional"></span></label><input type="date" id="endDate"></div>
+        <div class="field"><label id="lblEndDate" for="endDate"><span id="lblEndDateText"></span> <span class="optional" id="lblEndDateOptional"></span></label><input type="date" id="endDate"><small id="endDateHint" class="field-hint"></small></div>
       </div>
       <div class="field">
         <label id="lblNotes" for="notes"><span id="lblNotesText"></span> <span class="optional" id="lblNotesOptional"></span></label>
@@ -134,11 +141,11 @@
   </div>
 </div>
 
-<!-- ============ Notes viewer modal ============ -->
+<!-- ============ Student details modal ============ -->
 <div class="modal-overlay" id="noteModalOverlay">
   <div class="modal" style="max-width:380px;">
-    <h2 id="noteModalTitle">Notes</h2>
-    <p class="note-view-body" id="noteModalBody"></p>
+    <h2 id="noteModalTitle">Details</h2>
+    <div id="noteModalBody"></div>
     <div class="modal-actions">
       <button type="button" class="btn btn-primary" id="noteCloseBtn"></button>
     </div>

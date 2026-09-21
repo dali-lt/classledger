@@ -211,27 +211,68 @@
   }
   .search-input { flex: 1; min-width: 180px; }
 
-  /* ---------- Table ---------- */
-  .table-wrap { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; }
-  thead th { text-align: start; font-size: 12.5px; font-weight: 700; color: var(--color-text-muted); padding: 14px 18px; border-bottom: 1.5px solid var(--color-border); }
-  tbody td { padding: 14px 18px; font-size: 14px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: var(--color-sunken); }
-  .name-cell { font-weight: 700; }
+  /* ---------- Student cards ---------- */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .student-card {
+    background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px;
+    padding: 18px; position: relative; display: flex; flex-direction: column; gap: 14px;
+  }
   .badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 999px; }
   .badge-college { background: var(--color-light-blue); color: var(--color-navy); }
   .badge-lycee { background: var(--color-navy); color: var(--color-accent); }
-  .muted-cell { color: var(--color-text-muted); }
-  .note-btn {
-    width: 30px; height: 30px; border-radius: 8px; border: none;
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .card-identity { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
     background: var(--color-light-blue); color: var(--color-primary);
-    cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center;
   }
-  .row-actions { display: flex; gap: 2px; justify-content: flex-start; align-items: center; }
+  .avatar.avatar-female { background: var(--color-light-blue); color: var(--color-accent-ink); }
+  .avatar svg { width: 24px; height: 24px; }
+  .card-name { font-weight: 700; font-size: 15px; margin: 0; }
+  .card-sub { margin: 2px 0 0; font-size: 12.5px; color: var(--color-text-muted); }
+
+  .card-menu { position: relative; }
+  .kebab-btn {
+    width: 28px; height: 28px; border: none; background: transparent; color: var(--color-text-muted);
+    border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .kebab-btn:hover { background: var(--color-sunken); color: var(--color-text); }
+  .kebab-menu {
+    display: none; position: absolute; inset-inline-end: 0; top: 32px; z-index: 5;
+    background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(21,38,65,0.12); min-width: 130px; overflow: hidden;
+  }
+  .kebab-menu.open { display: block; }
+  .kebab-menu button {
+    width: 100%; text-align: start; background: none; border: none; padding: 10px 14px;
+    font-size: 13.5px; font-weight: 600; color: var(--color-danger); cursor: pointer;
+  }
+  .kebab-menu button:hover { background: var(--color-sunken); }
+
+  .card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--color-sunken); border-radius: 10px; padding: 10px 12px; }
+  .card-stat span { display: block; font-size: 10.5px; letter-spacing: .03em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 3px; }
+  .card-stat b { font-size: 13px; font-weight: 700; }
+
+  .card-notes-row {
+    display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--color-text-muted);
+    background: var(--color-sunken); border-radius: 10px; padding: 9px 12px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .card-actions { display: flex; gap: 8px; margin-top: auto; }
+  .card-actions .btn { flex: 1; padding: 9px 10px; font-size: 13.5px; }
+
+  /* ---------- Details modal ---------- */
+  .detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--color-border); font-size: 14px; }
+  .detail-row:last-of-type { border-bottom: none; }
+  .detail-row span { color: var(--color-text-muted); }
+  .detail-row b { font-weight: 700; }
+  .detail-notes { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--color-border); font-size: 13.5px; white-space: pre-wrap; color: var(--color-text); }
 
   /* ---------- Empty state ---------- */
-  .empty { text-align: center; padding: 70px 24px; color: var(--color-text-muted); }
+  .empty { text-align: center; padding: 70px 24px; color: var(--color-text-muted); grid-column: 1 / -1; }
   .empty b { display: block; color: var(--color-text); font-size: 18px; margin-bottom: 6px; }
 
   /* ================= Calendar page ================= */
@@ -276,6 +317,7 @@
   .field { margin-bottom: 14px; }
   .field label { display: block; font-size: 13.5px; font-weight: 700; color: var(--color-text-muted); margin-bottom: 6px; }
   .field .optional { font-weight: 400; }
+  .field-hint { display: block; margin-top: 5px; font-size: 12px; color: var(--color-text-muted); }
   .field input, .field select, .field textarea {
     width: 100%; font-size: 15px; padding: 11px 13px; border-radius: 9px;
     border: 1.5px solid var(--color-border); background: var(--color-sunken); color: var(--color-text); resize: vertical;
@@ -301,10 +343,5 @@
     .page-header { padding: 20px 16px 16px; }
     main { padding: 8px 16px 50px; }
     .field-row { grid-template-columns: 1fr; }
-    thead { display: none; }
-    table, tbody, tr, td { display: block; width: 100%; }
-    tbody tr { border-bottom: 1px solid var(--color-border); padding: 14px 16px; }
-    tbody td { border: none; padding: 4px 0; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
-    tbody td::before { content: attr(data-label); color: var(--color-text-muted); font-size: 12.5px; font-weight: 700; }
-    .row-actions { justify-content: flex-start; padding-top: 8px; }
+    .cards-grid { grid-template-columns: 1fr; }
   }

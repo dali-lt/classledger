@@ -35,11 +35,13 @@
       emptyFilterTitle: "No results", emptyFilterText: "Try a different search or level.",
       modalAddTitle: "Add student", modalEditTitle: "Edit student",
       firstName: "First name", lastName: "Last name", level: "Level",
+      gender: "Gender", genderPlaceholder: "Select...", genderMale: "Male", genderFemale: "Female",
       startDate: "Start date", endDate: "End date", optional: "(optional)",
+      endDateHint: "Auto-set to 1 month after the start date (minus 1 day) — you can change it.",
       notes: "Notes", notesPlaceholder: "Any extra info about the student...",
-      cancel: "Cancel", add: "Add", saveChanges: "Save changes",
+      cancel: "Cancel", add: "Add", saveChanges: "Save changes", viewDetails: "Details",
       deleteConfirm: function (name) { return "Delete " + name + "? This can't be undone."; },
-      notesModalPrefix: "Notes — ", close: "Close", today: "Today",
+      detailsTitlePrefix: "", close: "Close", today: "Today",
       dow: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       eventsTitle: "Day events", legendStart: "Start of studies", legendEnd: "End of studies",
       noEventsTitle: "No events", noEventsText: "Pick another day or add an end date for a student.",
@@ -58,11 +60,13 @@
       emptyFilterTitle: "ما فماش نتائج", emptyFilterText: "جرّب كلمة بحث أو قسم آخر.",
       modalAddTitle: "إضافة تلميذ", modalEditTitle: "تعديل معلومات التلميذ",
       firstName: "الاسم", lastName: "اللقب", level: "القسم",
+      gender: "الجنس", genderPlaceholder: "اختر...", genderMale: "ذكر", genderFemale: "أنثى",
       startDate: "تاريخ بداية الدراسة", endDate: "تاريخ الانتهاء", optional: "(اختياري)",
+      endDateHint: "يتحسب تلقائيًا: شهر بعد تاريخ البداية ناقص يوم — تنجم تبدّلو.",
       notes: "ملاحظات", notesPlaceholder: "أي معلومة إضافية على التلميذ...",
-      cancel: "إلغاء", add: "إضافة", saveChanges: "حفظ التعديلات",
+      cancel: "إلغاء", add: "إضافة", saveChanges: "حفظ التعديلات", viewDetails: "التفاصيل",
       deleteConfirm: function (name) { return "تأكد باش تحذف " + name + "؟"; },
-      notesModalPrefix: "ملاحظات — ", close: "إغلاق", today: "اليوم",
+      detailsTitlePrefix: "", close: "إغلاق", today: "اليوم",
       dow: ["إثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت", "أحد"],
       eventsTitle: "أحداث اليوم", legendStart: "بداية الدراسة", legendEnd: "نهاية الدراسة",
       noEventsTitle: "ما فماش أحداث", noEventsText: "اختر يوم آخر أو زيد تاريخ انتهاء لتلميذ.",
@@ -96,8 +100,14 @@
     firstName: document.getElementById("firstName"),
     lastName: document.getElementById("lastName"),
     level: document.getElementById("level"),
+    gender: document.getElementById("gender"),
+    lblGender: document.getElementById("lblGender"),
+    genderPlaceholderOpt: document.getElementById("genderPlaceholderOpt"),
+    genderMaleOpt: document.getElementById("genderMaleOpt"),
+    genderFemaleOpt: document.getElementById("genderFemaleOpt"),
     startDate: document.getElementById("startDate"),
     endDate: document.getElementById("endDate"),
+    endDateHint: document.getElementById("endDateHint"),
     notes: document.getElementById("notes"),
     cancelBtn: document.getElementById("cancelBtn"),
     submitBtn: document.getElementById("submitBtn"),
@@ -170,6 +180,15 @@
     div.textContent = str == null ? "" : str;
     return div.innerHTML;
   }
+  function autoEndDate(startIso) {
+    var parts = startIso.split("-");
+    var y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
+    if (!y || !m || !d) return "";
+    var dt = new Date(y, m, d); // same day, next month (m is 0-indexed next month)
+    dt.setDate(dt.getDate() - 1); // minus 1 day
+    var yy = dt.getFullYear(), mm = String(dt.getMonth() + 1).padStart(2, "0"), dd = String(dt.getDate()).padStart(2, "0");
+    return yy + "-" + mm + "-" + dd;
+  }
   function toDateKey(d) {
     var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
     return y + "-" + m + "-" + day;
@@ -221,9 +240,14 @@
     els.lblFirstName.textContent = t("firstName");
     els.lblLastName.textContent = t("lastName");
     els.lblLevel.textContent = t("level");
+    els.lblGender.textContent = t("gender");
+    els.genderPlaceholderOpt.textContent = t("genderPlaceholder");
+    els.genderMaleOpt.textContent = t("genderMale");
+    els.genderFemaleOpt.textContent = t("genderFemale");
     els.lblStartDate.textContent = t("startDate");
     els.lblEndDateText.textContent = t("endDate");
     els.lblEndDateOptional.textContent = t("optional");
+    els.endDateHint.textContent = t("endDateHint");
     els.lblNotesText.textContent = t("notes");
     els.lblNotesOptional.textContent = t("optional");
     els.notes.placeholder = t("notesPlaceholder");
@@ -293,6 +317,14 @@
       });
   }
 
+  var MALE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7.5" r="3.3"/><path d="M5 20c0-3.9 3.1-6.4 7-6.4s7 2.5 7 6.4"/></svg>';
+  var FEMALE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7.5" r="3.3"/><path d="M12 10.8c-3.2 0-5.4 2.1-6 4.9-.1.6.4 1.1 1 1.1h3l-.4 3.2h4.8l-.4-3.2h3c.6 0 1.1-.5 1-1.1-.6-2.8-2.8-4.9-6-4.9Z"/></svg>';
+
+  function avatarMarkup(gender) {
+    var isFemale = gender === "female";
+    return '<div class="avatar' + (isFemale ? " avatar-female" : "") + '">' + (isFemale ? FEMALE_ICON : MALE_ICON) + "</div>";
+  }
+
   function renderTable() {
     var list = getFilteredStudents();
 
@@ -305,31 +337,43 @@
       return;
     }
 
-    var rows = list.map(function (s) {
+    els.tableWrap.innerHTML = list.map(function (s) {
       var badgeClass = LEVEL_CATEGORY[s.level] === "lycee" ? "badge-lycee" : "badge-college";
       var hasNotes = s.notes && s.notes.trim().length > 0;
-      var noteCell = hasNotes
-        ? '<button type="button" class="note-btn" data-action="note" data-id="' + s.id + '">📝</button>'
-        : '<span class="muted-cell">—</span>';
+      var notesRow = hasNotes
+        ? '<div class="card-notes-row">📝 ' + escapeHtml(s.notes) + "</div>"
+        : "";
       return (
-        "<tr>" +
-        '<td data-label="' + t("thName") + '" class="name-cell">' + escapeHtml(s.firstName) + " " + escapeHtml(s.lastName) + "</td>" +
-        '<td data-label="' + t("thLevel") + '"><span class="badge ' + badgeClass + '">' + escapeHtml(levelLabel(s.level)) + "</span></td>" +
-        '<td data-label="' + t("thStart") + '">' + formatDate(s.startDate) + "</td>" +
-        '<td data-label="' + t("thEnd") + '" class="muted-cell">' + formatDate(s.endDate) + "</td>" +
-        '<td data-label="' + t("thNotes") + '">' + noteCell + "</td>" +
-        '<td data-label=""><div class="row-actions">' +
-          '<button type="button" class="btn-edit-text" data-action="edit" data-id="' + s.id + '">' + t("edit") + "</button>" +
-          '<button type="button" class="btn-danger-text" data-action="delete" data-id="' + s.id + '">' + t("delete") + "</button>" +
-        "</div></td>" +
-        "</tr>"
+        '<div class="student-card" data-id="' + s.id + '">' +
+          '<div class="card-top">' +
+            '<div class="card-identity">' +
+              avatarMarkup(s.gender) +
+              "<div>" +
+                '<p class="card-name">' + escapeHtml(s.firstName) + " " + escapeHtml(s.lastName) + "</p>" +
+                '<p class="card-sub"><span class="badge ' + badgeClass + '">' + escapeHtml(levelLabel(s.level)) + "</span></p>" +
+              "</div>" +
+            "</div>" +
+            '<div class="card-menu">' +
+              '<button type="button" class="kebab-btn" data-action="kebab" data-id="' + s.id + '">' +
+                '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>' +
+              "</button>" +
+              '<div class="kebab-menu" data-menu-id="' + s.id + '">' +
+                '<button type="button" data-action="delete" data-id="' + s.id + '">' + t("delete") + "</button>" +
+              "</div>" +
+            "</div>" +
+          "</div>" +
+          '<div class="card-stats">' +
+            '<div class="card-stat"><span>' + t("thStart") + '</span><b>' + formatDate(s.startDate) + "</b></div>" +
+            '<div class="card-stat"><span>' + t("thEnd") + '</span><b>' + formatDate(s.endDate) + "</b></div>" +
+          "</div>" +
+          notesRow +
+          '<div class="card-actions">' +
+            '<button type="button" class="btn btn-ghost" data-action="edit" data-id="' + s.id + '">' + t("edit") + "</button>" +
+            '<button type="button" class="btn btn-primary" data-action="details" data-id="' + s.id + '">' + t("viewDetails") + "</button>" +
+          "</div>" +
+        "</div>"
       );
     }).join("");
-
-    els.tableWrap.innerHTML =
-      "<table><thead><tr>" +
-      "<th>" + t("thName") + "</th><th>" + t("thLevel") + "</th><th>" + t("thStart") + "</th><th>" + t("thEnd") + "</th><th>" + t("thNotes") + "</th><th></th>" +
-      "</tr></thead><tbody>" + rows + "</tbody></table>";
   }
 
   function renderStudentsPage() {
@@ -347,14 +391,18 @@
       els.firstName.value = student.firstName;
       els.lastName.value = student.lastName;
       els.level.value = student.level;
+      els.gender.value = student.gender || "";
       els.startDate.value = student.startDate;
       els.endDate.value = student.endDate || "";
       els.notes.value = student.notes || "";
+      els.endDate.dataset.auto = student.endDate ? "false" : "true";
     } else {
       els.modalTitle.textContent = t("modalAddTitle");
       els.submitBtn.textContent = t("add");
       els.studentId.value = "";
       els.level.value = LEVELS[0];
+      els.gender.value = "";
+      els.endDate.dataset.auto = "true";
     }
     els.modalOverlay.classList.add("open");
     els.firstName.focus();
@@ -368,11 +416,12 @@
       firstName: els.firstName.value.trim(),
       lastName: els.lastName.value.trim(),
       level: els.level.value,
+      gender: els.gender.value,
       startDate: els.startDate.value,
       endDate: els.endDate.value || "",
       notes: els.notes.value.trim()
     };
-    if (!data.firstName || !data.lastName || !data.level || !data.startDate) return;
+    if (!data.firstName || !data.lastName || !data.level || !data.gender || !data.startDate) return;
 
     if (id) {
       students = students.map(function (s) { return s.id === id ? Object.assign({}, s, data) : s; });
@@ -387,28 +436,51 @@
   }
 
   function openNoteModal(student) {
-    els.noteModalTitle.textContent = t("notesModalPrefix") + student.firstName + " " + student.lastName;
-    els.noteModalBody.textContent = student.notes;
+    els.noteModalTitle.textContent = student.firstName + " " + student.lastName;
+    var badgeClass = LEVEL_CATEGORY[student.level] === "lycee" ? "badge-lycee" : "badge-college";
+    var genderLabel = student.gender === "female" ? t("genderFemale") : (student.gender === "male" ? t("genderMale") : "—");
+    var html =
+      '<div class="detail-row"><span>' + t("thLevel") + '</span><b><span class="badge ' + badgeClass + '">' + escapeHtml(levelLabel(student.level)) + "</span></b></div>" +
+      '<div class="detail-row"><span>' + t("gender") + "</span><b>" + genderLabel + "</b></div>" +
+      '<div class="detail-row"><span>' + t("thStart") + "</span><b>" + formatDate(student.startDate) + "</b></div>" +
+      '<div class="detail-row"><span>' + t("thEnd") + "</span><b>" + formatDate(student.endDate) + "</b></div>";
+    if (student.notes && student.notes.trim()) {
+      html += '<div class="detail-notes">' + escapeHtml(student.notes) + "</div>";
+    }
+    els.noteModalBody.innerHTML = html;
     els.noteModalOverlay.classList.add("open");
   }
   function closeNoteModal() { els.noteModalOverlay.classList.remove("open"); }
 
+  function closeAllKebabMenus() {
+    document.querySelectorAll(".kebab-menu.open").forEach(function (m) { m.classList.remove("open"); });
+  }
+
   function handleTableClick(e) {
     var btn = e.target.closest("button[data-action]");
-    if (!btn) return;
+    if (!btn) { closeAllKebabMenus(); return; }
     var id = btn.getAttribute("data-id");
     var student = students.filter(function (s) { return s.id === id; })[0];
+
+    if (btn.dataset.action === "kebab") {
+      var menu = document.querySelector('.kebab-menu[data-menu-id="' + id + '"]');
+      var wasOpen = menu && menu.classList.contains("open");
+      closeAllKebabMenus();
+      if (menu && !wasOpen) menu.classList.add("open");
+      return;
+    }
     if (!student) return;
 
     if (btn.dataset.action === "edit") {
       openModal("edit", student);
     } else if (btn.dataset.action === "delete") {
+      closeAllKebabMenus();
       if (confirm(t("deleteConfirm")(student.firstName + " " + student.lastName))) {
         students = students.filter(function (s) { return s.id !== id; });
         saveStudents();
         renderStudentsPage();
       }
-    } else if (btn.dataset.action === "note") {
+    } else if (btn.dataset.action === "details") {
       openNoteModal(student);
     }
   }
@@ -500,6 +572,13 @@
     btn.addEventListener("click", function () { setLang(btn.dataset.lang); });
   });
 
+  els.startDate.addEventListener("input", function () {
+    if (els.endDate.dataset.auto !== "false" && els.startDate.value) {
+      els.endDate.value = autoEndDate(els.startDate.value);
+    }
+  });
+  els.endDate.addEventListener("input", function () { els.endDate.dataset.auto = "false"; });
+
   els.openAddBtn.addEventListener("click", function () { openModal("add"); });
   els.cancelBtn.addEventListener("click", closeModal);
   els.modalOverlay.addEventListener("click", function (e) { if (e.target === els.modalOverlay) closeModal(); });
@@ -516,10 +595,15 @@
   els.calNextBtn.addEventListener("click", function () { calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1); renderCalendar(); });
   els.calTodayBtn.addEventListener("click", function () { calendarCursor = new Date(); selectedDate = new Date(); renderCalendar(); });
 
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest(".card-menu")) closeAllKebabMenus();
+  });
+
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
     if (els.modalOverlay.classList.contains("open")) closeModal();
     if (els.noteModalOverlay.classList.contains("open")) closeNoteModal();
+    closeAllKebabMenus();
   });
 
   /* ---------------- init ---------------- */
