@@ -218,9 +218,11 @@
     document.documentElement.lang = currentLang;
     document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
 
-    els.langSwitch.querySelectorAll(".lang-btn").forEach(function (b) {
-      b.classList.toggle("active", b.dataset.lang === currentLang);
-    });
+    if (els.langSwitch) {
+      els.langSwitch.querySelectorAll(".lang-btn").forEach(function (b) {
+        b.classList.toggle("active", b.dataset.lang === currentLang);
+      });
+    }
 
     els.pillStudentsLabel.textContent = t("navStudents");
     els.pillCalendarLabel.textContent = t("navCalendar");
@@ -564,9 +566,11 @@
   document.querySelectorAll(".nav-target").forEach(function (btn) {
     btn.addEventListener("click", function () { switchPage(btn.dataset.page); });
   });
-  els.langSwitch.querySelectorAll(".lang-btn").forEach(function (btn) {
-    btn.addEventListener("click", function () { setLang(btn.dataset.lang); });
-  });
+  if (els.langSwitch) {
+    els.langSwitch.querySelectorAll(".lang-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () { setLang(btn.dataset.lang); });
+    });
+  }
 
   els.startDate.addEventListener("input", function () {
     if (els.endDate.dataset.auto !== "false" && els.startDate.value) {
