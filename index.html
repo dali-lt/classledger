@@ -13,34 +13,31 @@
 <body>
 
 <div class="app-shell">
-  <aside class="sidebar">
-    <div class="brand">
-      <span class="brand-dot"></span>
-      <span class="brand-mark">Class<span>Ledger</span></span>
-    </div>
-
-    <div class="lang-switch" id="langSwitch">
-      <button type="button" class="lang-btn" data-lang="en">EN</button>
-      <button type="button" class="lang-btn" data-lang="ar">AR</button>
-    </div>
-
-    <nav class="nav">
-      <button class="nav-item active" data-page="students" type="button">
+  <aside class="icon-rail">
+    <div class="rail-brand"><span class="brand-dot"></span></div>
+    <nav class="rail-nav">
+      <button class="nav-target rail-btn active" data-page="students" type="button" title="Students">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
-        <span id="navStudentsLabel"></span>
       </button>
-      <button class="nav-item" data-page="calendar" type="button">
+      <button class="nav-target rail-btn" data-page="calendar" type="button" title="Calendar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3"/></svg>
-        <span id="navCalendarLabel"></span>
       </button>
     </nav>
-    <div class="sidebar-foot">
-      <b id="sideTotal">0</b>
-      <span id="sideTotalLabel"></span>
-    </div>
   </aside>
 
   <div class="main-area">
+    <div class="topbar">
+      <span class="brand-mark">Class<span>Ledger</span></span>
+      <div class="nav-pills">
+        <button class="nav-target pill active" data-page="students" type="button" id="pillStudentsLabel"></button>
+        <button class="nav-target pill" data-page="calendar" type="button" id="pillCalendarLabel"></button>
+      </div>
+      <div class="lang-switch" id="langSwitch">
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="ar">AR</button>
+      </div>
+    </div>
+
     <header class="page-header">
       <div>
         <h1 id="pageTitle"></h1>

@@ -78,10 +78,8 @@
   function levelLabel(value) { return LEVEL_LABELS[currentLang][value] || value; }
 
   var els = {
-    sideTotal: document.getElementById("sideTotal"),
-    sideTotalLabel: document.getElementById("sideTotalLabel"),
-    navStudentsLabel: document.getElementById("navStudentsLabel"),
-    navCalendarLabel: document.getElementById("navCalendarLabel"),
+    pillStudentsLabel: document.getElementById("pillStudentsLabel"),
+    pillCalendarLabel: document.getElementById("pillCalendarLabel"),
     pageTitle: document.getElementById("pageTitle"),
     pageDate: document.getElementById("pageDate"),
     heroGreeting: document.getElementById("heroGreeting"),
@@ -224,9 +222,8 @@
       b.classList.toggle("active", b.dataset.lang === currentLang);
     });
 
-    els.navStudentsLabel.textContent = t("navStudents");
-    els.navCalendarLabel.textContent = t("navCalendar");
-    els.sideTotalLabel.textContent = t("sidebarTotal");
+    els.pillStudentsLabel.textContent = t("navStudents");
+    els.pillCalendarLabel.textContent = t("navCalendar");
     els.heroText.textContent = t("heroText");
     els.openAddBtn.textContent = t("addStudent");
     els.searchInput.placeholder = t("searchPlaceholder");
@@ -271,7 +268,7 @@
   /* ---------------- navigation ---------------- */
   function switchPage(pageName) {
     currentPage = pageName;
-    document.querySelectorAll(".nav-item").forEach(function (btn) {
+    document.querySelectorAll(".nav-target").forEach(function (btn) {
       btn.classList.toggle("active", btn.dataset.page === pageName);
     });
     document.querySelectorAll(".page").forEach(function (sec) {
@@ -290,7 +287,6 @@
     LEVELS.forEach(function (l) { counts[l] = 0; });
     students.forEach(function (s) { if (counts[s.level] !== undefined) counts[s.level]++; });
 
-    els.sideTotal.textContent = total;
 
     var chipsHtml = LEVELS.map(function (l) {
       return '<span class="chip">' + levelLabel(l) + ": <b>" + counts[l] + "</b></span>";
@@ -565,7 +561,7 @@
   }
 
   /* ---------------- events ---------------- */
-  document.querySelectorAll(".nav-item").forEach(function (btn) {
+  document.querySelectorAll(".nav-target").forEach(function (btn) {
     btn.addEventListener("click", function () { switchPage(btn.dataset.page); });
   });
   els.langSwitch.querySelectorAll(".lang-btn").forEach(function (btn) {
