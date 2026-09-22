@@ -29,12 +29,14 @@
     <div class="topbar">
       <span class="brand-mark">Class<span>Ledger</span></span>
       <div class="nav-pills">
-        <button class="nav-target pill active" data-page="students" type="button" id="pillStudentsLabel"></button>
-        <button class="nav-target pill" data-page="calendar" type="button" id="pillCalendarLabel"></button>
-      </div>
-      <div class="lang-switch" id="langSwitch">
-        <button type="button" class="lang-btn" data-lang="en">EN</button>
-        <button type="button" class="lang-btn" data-lang="ar">AR</button>
+        <button class="nav-target pill active" data-page="students" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
+          <span id="pillStudentsLabel"></span>
+        </button>
+        <button class="nav-target pill" data-page="calendar" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3"/></svg>
+          <span id="pillCalendarLabel"></span>
+        </button>
       </div>
     </div>
 
@@ -150,6 +152,11 @@
 </div>
 
 <script src="JS/script.js"></script>
+
+<div class="lang-switch lang-switch-floating" id="langSwitch">
+  <button type="button" class="lang-btn" data-lang="en">EN</button>
+  <button type="button" class="lang-btn" data-lang="ar">AR</button>
+</div>
 
 </body>
 </html>
