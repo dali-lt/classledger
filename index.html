@@ -1,162 +1,306 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr" data-theme="light">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ClassLedger</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="CSS/style.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>ClassLedger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="CSS/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="icon-rail">
+        <div class="rail-brand"><span class="brand-dot"></span></div>
+        <nav class="rail-nav">
+          <button
+            class="nav-target rail-btn active"
+            data-page="students"
+            type="button"
+            title="Students"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <circle cx="12" cy="8" r="3.2" />
+              <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" />
+            </svg>
+          </button>
+          <button
+            class="nav-target rail-btn"
+            data-page="calendar"
+            type="button"
+            title="Calendar"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+              <path d="M3.5 9.5h17M8 3v3M16 3v3" />
+            </svg>
+          </button>
+        </nav>
+      </aside>
 
-</head>
-<body>
-
-<div class="app-shell">
-  <aside class="icon-rail">
-    <div class="rail-brand"><span class="brand-dot"></span></div>
-    <nav class="rail-nav">
-      <button class="nav-target rail-btn active" data-page="students" type="button" title="Students">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
-      </button>
-      <button class="nav-target rail-btn" data-page="calendar" type="button" title="Calendar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3"/></svg>
-      </button>
-    </nav>
-  </aside>
-
-  <div class="main-area">
-    <div class="topbar">
-      <span class="brand-mark">Class<span>Ledger</span></span>
-      <div class="nav-pills">
-        <button class="nav-target pill active" data-page="students" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
-          <span id="pillStudentsLabel"></span>
-        </button>
-        <button class="nav-target pill" data-page="calendar" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3"/></svg>
-          <span id="pillCalendarLabel"></span>
-        </button>
-      </div>
-    </div>
-
-    <header class="page-header">
-      <div>
-        <h1 id="pageTitle"></h1>
-        <p class="page-date" id="pageDate"></p>
-      </div>
-      <div class="header-actions" id="actionsStudents">
-        <button class="btn btn-primary" id="openAddBtn" type="button"></button>
-      </div>
-      <div class="header-actions" id="actionsCalendar" style="display:none;">
-        <button class="btn-icon" id="calPrevBtn" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
-        </button>
-        <button class="btn btn-ghost" id="calTodayBtn" type="button"></button>
-        <button class="btn-icon" id="calNextBtn" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
-        </button>
-      </div>
-    </header>
-
-    <main>
-      <!-- ================= STUDENTS PAGE ================= -->
-      <section class="page active" id="page-students">
-        <div class="hero">
-          <svg class="hero-blob" viewBox="0 0 400 140" preserveAspectRatio="none">
-            <circle cx="360" cy="15" r="80" fill="#136CFC" opacity="0.06"/>
-            <circle cx="330" cy="95" r="50" fill="#C3F84A" opacity="0.14"/>
-            <circle cx="405" cy="115" r="34" fill="#136CFC" opacity="0.10"/>
-          </svg>
-          <div class="hero-content">
-            <h2 id="heroGreeting"></h2>
-            <p id="heroText"></p>
+      <div class="main-area">
+        <div class="topbar">
+          <span class="brand-mark">Class<span>Ledger</span></span>
+          <div class="nav-pills">
+            <button
+              class="nav-target pill active"
+              data-page="students"
+              type="button"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <circle cx="12" cy="8" r="3.2" />
+                <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" />
+              </svg>
+              <span id="pillStudentsLabel"></span>
+            </button>
+            <button class="nav-target pill" data-page="calendar" type="button">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                <path d="M3.5 9.5h17M8 3v3M16 3v3" />
+              </svg>
+              <span id="pillCalendarLabel"></span>
+            </button>
+          </div>
+          <div class="lang-switch" id="langSwitch">
+            <button type="button" class="lang-btn" data-lang="en">EN</button>
+            <button type="button" class="lang-btn" data-lang="ar">AR</button>
           </div>
         </div>
 
-        <div class="stats" id="statsBar"></div>
-
-        <div class="controls">
-          <input type="text" class="search-input" id="searchInput">
-          <select class="filter-select" id="levelFilter"></select>
-        </div>
-
-        <div class="cards-grid" id="tableWrap"></div>
-      </section>
-
-      <!-- ================= CALENDAR PAGE ================= -->
-      <section class="page" id="page-calendar">
-        <div class="calendar-layout">
-          <div class="calendar-card">
-            <p class="calendar-title" id="calMonthLabel"></p>
-            <div class="cal-grid" id="calGrid"></div>
+        <header class="page-header">
+          <div>
+            <h1 id="pageTitle"></h1>
+            <p class="page-date" id="pageDate"></p>
           </div>
-          <div class="events-card">
-            <h3 id="eventsTitle"></h3>
-            <p class="sub" id="eventsSub"></p>
-            <div class="legend">
-              <span><i style="background:var(--color-primary)"></i><span id="legendStartLabel"></span></span>
-              <span><i style="background:var(--color-accent-ink)"></i><span id="legendEndLabel"></span></span>
+          <div class="header-actions" id="actionsStudents">
+            <button
+              class="btn btn-primary"
+              id="openAddBtn"
+              type="button"
+            ></button>
+          </div>
+          <div
+            class="header-actions"
+            id="actionsCalendar"
+            style="display: none"
+          >
+            <button class="btn-icon" id="calPrevBtn" type="button">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M15 6l-6 6 6 6" />
+              </svg>
+            </button>
+            <button
+              class="btn btn-ghost"
+              id="calTodayBtn"
+              type="button"
+            ></button>
+            <button class="btn-icon" id="calNextBtn" type="button">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <main>
+          <!-- ================= STUDENTS PAGE ================= -->
+          <section class="page active" id="page-students">
+            <div class="hero">
+              <svg
+                class="hero-blob"
+                viewBox="0 0 400 140"
+                preserveAspectRatio="none"
+              >
+                <circle cx="360" cy="15" r="80" fill="#136CFC" opacity="0.06" />
+                <circle cx="330" cy="95" r="50" fill="#C3F84A" opacity="0.14" />
+                <circle
+                  cx="405"
+                  cy="115"
+                  r="34"
+                  fill="#136CFC"
+                  opacity="0.10"
+                />
+              </svg>
+              <div class="hero-content">
+                <h2 id="heroGreeting"></h2>
+                <p id="heroText"></p>
+              </div>
             </div>
-            <div id="eventsList"></div>
-          </div>
+
+            <div class="stats" id="statsBar"></div>
+
+            <div class="controls">
+              <input type="text" class="search-input" id="searchInput" />
+              <select class="filter-select" id="levelFilter"></select>
+            </div>
+
+            <div class="cards-grid" id="tableWrap"></div>
+          </section>
+
+          <!-- ================= CALENDAR PAGE ================= -->
+          <section class="page" id="page-calendar">
+            <div class="calendar-layout">
+              <div class="calendar-card">
+                <p class="calendar-title" id="calMonthLabel"></p>
+                <div class="cal-grid" id="calGrid"></div>
+              </div>
+              <div class="events-card">
+                <h3 id="eventsTitle"></h3>
+                <p class="sub" id="eventsSub"></p>
+                <div class="legend">
+                  <span
+                    ><i style="background: var(--color-primary)"></i
+                    ><span id="legendStartLabel"></span
+                  ></span>
+                  <span
+                    ><i style="background: var(--color-accent-ink)"></i
+                    ><span id="legendEndLabel"></span
+                  ></span>
+                </div>
+                <div id="eventsList"></div>
+              </div>
+            </div>
+          </section>
+        </main>
+        <div class="data-reset-area">
+          <button
+            type="button"
+            class="data-reset-btn"
+            id="clearDataBtn"
+            aria-label="Clear all student data"
+            title="Clear all student data"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <path d="M4 7h16M9 7V4h6v3m-9 0 1 13h8l1-13M10 11v5m4-5v5" />
+            </svg>
+            <span id="clearDataLabel">Clear all data</span>
+          </button>
         </div>
-      </section>
-    </main>
-  </div>
-</div>
-
-<!-- ============ Add/Edit Modal ============ -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <h2 id="modalTitle"></h2>
-    <form id="studentForm">
-      <input type="hidden" id="studentId">
-      <div class="field-row">
-        <div class="field"><label id="lblFirstName" for="firstName"></label><input type="text" id="firstName" required></div>
-        <div class="field"><label id="lblLastName" for="lastName"></label><input type="text" id="lastName" required></div>
       </div>
-      <div class="field-row">
-        <div class="field"><label id="lblLevel" for="level"></label><select id="level" required></select></div>
-        <div class="field"><label id="lblGender" for="gender"></label><select id="gender" required>
-          <option value="" id="genderPlaceholderOpt"></option>
-          <option value="male" id="genderMaleOpt"></option>
-          <option value="female" id="genderFemaleOpt"></option>
-        </select></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label id="lblStartDate" for="startDate"></label><input type="date" id="startDate" required></div>
-        <div class="field"><label id="lblEndDate" for="endDate"><span id="lblEndDateText"></span> <span class="optional" id="lblEndDateOptional"></span></label><input type="date" id="endDate"><small id="endDateHint" class="field-hint"></small></div>
-      </div>
-      <div class="field">
-        <label id="lblNotes" for="notes"><span id="lblNotesText"></span> <span class="optional" id="lblNotesOptional"></span></label>
-        <textarea id="notes" rows="3"></textarea>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="cancelBtn"></button>
-        <button type="submit" class="btn btn-primary" id="submitBtn"></button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- ============ Student details modal ============ -->
-<div class="modal-overlay" id="noteModalOverlay">
-  <div class="modal" style="max-width:380px;">
-    <h2 id="noteModalTitle">Details</h2>
-    <div id="noteModalBody"></div>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-primary" id="noteCloseBtn"></button>
     </div>
-  </div>
-</div>
 
-<script src="JS/script.js"></script>
+    <!-- ============ Add/Edit Modal ============ -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal">
+        <h2 id="modalTitle"></h2>
+        <form id="studentForm">
+          <input type="hidden" id="studentId" />
+          <div class="field-row">
+            <div class="field">
+              <label id="lblFirstName" for="firstName"></label
+              ><input type="text" id="firstName" required />
+            </div>
+            <div class="field">
+              <label id="lblLastName" for="lastName"></label
+              ><input type="text" id="lastName" required />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label id="lblLevel" for="level"></label
+              ><select id="level" required></select>
+            </div>
+            <div class="field">
+              <label id="lblGender" for="gender"></label
+              ><select id="gender" required>
+                <option value="" id="genderPlaceholderOpt"></option>
+                <option value="male" id="genderMaleOpt"></option>
+                <option value="female" id="genderFemaleOpt"></option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label id="lblStartDate" for="startDate"></label
+              ><input type="date" id="startDate" required />
+            </div>
+            <div class="field">
+              <label id="lblEndDate" for="endDate"
+                ><span id="lblEndDateText"></span>
+                <span class="optional" id="lblEndDateOptional"></span></label
+              ><input type="date" id="endDate" /><small
+                id="endDateHint"
+                class="field-hint"
+              ></small>
+            </div>
+          </div>
+          <div class="field">
+            <label id="lblNotes" for="notes"
+              ><span id="lblNotesText"></span>
+              <span class="optional" id="lblNotesOptional"></span
+            ></label>
+            <textarea id="notes" rows="3"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" id="cancelBtn"></button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              id="submitBtn"
+            ></button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-<div class="lang-switch lang-switch-floating" id="langSwitch">
-  <button type="button" class="lang-btn" data-lang="en">EN</button>
-  <button type="button" class="lang-btn" data-lang="ar">AR</button>
-</div>
+    <!-- ============ Student details modal ============ -->
+    <div class="modal-overlay" id="noteModalOverlay">
+      <div class="modal" style="max-width: 380px">
+        <h2 id="noteModalTitle">Details</h2>
+        <div id="noteModalBody"></div>
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="noteCloseBtn"
+          ></button>
+        </div>
+      </div>
+    </div>
 
-</body>
+    <script src="JS/script.js"></script>
+  </body>
 </html>

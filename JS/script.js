@@ -4,78 +4,182 @@
   var STORAGE_KEY = "classledger:students";
   var LANG_KEY = "classledger:lang";
 
-  var LEVELS = ["7 أساسي", "8 أساسي", "9 أساسي", "1 ثانوي", "2 ثانوي", "3 ثانوي", "4 ثانوي"];
+  var LEVELS = [
+    "7 أساسي",
+    "8 أساسي",
+    "9 أساسي",
+    "1 ثانوي",
+    "2 ثانوي",
+    "3 ثانوي",
+    "4 ثانوي",
+  ];
   var LEVEL_CATEGORY = {
-    "7 أساسي": "college", "8 أساسي": "college", "9 أساسي": "college",
-    "1 ثانوي": "lycee", "2 ثانوي": "lycee", "3 ثانوي": "lycee", "4 ثانوي": "lycee"
+    "7 أساسي": "college",
+    "8 أساسي": "college",
+    "9 أساسي": "college",
+    "1 ثانوي": "lycee",
+    "2 ثانوي": "lycee",
+    "3 ثانوي": "lycee",
+    "4 ثانوي": "lycee",
   };
   var LEVEL_LABELS = {
     en: {
-      "7 أساسي": "7th Grade", "8 أساسي": "8th Grade", "9 أساسي": "9th Grade",
-      "1 ثانوي": "1st Form (Lycée)", "2 ثانوي": "2nd Form (Lycée)",
-      "3 ثانوي": "3rd Form (Lycée)", "4 ثانوي": "4th Form / Bac"
+      "7 أساسي": "7th Grade",
+      "8 أساسي": "8th Grade",
+      "9 أساسي": "9th Grade",
+      "1 ثانوي": "1st Form (Lycée)",
+      "2 ثانوي": "2nd Form (Lycée)",
+      "3 ثانوي": "3rd Form (Lycée)",
+      "4 ثانوي": "4th Form / Bac",
     },
     ar: {
-      "7 أساسي": "7 أساسي", "8 أساسي": "8 أساسي", "9 أساسي": "9 أساسي",
-      "1 ثانوي": "1 ثانوي", "2 ثانوي": "2 ثانوي", "3 ثانوي": "3 ثانوي", "4 ثانوي": "4 ثانوي"
-    }
+      "7 أساسي": "7 أساسي",
+      "8 أساسي": "8 أساسي",
+      "9 أساسي": "9 أساسي",
+      "1 ثانوي": "1 ثانوي",
+      "2 ثانوي": "2 ثانوي",
+      "3 ثانوي": "3 ثانوي",
+      "4 ثانوي": "4 ثانوي",
+    },
   };
 
   var STR = {
     en: {
-      navStudents: "Students", navCalendar: "Calendar", sidebarTotal: "enrolled students",
-      pageTitleStudents: "Students", pageTitleCalendar: "Calendar",
-      heroMorning: "Good morning 👋", heroDay: "Hello 👋", heroEvening: "Good evening 👋",
-      heroText: "Track your students, add new ones, and keep every detail in one place.",
-      statTotal: "Total students", searchPlaceholder: "Search by first or last name...",
-      allLevels: "All levels", addStudent: "+ Add student",
-      thName: "Name", thLevel: "Level", thStart: "Start date", thEnd: "End date", thNotes: "Notes",
-      edit: "Edit", delete: "Delete",
-      emptyNoneTitle: "No students yet", emptyNoneText: "Add your first student to get started.",
-      emptyFilterTitle: "No results", emptyFilterText: "Try a different search or level.",
-      modalAddTitle: "Add student", modalEditTitle: "Edit student",
-      firstName: "First name", lastName: "Last name", level: "Level",
-      gender: "Gender", genderPlaceholder: "Select...", genderMale: "Male", genderFemale: "Female",
-      startDate: "Start date", endDate: "End date", optional: "(optional)",
-      endDateHint: "Auto-set to 1 month after the start date (minus 1 day) — you can change it.",
-      notes: "Notes", notesPlaceholder: "Any extra info about the student...",
-      cancel: "Cancel", add: "Add", saveChanges: "Save changes", viewDetails: "Details",
-      deleteConfirm: function (name) { return "Delete " + name + "? This can't be undone."; },
-      detailsTitlePrefix: "", close: "Close", today: "Today",
+      navStudents: "Students",
+      navCalendar: "Calendar",
+      sidebarTotal: "enrolled students",
+      pageTitleStudents: "Students",
+      pageTitleCalendar: "Calendar",
+      heroMorning: "Good morning 👋",
+      heroDay: "Hello 👋",
+      heroEvening: "Good evening 👋",
+      heroText:
+        "Track your students, add new ones, and keep every detail in one place.",
+      statTotal: "Total students",
+      searchPlaceholder: "Search by first or last name...",
+      allLevels: "All levels",
+      addStudent: "+ Add student",
+      thName: "Name",
+      thLevel: "Level",
+      thStart: "Start date",
+      thEnd: "End date",
+      thNotes: "Notes",
+      edit: "Edit",
+      delete: "Delete",
+      emptyNoneTitle: "No students yet",
+      emptyNoneText: "Add your first student to get started.",
+      emptyFilterTitle: "No results",
+      emptyFilterText: "Try a different search or level.",
+      modalAddTitle: "Add student",
+      modalEditTitle: "Edit student",
+      firstName: "First name",
+      lastName: "Last name",
+      level: "Level",
+      gender: "Gender",
+      genderPlaceholder: "Select...",
+      genderMale: "Male",
+      genderFemale: "Female",
+      startDate: "Start date",
+      endDate: "End date",
+      optional: "(optional)",
+      endDateHint:
+        "Auto-set to 1 month after the start date (minus 1 day) — you can change it.",
+      notes: "Notes",
+      notesPlaceholder: "Any extra info about the student...",
+      cancel: "Cancel",
+      add: "Add",
+      saveChanges: "Save changes",
+      viewDetails: "Details",
+      deleteConfirm: function (name) {
+        return "Delete " + name + "? This can't be undone.";
+      },
+      detailsTitlePrefix: "",
+      close: "Close",
+      today: "Today",
       dow: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      eventsTitle: "Day events", legendStart: "Start of studies", legendEnd: "End of studies",
-      noEventsTitle: "No events", noEventsText: "Pick another day or add an end date for a student.",
-      saveError: "Could not save data in this browser.", locale: "en-GB"
+      eventsTitle: "Day events",
+      legendStart: "Start of studies",
+      legendEnd: "End of studies",
+      noEventsTitle: "No events",
+      noEventsText: "Pick another day or add an end date for a student.",
+      clearAllConfirm:
+        "Delete all students and their data? This can't be undone.",
+      clearAllButton: "Clear all data",
+      saveError: "Could not save data in this browser.",
+      locale: "en-GB",
     },
     ar: {
-      navStudents: "قائمة التلاميذ", navCalendar: "التقويم", sidebarTotal: "تلميذ مسجّل",
-      pageTitleStudents: "قائمة التلاميذ", pageTitleCalendar: "التقويم",
-      heroMorning: "صباح الخير 👋", heroDay: "مرحبا 👋", heroEvening: "مساء الخير 👋",
-      heroText: "تابع تلاميذك، زيد الجداد، وأرشيف كل معلومة تحتاجها في مكان وحد.",
-      statTotal: "مجموع التلاميذ", searchPlaceholder: "ابحث بالاسم أو اللقب...",
-      allLevels: "كل الأقسام", addStudent: "+ إضافة تلميذ",
-      thName: "الاسم واللقب", thLevel: "القسم", thStart: "تاريخ البداية", thEnd: "تاريخ الانتهاء", thNotes: "ملاحظات",
-      edit: "تعديل", delete: "حذف",
-      emptyNoneTitle: "ما فماش تلاميذ ثما", emptyNoneText: "زيد أول تلميذ باش تبدا في التسيير.",
-      emptyFilterTitle: "ما فماش نتائج", emptyFilterText: "جرّب كلمة بحث أو قسم آخر.",
-      modalAddTitle: "إضافة تلميذ", modalEditTitle: "تعديل معلومات التلميذ",
-      firstName: "الاسم", lastName: "اللقب", level: "القسم",
-      gender: "الجنس", genderPlaceholder: "اختر...", genderMale: "ذكر", genderFemale: "أنثى",
-      startDate: "تاريخ بداية الدراسة", endDate: "تاريخ الانتهاء", optional: "(اختياري)",
-      endDateHint: "يتحسب تلقائيًا: شهر بعد تاريخ البداية ناقص يوم — تنجم تبدّلو.",
-      notes: "ملاحظات", notesPlaceholder: "أي معلومة إضافية على التلميذ...",
-      cancel: "إلغاء", add: "إضافة", saveChanges: "حفظ التعديلات", viewDetails: "التفاصيل",
-      deleteConfirm: function (name) { return "تأكد باش تحذف " + name + "؟"; },
-      detailsTitlePrefix: "", close: "إغلاق", today: "اليوم",
+      navStudents: "قائمة التلاميذ",
+      navCalendar: "التقويم",
+      sidebarTotal: "تلميذ مسجّل",
+      pageTitleStudents: "قائمة التلاميذ",
+      pageTitleCalendar: "التقويم",
+      heroMorning: "صباح الخير 👋",
+      heroDay: "مرحبا 👋",
+      heroEvening: "مساء الخير 👋",
+      heroText:
+        "تابع تلاميذك، زيد الجداد، وأرشيف كل معلومة تحتاجها في مكان وحد.",
+      statTotal: "مجموع التلاميذ",
+      searchPlaceholder: "ابحث بالاسم أو اللقب...",
+      allLevels: "كل الأقسام",
+      addStudent: "+ إضافة تلميذ",
+      thName: "الاسم واللقب",
+      thLevel: "القسم",
+      thStart: "تاريخ البداية",
+      thEnd: "تاريخ الانتهاء",
+      thNotes: "ملاحظات",
+      edit: "تعديل",
+      delete: "حذف",
+      emptyNoneTitle: "ما فماش تلاميذ ثما",
+      emptyNoneText: "زيد أول تلميذ باش تبدا في التسيير.",
+      emptyFilterTitle: "ما فماش نتائج",
+      emptyFilterText: "جرّب كلمة بحث أو قسم آخر.",
+      modalAddTitle: "إضافة تلميذ",
+      modalEditTitle: "تعديل معلومات التلميذ",
+      firstName: "الاسم",
+      lastName: "اللقب",
+      level: "القسم",
+      gender: "الجنس",
+      genderPlaceholder: "اختر...",
+      genderMale: "ذكر",
+      genderFemale: "أنثى",
+      startDate: "تاريخ بداية الدراسة",
+      endDate: "تاريخ الانتهاء",
+      optional: "(اختياري)",
+      endDateHint:
+        "يتحسب تلقائيًا: شهر بعد تاريخ البداية ناقص يوم — تنجم تبدّلو.",
+      notes: "ملاحظات",
+      notesPlaceholder: "أي معلومة إضافية على التلميذ...",
+      cancel: "إلغاء",
+      add: "إضافة",
+      saveChanges: "حفظ التعديلات",
+      viewDetails: "التفاصيل",
+      deleteConfirm: function (name) {
+        return "تأكد باش تحذف " + name + "؟";
+      },
+      detailsTitlePrefix: "",
+      close: "إغلاق",
+      today: "اليوم",
       dow: ["إثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت", "أحد"],
-      eventsTitle: "أحداث اليوم", legendStart: "بداية الدراسة", legendEnd: "نهاية الدراسة",
-      noEventsTitle: "ما فماش أحداث", noEventsText: "اختر يوم آخر أو زيد تاريخ انتهاء لتلميذ.",
-      saveError: "تعذّر حفظ البيانات في هذا المتصفح.", locale: "ar-TN"
-    }
+      eventsTitle: "أحداث اليوم",
+      legendStart: "بداية الدراسة",
+      legendEnd: "نهاية الدراسة",
+      noEventsTitle: "ما فماش أحداث",
+      noEventsText: "اختر يوم آخر أو زيد تاريخ انتهاء لتلميذ.",
+      clearAllConfirm:
+        "تأكد باش تحذف التلامذة الكل ومعلوماتهم؟ العملية ما تتراجعش.",
+      clearAllButton: "مسح جميع البيانات",
+      saveError: "تعذّر حفظ البيانات في هذا المتصفح.",
+      locale: "ar-TN",
+    },
   };
 
-  function t(key) { return STR[currentLang][key]; }
-  function levelLabel(value) { return LEVEL_LABELS[currentLang][value] || value; }
+  function t(key) {
+    return STR[currentLang][key];
+  }
+  function levelLabel(value) {
+    return LEVEL_LABELS[currentLang][value] || value;
+  }
 
   var els = {
     pillStudentsLabel: document.getElementById("pillStudentsLabel"),
@@ -131,7 +235,9 @@
     eventsList: document.getElementById("eventsList"),
     legendStartLabel: document.getElementById("legendStartLabel"),
     legendEndLabel: document.getElementById("legendEndLabel"),
-    langSwitch: document.getElementById("langSwitch")
+    langSwitch: document.getElementById("langSwitch"),
+    clearDataBtn: document.getElementById("clearDataBtn"),
+    clearDataLabel: document.getElementById("clearDataLabel"),
   };
 
   var students = [];
@@ -146,11 +252,34 @@
       var raw = localStorage.getItem(STORAGE_KEY);
       students = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(students)) students = [];
-    } catch (e) { students = []; }
+      var avatarIndexes = { male: 0, female: 0 };
+      students.forEach(function (student) {
+        if (student.avatar) return;
+        student.avatar = getNextAvatar(
+          student.gender,
+          avatarIndexes[student.gender] || 0,
+        );
+        if (avatarIndexes[student.gender] !== undefined)
+          avatarIndexes[student.gender]++;
+      });
+      saveStudents();
+    } catch (e) {
+      students = [];
+    }
   }
   function saveStudents() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(students)); }
-    catch (e) { alert(t("saveError")); }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    } catch (e) {
+      alert(t("saveError"));
+    }
+  }
+  function clearAllData() {
+    if (!confirm(t("clearAllConfirm"))) return;
+    students = [];
+    saveStudents();
+    renderStudentsPage();
+    if (currentPage === "calendar") renderCalendar();
   }
   function loadLang() {
     try {
@@ -159,7 +288,9 @@
     } catch (e) {}
   }
   function saveLang() {
-    try { localStorage.setItem(LANG_KEY, currentLang); } catch (e) {}
+    try {
+      localStorage.setItem(LANG_KEY, currentLang);
+    } catch (e) {}
   }
   function makeId() {
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -171,7 +302,9 @@
     if (!iso) return "—";
     var parts = iso.split("-");
     if (parts.length !== 3) return iso;
-    return currentLang === "ar" ? (parts[2] + "/" + parts[1] + "/" + parts[0]) : (parts[2] + "/" + parts[1] + "/" + parts[0]);
+    return currentLang === "ar"
+      ? parts[2] + "/" + parts[1] + "/" + parts[0]
+      : parts[2] + "/" + parts[1] + "/" + parts[0];
   }
   function escapeHtml(str) {
     var div = document.createElement("div");
@@ -180,19 +313,29 @@
   }
   function autoEndDate(startIso) {
     var parts = startIso.split("-");
-    var y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
+    var y = Number(parts[0]),
+      m = Number(parts[1]),
+      d = Number(parts[2]);
     if (!y || !m || !d) return "";
     var dt = new Date(y, m, d); // same day, next month (m is 0-indexed next month)
     dt.setDate(dt.getDate() - 1); // minus 1 day
-    var yy = dt.getFullYear(), mm = String(dt.getMonth() + 1).padStart(2, "0"), dd = String(dt.getDate()).padStart(2, "0");
+    var yy = dt.getFullYear(),
+      mm = String(dt.getMonth() + 1).padStart(2, "0"),
+      dd = String(dt.getDate()).padStart(2, "0");
     return yy + "-" + mm + "-" + dd;
   }
   function toDateKey(d) {
-    var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
+    var y = d.getFullYear(),
+      m = String(d.getMonth() + 1).padStart(2, "0"),
+      day = String(d.getDate()).padStart(2, "0");
     return y + "-" + m + "-" + day;
   }
   function sameDay(a, b) {
-    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
   }
 
   function populateLevelSelects() {
@@ -208,9 +351,19 @@
 
   function setHeaderDate() {
     var now = new Date();
-    els.pageDate.textContent = now.toLocaleDateString(t("locale"), { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    els.pageDate.textContent = now.toLocaleDateString(t("locale"), {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
     var hour = now.getHours();
-    els.heroGreeting.textContent = hour < 12 ? t("heroMorning") : (hour < 18 ? t("heroDay") : t("heroEvening"));
+    els.heroGreeting.textContent =
+      hour < 12
+        ? t("heroMorning")
+        : hour < 18
+          ? t("heroDay")
+          : t("heroEvening");
   }
 
   /* ---------------- language ---------------- */
@@ -228,13 +381,22 @@
     els.pillCalendarLabel.textContent = t("navCalendar");
     els.heroText.textContent = t("heroText");
     els.openAddBtn.textContent = t("addStudent");
+    els.clearDataLabel.textContent = t("clearAllButton");
+    els.clearDataBtn.setAttribute("aria-label", t("clearAllButton"));
+    els.clearDataBtn.setAttribute("title", t("clearAllButton"));
     els.searchInput.placeholder = t("searchPlaceholder");
     els.eventsTitle.textContent = t("eventsTitle");
     els.legendStartLabel.textContent = t("legendStart");
     els.legendEndLabel.textContent = t("legendEnd");
     els.calTodayBtn.textContent = t("today");
-    els.calPrevBtn.setAttribute("aria-label", currentLang === "ar" ? "الشهر السابق" : "Previous month");
-    els.calNextBtn.setAttribute("aria-label", currentLang === "ar" ? "الشهر القادم" : "Next month");
+    els.calPrevBtn.setAttribute(
+      "aria-label",
+      currentLang === "ar" ? "الشهر السابق" : "Previous month",
+    );
+    els.calNextBtn.setAttribute(
+      "aria-label",
+      currentLang === "ar" ? "الشهر القادم" : "Next month",
+    );
 
     els.lblFirstName.textContent = t("firstName");
     els.lblLastName.textContent = t("lastName");
@@ -253,7 +415,10 @@
     els.cancelBtn.textContent = t("cancel");
     els.noteCloseBtn.textContent = t("close");
 
-    els.pageTitle.textContent = currentPage === "students" ? t("pageTitleStudents") : t("pageTitleCalendar");
+    els.pageTitle.textContent =
+      currentPage === "students"
+        ? t("pageTitleStudents")
+        : t("pageTitleCalendar");
 
     populateLevelSelects();
   }
@@ -276,9 +441,12 @@
     document.querySelectorAll(".page").forEach(function (sec) {
       sec.classList.toggle("active", sec.id === "page-" + pageName);
     });
-    els.pageTitle.textContent = pageName === "students" ? t("pageTitleStudents") : t("pageTitleCalendar");
-    els.actionsStudents.style.display = pageName === "students" ? "flex" : "none";
-    els.actionsCalendar.style.display = pageName === "calendar" ? "flex" : "none";
+    els.pageTitle.textContent =
+      pageName === "students" ? t("pageTitleStudents") : t("pageTitleCalendar");
+    els.actionsStudents.style.display =
+      pageName === "students" ? "flex" : "none";
+    els.actionsCalendar.style.display =
+      pageName === "calendar" ? "flex" : "none";
     if (pageName === "calendar") renderCalendar();
   }
 
@@ -286,17 +454,32 @@
   function renderStats() {
     var total = students.length;
     var counts = {};
-    LEVELS.forEach(function (l) { counts[l] = 0; });
-    students.forEach(function (s) { if (counts[s.level] !== undefined) counts[s.level]++; });
-
+    LEVELS.forEach(function (l) {
+      counts[l] = 0;
+    });
+    students.forEach(function (s) {
+      if (counts[s.level] !== undefined) counts[s.level]++;
+    });
 
     var chipsHtml = LEVELS.map(function (l) {
-      return '<span class="chip">' + levelLabel(l) + ": <b>" + counts[l] + "</b></span>";
+      return (
+        '<span class="chip">' +
+        levelLabel(l) +
+        ": <b>" +
+        counts[l] +
+        "</b></span>"
+      );
     }).join("");
 
     els.statsBar.innerHTML =
-      '<div class="stat-card"><b>' + total + "</b><span>" + t("statTotal") + "</span></div>" +
-      '<div class="stat-card" style="flex:3;"><div class="chip-row">' + chipsHtml + "</div></div>";
+      '<div class="stat-card"><b>' +
+      total +
+      "</b><span>" +
+      t("statTotal") +
+      "</span></div>" +
+      '<div class="stat-card" style="flex:3;"><div class="chip-row">' +
+      chipsHtml +
+      "</div></div>";
   }
 
   function getFilteredStudents() {
@@ -304,74 +487,132 @@
     var levelFilterVal = els.levelFilter.value;
     return students
       .filter(function (s) {
-        var matchesQuery = !query || (s.firstName + " " + s.lastName).toLowerCase().indexOf(query) !== -1;
+        var matchesQuery =
+          !query ||
+          (s.firstName + " " + s.lastName).toLowerCase().indexOf(query) !== -1;
         var matchesLevel = !levelFilterVal || s.level === levelFilterVal;
         return matchesQuery && matchesLevel;
       })
       .sort(function (a, b) {
-        var ai = LEVELS.indexOf(a.level), bi = LEVELS.indexOf(b.level);
+        var ai = LEVELS.indexOf(a.level),
+          bi = LEVELS.indexOf(b.level);
         if (ai !== bi) return ai - bi;
         return a.lastName.localeCompare(b.lastName);
       });
   }
 
-  var MALE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7.5" r="3.3"/><path d="M5 20c0-3.9 3.1-6.4 7-6.4s7 2.5 7 6.4"/></svg>';
-  var FEMALE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7.5" r="3.3"/><path d="M12 10.8c-3.2 0-5.4 2.1-6 4.9-.1.6.4 1.1 1 1.1h3l-.4 3.2h4.8l-.4-3.2h3c.6 0 1.1-.5 1-1.1-.6-2.8-2.8-4.9-6-4.9Z"/></svg>';
+  var MALE_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7.5" r="3.3"/><path d="M5 20c0-3.9 3.1-6.4 7-6.4s7 2.5 7 6.4"/></svg>';
+  var FEMALE_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7.5" r="3.3"/><path d="M12 10.8c-3.2 0-5.4 2.1-6 4.9-.1.6.4 1.1 1 1.1h3l-.4 3.2h4.8l-.4-3.2h3c.6 0 1.1-.5 1-1.1-.6-2.8-2.8-4.9-6-4.9Z"/></svg>';
+  var MALE_AVATARS = [1, 3, 5, 7, 9];
+  var FEMALE_AVATARS = [2, 4, 6, 8, 10];
 
-  function avatarMarkup(gender) {
-    var isFemale = gender === "female";
-    return '<div class="avatar' + (isFemale ? " avatar-female" : "") + '">' + (isFemale ? FEMALE_ICON : MALE_ICON) + "</div>";
+  function getNextAvatar(gender, index) {
+    var avatars = gender === "female" ? FEMALE_AVATARS : MALE_AVATARS;
+    return "Images/slide-" + avatars[index % avatars.length] + ".svg";
+  }
+
+  function avatarMarkup(student) {
+    return '<img class="avatar" src="' + student.avatar + '" alt="">';
   }
 
   function renderTable() {
     var list = getFilteredStudents();
 
     if (students.length === 0) {
-      els.tableWrap.innerHTML = '<div class="empty"><b>' + t("emptyNoneTitle") + "</b>" + t("emptyNoneText") + "</div>";
+      els.tableWrap.innerHTML =
+        '<div class="empty"><b>' +
+        t("emptyNoneTitle") +
+        "</b>" +
+        t("emptyNoneText") +
+        "</div>";
       return;
     }
     if (list.length === 0) {
-      els.tableWrap.innerHTML = '<div class="empty"><b>' + t("emptyFilterTitle") + "</b>" + t("emptyFilterText") + "</div>";
+      els.tableWrap.innerHTML =
+        '<div class="empty"><b>' +
+        t("emptyFilterTitle") +
+        "</b>" +
+        t("emptyFilterText") +
+        "</div>";
       return;
     }
 
-    els.tableWrap.innerHTML = list.map(function (s) {
-      var badgeClass = LEVEL_CATEGORY[s.level] === "lycee" ? "badge-lycee" : "badge-college";
-      var hasNotes = s.notes && s.notes.trim().length > 0;
-      var notesRow = hasNotes
-        ? '<div class="card-notes-row">📝 ' + escapeHtml(s.notes) + "</div>"
-        : "";
-      return (
-        '<div class="student-card" data-id="' + s.id + '">' +
+    els.tableWrap.innerHTML = list
+      .map(function (s) {
+        var badgeClass =
+          LEVEL_CATEGORY[s.level] === "lycee" ? "badge-lycee" : "badge-college";
+        var hasNotes = s.notes && s.notes.trim().length > 0;
+        var notesRow = hasNotes
+          ? '<div class="card-notes-row">📝 ' + escapeHtml(s.notes) + "</div>"
+          : "";
+        return (
+          '<div class="student-card" data-id="' +
+          s.id +
+          '">' +
           '<div class="card-top">' +
-            '<div class="card-identity">' +
-              avatarMarkup(s.gender) +
-              "<div>" +
-                '<p class="card-name">' + escapeHtml(s.firstName) + " " + escapeHtml(s.lastName) + "</p>" +
-                '<p class="card-sub"><span class="badge ' + badgeClass + '">' + escapeHtml(levelLabel(s.level)) + "</span></p>" +
-              "</div>" +
-            "</div>" +
-            '<div class="card-menu">' +
-              '<button type="button" class="kebab-btn" data-action="kebab" data-id="' + s.id + '">' +
-                '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>' +
-              "</button>" +
-              '<div class="kebab-menu" data-menu-id="' + s.id + '">' +
-                '<button type="button" data-action="delete" data-id="' + s.id + '">' + t("delete") + "</button>" +
-              "</div>" +
-            "</div>" +
+          '<div class="card-identity">' +
+          avatarMarkup(s) +
+          "<div>" +
+          '<p class="card-name">' +
+          escapeHtml(s.firstName) +
+          " " +
+          escapeHtml(s.lastName) +
+          "</p>" +
+          '<p class="card-sub"><span class="badge ' +
+          badgeClass +
+          '">' +
+          escapeHtml(levelLabel(s.level)) +
+          "</span></p>" +
+          "</div>" +
+          "</div>" +
+          '<div class="card-menu">' +
+          '<button type="button" class="kebab-btn" data-action="kebab" data-id="' +
+          s.id +
+          '">' +
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>' +
+          "</button>" +
+          '<div class="kebab-menu" data-menu-id="' +
+          s.id +
+          '">' +
+          '<button type="button" data-action="delete" data-id="' +
+          s.id +
+          '">' +
+          t("delete") +
+          "</button>" +
+          "</div>" +
+          "</div>" +
           "</div>" +
           '<div class="card-stats">' +
-            '<div class="card-stat"><span>' + t("thStart") + '</span><b>' + formatDate(s.startDate) + "</b></div>" +
-            '<div class="card-stat"><span>' + t("thEnd") + '</span><b>' + formatDate(s.endDate) + "</b></div>" +
+          '<div class="card-stat"><span>' +
+          t("thStart") +
+          "</span><b>" +
+          formatDate(s.startDate) +
+          "</b></div>" +
+          '<div class="card-stat"><span>' +
+          t("thEnd") +
+          "</span><b>" +
+          formatDate(s.endDate) +
+          "</b></div>" +
           "</div>" +
           notesRow +
           '<div class="card-actions">' +
-            '<button type="button" class="btn btn-ghost" data-action="edit" data-id="' + s.id + '">' + t("edit") + "</button>" +
-            '<button type="button" class="btn btn-primary" data-action="details" data-id="' + s.id + '">' + t("viewDetails") + "</button>" +
+          '<button type="button" class="btn btn-ghost" data-action="edit" data-id="' +
+          s.id +
+          '">' +
+          t("edit") +
+          "</button>" +
+          '<button type="button" class="btn btn-primary" data-action="details" data-id="' +
+          s.id +
+          '">' +
+          t("viewDetails") +
+          "</button>" +
           "</div>" +
-        "</div>"
-      );
-    }).join("");
+          "</div>"
+        );
+      })
+      .join("");
   }
 
   function renderStudentsPage() {
@@ -405,7 +646,9 @@
     els.modalOverlay.classList.add("open");
     els.firstName.focus();
   }
-  function closeModal() { els.modalOverlay.classList.remove("open"); }
+  function closeModal() {
+    els.modalOverlay.classList.remove("open");
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -417,14 +660,29 @@
       gender: els.gender.value,
       startDate: els.startDate.value,
       endDate: els.endDate.value || "",
-      notes: els.notes.value.trim()
+      notes: els.notes.value.trim(),
     };
-    if (!data.firstName || !data.lastName || !data.level || !data.gender || !data.startDate) return;
+    if (
+      !data.firstName ||
+      !data.lastName ||
+      !data.level ||
+      !data.gender ||
+      !data.startDate
+    )
+      return;
 
     if (id) {
-      students = students.map(function (s) { return s.id === id ? Object.assign({}, s, data) : s; });
+      students = students.map(function (s) {
+        return s.id === id ? Object.assign({}, s, data) : s;
+      });
     } else {
       data.id = makeId();
+      data.avatar = getNextAvatar(
+        data.gender,
+        students.filter(function (s) {
+          return s.gender === data.gender;
+        }).length,
+      );
       students.push(data);
     }
     saveStudents();
@@ -435,33 +693,76 @@
 
   function openNoteModal(student) {
     els.noteModalTitle.textContent = student.firstName + " " + student.lastName;
-    var badgeClass = LEVEL_CATEGORY[student.level] === "lycee" ? "badge-lycee" : "badge-college";
-    var genderLabel = student.gender === "female" ? t("genderFemale") : (student.gender === "male" ? t("genderMale") : "—");
+    var badgeClass =
+      LEVEL_CATEGORY[student.level] === "lycee"
+        ? "badge-lycee"
+        : "badge-college";
+    var genderLabel =
+      student.gender === "female"
+        ? t("genderFemale")
+        : student.gender === "male"
+          ? t("genderMale")
+          : "—";
     var html =
-      '<div class="detail-row"><span>' + t("thLevel") + '</span><b><span class="badge ' + badgeClass + '">' + escapeHtml(levelLabel(student.level)) + "</span></b></div>" +
-      '<div class="detail-row"><span>' + t("gender") + "</span><b>" + genderLabel + "</b></div>" +
-      '<div class="detail-row"><span>' + t("thStart") + "</span><b>" + formatDate(student.startDate) + "</b></div>" +
-      '<div class="detail-row"><span>' + t("thEnd") + "</span><b>" + formatDate(student.endDate) + "</b></div>";
+      '<div class="detail-profile">' +
+      avatarMarkup(student) +
+      "<span>" +
+      escapeHtml(student.firstName + " " + student.lastName) +
+      "</span></div>" +
+      '<div class="detail-row"><span>' +
+      t("thLevel") +
+      '</span><b><span class="badge ' +
+      badgeClass +
+      '">' +
+      escapeHtml(levelLabel(student.level)) +
+      "</span></b></div>" +
+      '<div class="detail-row"><span>' +
+      t("gender") +
+      "</span><b>" +
+      genderLabel +
+      "</b></div>" +
+      '<div class="detail-row"><span>' +
+      t("thStart") +
+      "</span><b>" +
+      formatDate(student.startDate) +
+      "</b></div>" +
+      '<div class="detail-row"><span>' +
+      t("thEnd") +
+      "</span><b>" +
+      formatDate(student.endDate) +
+      "</b></div>";
     if (student.notes && student.notes.trim()) {
-      html += '<div class="detail-notes">' + escapeHtml(student.notes) + "</div>";
+      html +=
+        '<div class="detail-notes">' + escapeHtml(student.notes) + "</div>";
     }
     els.noteModalBody.innerHTML = html;
     els.noteModalOverlay.classList.add("open");
   }
-  function closeNoteModal() { els.noteModalOverlay.classList.remove("open"); }
+  function closeNoteModal() {
+    els.noteModalOverlay.classList.remove("open");
+  }
 
   function closeAllKebabMenus() {
-    document.querySelectorAll(".kebab-menu.open").forEach(function (m) { m.classList.remove("open"); });
+    document.querySelectorAll(".kebab-menu.open").forEach(function (m) {
+      m.classList.remove("open");
+    });
   }
 
   function handleTableClick(e) {
     var btn = e.target.closest("button[data-action]");
-    if (!btn) { closeAllKebabMenus(); return; }
+    if (!btn) {
+      closeAllKebabMenus();
+      return;
+    }
     var id = btn.getAttribute("data-id");
-    var student = students.filter(function (s) { return s.id === id; })[0];
+    var student = students.filter(function (s) {
+      return s.id === id;
+    })[0];
 
     if (btn.dataset.action === "kebab") {
-      var menu = document.querySelector('.kebab-menu[data-menu-id="' + id + '"]');
+      var menu = document.querySelector(
+        '.kebab-menu[data-menu-id="' + id + '"]',
+      );
       var wasOpen = menu && menu.classList.contains("open");
       closeAllKebabMenus();
       if (menu && !wasOpen) menu.classList.add("open");
@@ -473,8 +774,12 @@
       openModal("edit", student);
     } else if (btn.dataset.action === "delete") {
       closeAllKebabMenus();
-      if (confirm(t("deleteConfirm")(student.firstName + " " + student.lastName))) {
-        students = students.filter(function (s) { return s.id !== id; });
+      if (
+        confirm(t("deleteConfirm")(student.firstName + " " + student.lastName))
+      ) {
+        students = students.filter(function (s) {
+          return s.id !== id;
+        });
         saveStudents();
         renderStudentsPage();
       }
@@ -487,8 +792,14 @@
   function buildEventsMap() {
     var map = {};
     students.forEach(function (s) {
-      if (s.startDate) { map[s.startDate] = map[s.startDate] || []; map[s.startDate].push({ student: s, type: "start" }); }
-      if (s.endDate) { map[s.endDate] = map[s.endDate] || []; map[s.endDate].push({ student: s, type: "end" }); }
+      if (s.startDate) {
+        map[s.startDate] = map[s.startDate] || [];
+        map[s.startDate].push({ student: s, type: "start" });
+      }
+      if (s.endDate) {
+        map[s.endDate] = map[s.endDate] || [];
+        map[s.endDate].push({ student: s, type: "end" });
+      }
     });
     return map;
   }
@@ -498,22 +809,37 @@
     var year = calendarCursor.getFullYear();
     var month = calendarCursor.getMonth();
 
-    els.calMonthLabel.textContent = calendarCursor.toLocaleDateString(t("locale"), { month: "long", year: "numeric" });
+    els.calMonthLabel.textContent = calendarCursor.toLocaleDateString(
+      t("locale"),
+      { month: "long", year: "numeric" },
+    );
 
     var firstOfMonth = new Date(year, month, 1);
     var startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
     var gridStart = new Date(year, month, 1 - startOffset);
     var today = new Date();
     var dow = t("dow");
-    var cellsHtml = dow.map(function (d) { return '<div class="cal-dow">' + d + "</div>"; }).join("");
+    var cellsHtml = dow
+      .map(function (d) {
+        return '<div class="cal-dow">' + d + "</div>";
+      })
+      .join("");
 
     for (var i = 0; i < 42; i++) {
-      var cellDate = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+      var cellDate = new Date(
+        gridStart.getFullYear(),
+        gridStart.getMonth(),
+        gridStart.getDate() + i,
+      );
       var isOutside = cellDate.getMonth() !== month;
       var key = toDateKey(cellDate);
       var dayEvents = eventsMap[key] || [];
-      var hasStart = dayEvents.some(function (ev) { return ev.type === "start"; });
-      var hasEnd = dayEvents.some(function (ev) { return ev.type === "end"; });
+      var hasStart = dayEvents.some(function (ev) {
+        return ev.type === "start";
+      });
+      var hasEnd = dayEvents.some(function (ev) {
+        return ev.type === "end";
+      });
 
       var classes = ["cal-cell"];
       if (isOutside) classes.push("outside");
@@ -522,12 +848,22 @@
 
       var dotsHtml = "";
       if (hasStart || hasEnd) {
-        dotsHtml = '<div class="cal-dots">' +
+        dotsHtml =
+          '<div class="cal-dots">' +
           (hasStart ? '<span class="cal-dot dot-start"></span>' : "") +
           (hasEnd ? '<span class="cal-dot dot-end"></span>' : "") +
           "</div>";
       }
-      cellsHtml += '<div class="' + classes.join(" ") + '" data-date="' + key + '"><span>' + cellDate.getDate() + "</span>" + dotsHtml + "</div>";
+      cellsHtml +=
+        '<div class="' +
+        classes.join(" ") +
+        '" data-date="' +
+        key +
+        '"><span>' +
+        cellDate.getDate() +
+        "</span>" +
+        dotsHtml +
+        "</div>";
     }
 
     els.calGrid.innerHTML = cellsHtml;
@@ -537,38 +873,70 @@
   function renderEventsList(eventsMap) {
     var key = toDateKey(selectedDate);
     var dayEvents = eventsMap[key] || [];
-    els.eventsSub.textContent = selectedDate.toLocaleDateString(t("locale"), { weekday: "long", day: "numeric", month: "long" });
+    els.eventsSub.textContent = selectedDate.toLocaleDateString(t("locale"), {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
 
     if (dayEvents.length === 0) {
-      els.eventsList.innerHTML = '<div class="empty" style="padding:30px 10px;"><b>' + t("noEventsTitle") + "</b>" + t("noEventsText") + "</div>";
+      els.eventsList.innerHTML =
+        '<div class="empty" style="padding:30px 10px;"><b>' +
+        t("noEventsTitle") +
+        "</b>" +
+        t("noEventsText") +
+        "</div>";
       return;
     }
 
-    els.eventsList.innerHTML = dayEvents.map(function (ev) {
-      var color = ev.type === "start" ? "var(--color-primary)" : "var(--color-accent-ink)";
-      var label = ev.type === "start" ? t("legendStart") : t("legendEnd");
-      return '<div class="event-item">' +
-        '<span class="event-dot" style="background:' + color + '"></span>' +
-        "<span><b>" + escapeHtml(ev.student.firstName + " " + ev.student.lastName) + "</b><small>" + label + " — " + escapeHtml(levelLabel(ev.student.level)) + "</small></span>" +
-        "</div>";
-    }).join("");
+    els.eventsList.innerHTML = dayEvents
+      .map(function (ev) {
+        var color =
+          ev.type === "start"
+            ? "var(--color-primary)"
+            : "var(--color-accent-ink)";
+        var label = ev.type === "start" ? t("legendStart") : t("legendEnd");
+        return (
+          '<div class="event-item">' +
+          '<span class="event-dot" style="background:' +
+          color +
+          '"></span>' +
+          "<span><b>" +
+          escapeHtml(ev.student.firstName + " " + ev.student.lastName) +
+          "</b><small>" +
+          label +
+          " — " +
+          escapeHtml(levelLabel(ev.student.level)) +
+          "</small></span>" +
+          "</div>"
+        );
+      })
+      .join("");
   }
 
   function handleCalGridClick(e) {
     var cell = e.target.closest(".cal-cell");
     if (!cell || cell.classList.contains("outside")) return;
     var parts = cell.dataset.date.split("-");
-    selectedDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    selectedDate = new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2]),
+    );
     renderCalendar();
   }
 
   /* ---------------- events ---------------- */
   document.querySelectorAll(".nav-target").forEach(function (btn) {
-    btn.addEventListener("click", function () { switchPage(btn.dataset.page); });
+    btn.addEventListener("click", function () {
+      switchPage(btn.dataset.page);
+    });
   });
   if (els.langSwitch) {
     els.langSwitch.querySelectorAll(".lang-btn").forEach(function (btn) {
-      btn.addEventListener("click", function () { setLang(btn.dataset.lang); });
+      btn.addEventListener("click", function () {
+        setLang(btn.dataset.lang);
+      });
     });
   }
 
@@ -577,34 +945,66 @@
       els.endDate.value = autoEndDate(els.startDate.value);
     }
   });
-  els.endDate.addEventListener("input", function () { els.endDate.dataset.auto = "false"; });
+  els.endDate.addEventListener("input", function () {
+    els.endDate.dataset.auto = "false";
+  });
 
-  els.openAddBtn.addEventListener("click", function () { openModal("add"); });
+  els.openAddBtn.addEventListener("click", function () {
+    openModal("add");
+  });
   els.cancelBtn.addEventListener("click", closeModal);
-  els.modalOverlay.addEventListener("click", function (e) { if (e.target === els.modalOverlay) closeModal(); });
+  els.modalOverlay.addEventListener("click", function (e) {
+    if (e.target === els.modalOverlay) closeModal();
+  });
   els.studentForm.addEventListener("submit", handleSubmit);
   els.tableWrap.addEventListener("click", handleTableClick);
   els.searchInput.addEventListener("input", renderTable);
   els.levelFilter.addEventListener("change", renderTable);
 
   els.noteCloseBtn.addEventListener("click", closeNoteModal);
-  els.noteModalOverlay.addEventListener("click", function (e) { if (e.target === els.noteModalOverlay) closeNoteModal(); });
+  els.noteModalOverlay.addEventListener("click", function (e) {
+    if (e.target === els.noteModalOverlay) closeNoteModal();
+  });
 
   els.calGrid.addEventListener("click", handleCalGridClick);
-  els.calPrevBtn.addEventListener("click", function () { calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() - 1, 1); renderCalendar(); });
-  els.calNextBtn.addEventListener("click", function () { calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1); renderCalendar(); });
-  els.calTodayBtn.addEventListener("click", function () { calendarCursor = new Date(); selectedDate = new Date(); renderCalendar(); });
+  els.calPrevBtn.addEventListener("click", function () {
+    calendarCursor = new Date(
+      calendarCursor.getFullYear(),
+      calendarCursor.getMonth() - 1,
+      1,
+    );
+    renderCalendar();
+  });
+  els.calNextBtn.addEventListener("click", function () {
+    calendarCursor = new Date(
+      calendarCursor.getFullYear(),
+      calendarCursor.getMonth() + 1,
+      1,
+    );
+    renderCalendar();
+  });
+  els.calTodayBtn.addEventListener("click", function () {
+    calendarCursor = new Date();
+    selectedDate = new Date();
+    renderCalendar();
+  });
 
   document.addEventListener("click", function (e) {
     if (!e.target.closest(".card-menu")) closeAllKebabMenus();
   });
 
   document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "x") {
+      e.preventDefault();
+      els.clearDataBtn.click();
+      return;
+    }
     if (e.key !== "Escape") return;
     if (els.modalOverlay.classList.contains("open")) closeModal();
     if (els.noteModalOverlay.classList.contains("open")) closeNoteModal();
     closeAllKebabMenus();
   });
+  els.clearDataBtn.addEventListener("click", clearAllData);
 
   /* ---------------- init ---------------- */
   loadLang();
