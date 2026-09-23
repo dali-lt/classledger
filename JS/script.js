@@ -111,6 +111,14 @@
       importSuccess: "Data imported successfully.",
       importError: "This file is not a valid ClassLedger backup.",
       exportSuccess: "Backup file downloaded.",
+      toastSuccess: "Success",
+      toastError: "Error",
+      toastWarning: "Warning",
+      toastInfo: "Info",
+      studentAdded: "Student added successfully.",
+      studentUpdated: "Student updated successfully.",
+      studentDeleted: "Student deleted successfully.",
+      dataCleared: "All student data was deleted.",
       saveError: "Could not save data in this browser.",
       locale: "en-GB",
     },
@@ -181,6 +189,14 @@
       importSuccess: "تم إدخال البيانات بنجاح.",
       importError: "الملف هذا موش نسخة احتياطية صالحة لـ ClassLedger.",
       exportSuccess: "تم تحميل ملف النسخة الاحتياطية.",
+      toastSuccess: "نجح",
+      toastError: "خطأ",
+      toastWarning: "تنبيه",
+      toastInfo: "معلومة",
+      studentAdded: "تمت إضافة التلميذ بنجاح.",
+      studentUpdated: "تم تعديل معلومات التلميذ بنجاح.",
+      studentDeleted: "تم حذف التلميذ بنجاح.",
+      dataCleared: "تم مسح معلومات التلامذة الكل.",
       saveError: "تعذّر حفظ البيانات في هذا المتصفح.",
       locale: "ar-TN",
     },
@@ -256,6 +272,10 @@
     exportDataLabel: document.getElementById("exportDataLabel"),
     importDataLabel: document.getElementById("importDataLabel"),
     toast: document.getElementById("toast"),
+    toastIcon: document.getElementById("toastIcon"),
+    toastTitle: document.getElementById("toastTitle"),
+    toastMessage: document.getElementById("toastMessage"),
+    toastClose: document.getElementById("toastClose"),
   };
 
   var students = [];
@@ -286,10 +306,20 @@
     }
   }
   var toastTimer = null;
-  function showToast(message, isError) {
+  function showToast(message, type) {
     if (!els.toast) return;
-    els.toast.textContent = message;
-    els.toast.classList.toggle("toast-error", !!isError);
+    type = type || "success";
+    var titles = {
+      success: t("toastSuccess"),
+      error: t("toastError"),
+      warning: t("toastWarning"),
+      info: t("toastInfo"),
+    };
+    var icons = { success: "✓", error: "!", warning: "!", info: "i" };
+    els.toastTitle.textContent = titles[type] || titles.info;
+    els.toastMessage.textContent = message;
+    els.toastIcon.textContent = icons[type] || icons.info;
+    els.toast.className = "toast toast-" + type;
     els.toast.classList.add("show");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
@@ -301,7 +331,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
     } catch (e) {
-      showToast(t("saveError"), true);
+      showToast(t("saveError"), "error");
     }
   }
   function clearAllData() {
@@ -310,6 +340,7 @@
     saveStudents();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
+    showToast(t("dataCleared"), "warning");
   }
   function exportData() {
     var backup = {
@@ -330,7 +361,7 @@
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    showToast(t("exportSuccess"));
+    showToast(t("exportSuccess"), "success");
   }
   function importData(file) {
     if (!file) return;
@@ -364,9 +395,9 @@
         saveStudents();
         renderStudentsPage();
         if (currentPage === "calendar") renderCalendar();
-        showToast(t("importSuccess"));
+        showToast(t("importSuccess"), "success");
       } catch (e) {
-        showToast(t("importError"), true);
+        showToast(t("importError"), "error");
       } finally {
         els.importFile.value = "";
       }
@@ -785,6 +816,7 @@
     closeModal();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
+    showToast(t(id ? "studentUpdated" : "studentAdded"), "success");
   }
 
   function openNoteModal(student) {
@@ -878,6 +910,7 @@
         });
         saveStudents();
         renderStudentsPage();
+        showToast(t("studentDeleted"), "success");
       }
     } else if (btn.dataset.action === "details") {
       openNoteModal(student);
@@ -1101,6 +1134,9 @@
     closeAllKebabMenus();
   });
   els.clearDataBtn.addEventListener("click", clearAllData);
+  els.toastClose.addEventListener("click", function () {
+    els.toast.classList.remove("show");
+  });
   els.exportDataBtn.addEventListener("click", exportData);
   els.importDataBtn.addEventListener("click", function () {
     els.importFile.click();
