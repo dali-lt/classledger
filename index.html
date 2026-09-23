@@ -200,6 +200,38 @@
           </section>
         </main>
         <div class="data-reset-area">
+          <div class="data-transfer-actions">
+            <button type="button" class="data-transfer-btn" id="exportDataBtn">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" />
+              </svg>
+              Export data
+            </button>
+            <button type="button" class="data-transfer-btn" id="importDataBtn">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path d="M12 15V3m0 0L8 7m4-4 4 4M5 20h14" />
+              </svg>
+              Import data
+            </button>
+            <input
+              type="file"
+              id="importFile"
+              accept="application/json,.json"
+              hidden
+            />
+          </div>
           <button
             type="button"
             class="data-reset-btn"

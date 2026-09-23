@@ -105,6 +105,11 @@
       clearAllConfirm:
         "Delete all students and their data? This can't be undone.",
       clearAllButton: "Clear all data",
+      exportData: "Export data",
+      importData: "Import data",
+      importConfirm: "Import {count} students and replace the current data?",
+      importSuccess: "Data imported successfully.",
+      importError: "This file is not a valid ClassLedger backup.",
       saveError: "Could not save data in this browser.",
       locale: "en-GB",
     },
@@ -169,6 +174,11 @@
       clearAllConfirm:
         "تأكد باش تحذف التلامذة الكل ومعلوماتهم؟ العملية ما تتراجعش.",
       clearAllButton: "مسح جميع البيانات",
+      exportData: "إخراج البيانات",
+      importData: "إدخال البيانات",
+      importConfirm: "باش تدخل {count} تلامذة وتعوّض البيانات الحالية؟",
+      importSuccess: "تم إدخال البيانات بنجاح.",
+      importError: "الملف هذا موش نسخة احتياطية صالحة لـ ClassLedger.",
       saveError: "تعذّر حفظ البيانات في هذا المتصفح.",
       locale: "ar-TN",
     },
@@ -238,6 +248,9 @@
     langSwitch: document.getElementById("langSwitch"),
     clearDataBtn: document.getElementById("clearDataBtn"),
     clearDataLabel: document.getElementById("clearDataLabel"),
+    exportDataBtn: document.getElementById("exportDataBtn"),
+    importDataBtn: document.getElementById("importDataBtn"),
+    importFile: document.getElementById("importFile"),
   };
 
   var students = [];
@@ -280,6 +293,67 @@
     saveStudents();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
+  }
+  function exportData() {
+    var backup = {
+      app: "ClassLedger",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      students: students,
+      lang: currentLang,
+    };
+    var blob = new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json",
+    });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = "classledger-backup-" + toDateKey(new Date()) + ".json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+  function importData(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var backup = JSON.parse(reader.result);
+        var importedStudents = backup && backup.students;
+        var valid =
+          backup &&
+          backup.app === "ClassLedger" &&
+          Array.isArray(importedStudents) &&
+          importedStudents.every(function (student) {
+            return (
+              student &&
+              typeof student.id === "string" &&
+              typeof student.firstName === "string" &&
+              typeof student.lastName === "string" &&
+              typeof student.level === "string" &&
+              typeof student.startDate === "string"
+            );
+          });
+        if (!valid) throw new Error("Invalid backup");
+        if (
+          !confirm(
+            t("importConfirm").replace("{count}", importedStudents.length),
+          )
+        )
+          return;
+        students = importedStudents;
+        saveStudents();
+        renderStudentsPage();
+        if (currentPage === "calendar") renderCalendar();
+        alert(t("importSuccess"));
+      } catch (e) {
+        alert(t("importError"));
+      } finally {
+        els.importFile.value = "";
+      }
+    };
+    reader.readAsText(file);
   }
   function loadLang() {
     try {
@@ -384,6 +458,10 @@
     els.clearDataLabel.textContent = t("clearAllButton");
     els.clearDataBtn.setAttribute("aria-label", t("clearAllButton"));
     els.clearDataBtn.setAttribute("title", t("clearAllButton"));
+    els.exportDataBtn.textContent = t("exportData");
+    els.importDataBtn.textContent = t("importData");
+    els.exportDataBtn.setAttribute("title", t("exportData"));
+    els.importDataBtn.setAttribute("title", t("importData"));
     els.searchInput.placeholder = t("searchPlaceholder");
     els.eventsTitle.textContent = t("eventsTitle");
     els.legendStartLabel.textContent = t("legendStart");
@@ -1005,6 +1083,13 @@
     closeAllKebabMenus();
   });
   els.clearDataBtn.addEventListener("click", clearAllData);
+  els.exportDataBtn.addEventListener("click", exportData);
+  els.importDataBtn.addEventListener("click", function () {
+    els.importFile.click();
+  });
+  els.importFile.addEventListener("change", function () {
+    importData(els.importFile.files[0]);
+  });
 
   /* ---------------- init ---------------- */
   loadLang();
