@@ -110,6 +110,7 @@
       importConfirm: "Import {count} students and replace the current data?",
       importSuccess: "Data imported successfully.",
       importError: "This file is not a valid ClassLedger backup.",
+      exportSuccess: "Backup file downloaded.",
       saveError: "Could not save data in this browser.",
       locale: "en-GB",
     },
@@ -179,6 +180,7 @@
       importConfirm: "باش تدخل {count} تلامذة وتعوّض البيانات الحالية؟",
       importSuccess: "تم إدخال البيانات بنجاح.",
       importError: "الملف هذا موش نسخة احتياطية صالحة لـ ClassLedger.",
+      exportSuccess: "تم تحميل ملف النسخة الاحتياطية.",
       saveError: "تعذّر حفظ البيانات في هذا المتصفح.",
       locale: "ar-TN",
     },
@@ -251,6 +253,9 @@
     exportDataBtn: document.getElementById("exportDataBtn"),
     importDataBtn: document.getElementById("importDataBtn"),
     importFile: document.getElementById("importFile"),
+    exportDataLabel: document.getElementById("exportDataLabel"),
+    importDataLabel: document.getElementById("importDataLabel"),
+    toast: document.getElementById("toast"),
   };
 
   var students = [];
@@ -280,11 +285,23 @@
       students = [];
     }
   }
+  var toastTimer = null;
+  function showToast(message, isError) {
+    if (!els.toast) return;
+    els.toast.textContent = message;
+    els.toast.classList.toggle("toast-error", !!isError);
+    els.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      els.toast.classList.remove("show");
+    }, 2600);
+  }
+
   function saveStudents() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
     } catch (e) {
-      alert(t("saveError"));
+      showToast(t("saveError"), true);
     }
   }
   function clearAllData() {
@@ -313,6 +330,7 @@
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    showToast(t("exportSuccess"));
   }
   function importData(file) {
     if (!file) return;
@@ -346,9 +364,9 @@
         saveStudents();
         renderStudentsPage();
         if (currentPage === "calendar") renderCalendar();
-        alert(t("importSuccess"));
+        showToast(t("importSuccess"));
       } catch (e) {
-        alert(t("importError"));
+        showToast(t("importError"), true);
       } finally {
         els.importFile.value = "";
       }
@@ -458,8 +476,8 @@
     els.clearDataLabel.textContent = t("clearAllButton");
     els.clearDataBtn.setAttribute("aria-label", t("clearAllButton"));
     els.clearDataBtn.setAttribute("title", t("clearAllButton"));
-    els.exportDataBtn.textContent = t("exportData");
-    els.importDataBtn.textContent = t("importData");
+    els.exportDataLabel.textContent = t("exportData");
+    els.importDataLabel.textContent = t("importData");
     els.exportDataBtn.setAttribute("title", t("exportData"));
     els.importDataBtn.setAttribute("title", t("importData"));
     els.searchInput.placeholder = t("searchPlaceholder");
