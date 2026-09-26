@@ -164,7 +164,33 @@
               </div>
             </div>
 
-            <div class="stats" id="statsBar"></div>
+            <div class="overview">
+              <div class="kpi-row" id="kpiRow"></div>
+              <div class="overview-charts">
+                <div class="chart-card donut-card">
+                  <p class="chart-title" id="distributionTitleEl"></p>
+                  <div class="donut-wrap">
+                    <svg viewBox="0 0 120 120" class="donut-svg">
+                      <circle cx="60" cy="60" r="45" fill="none" stroke="var(--color-border)" stroke-width="14"></circle>
+                      <circle id="donutLycee" cx="60" cy="60" r="45" fill="none" stroke="var(--color-navy)" stroke-width="14" stroke-linecap="round" transform="rotate(-90 60 60)"></circle>
+                      <circle id="donutCollege" cx="60" cy="60" r="45" fill="none" stroke="var(--color-primary)" stroke-width="14" stroke-linecap="round" transform="rotate(-90 60 60)"></circle>
+                    </svg>
+                    <div class="donut-center">
+                      <b id="donutTotal">0</b>
+                      <span id="donutTotalLabel"></span>
+                    </div>
+                  </div>
+                  <div class="donut-legend">
+                    <span class="legend-item"><i style="background:var(--color-primary)"></i><span id="legendCollegeLabel"></span> <b id="legendCollegeValue">0</b></span>
+                    <span class="legend-item"><i style="background:var(--color-navy)"></i><span id="legendLyceeLabel"></span> <b id="legendLyceeValue">0</b></span>
+                  </div>
+                </div>
+                <div class="chart-card bar-card">
+                  <p class="chart-title" id="byLevelTitleEl"></p>
+                  <div class="bar-chart" id="barChart"></div>
+                </div>
+              </div>
+            </div>
 
             <div class="controls">
               <input type="text" class="search-input" id="searchInput" />
@@ -340,19 +366,12 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite">
-      <span class="toast-icon" id="toastIcon" aria-hidden="true"></span>
-      <span class="toast-content">
-        <b class="toast-title" id="toastTitle"></b>
+      <span class="toast-icon" id="toastIcon"></span>
+      <div class="toast-text">
+        <b id="toastTitle"></b>
         <span id="toastMessage"></span>
-      </span>
-      <button
-        class="toast-close"
-        id="toastClose"
-        type="button"
-        aria-label="Close"
-      >
-        &times;
-      </button>
+      </div>
+      <button type="button" class="toast-close" id="toastClose" aria-label="Close">&times;</button>
     </div>
 
     <script src="JS/script.js"></script>

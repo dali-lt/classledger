@@ -22,6 +22,26 @@
     "3 ثانوي": "lycee",
     "4 ثانوي": "lycee",
   };
+  var LEVEL_SHORT_LABELS = {
+    en: {
+      "7 أساسي": "7th Grade",
+      "8 أساسي": "8th Grade",
+      "9 أساسي": "9th Grade",
+      "1 ثانوي": "1st Lycée",
+      "2 ثانوي": "2nd Lycée",
+      "3 ثانوي": "3rd Lycée",
+      "4 ثانوي": "4th / Bac",
+    },
+    ar: {
+      "7 أساسي": "7 أساسي",
+      "8 أساسي": "8 أساسي",
+      "9 أساسي": "9 أساسي",
+      "1 ثانوي": "1 ثانوي",
+      "2 ثانوي": "2 ثانوي",
+      "3 ثانوي": "3 ثانوي",
+      "4 ثانوي": "4 ثانوي",
+    },
+  };
   var LEVEL_LABELS = {
     en: {
       "7 أساسي": "7th Grade",
@@ -56,6 +76,10 @@
       heroText:
         "Track your students, add new ones, and keep every detail in one place.",
       statTotal: "Total students",
+      kpiCollege: "Collège",
+      kpiLycee: "Lycée",
+      distributionTitle: "Collège vs Lycée",
+      byLevelTitle: "Students per level",
       searchPlaceholder: "Search by first or last name...",
       allLevels: "All levels",
       addStudent: "+ Add student",
@@ -111,14 +135,6 @@
       importSuccess: "Data imported successfully.",
       importError: "This file is not a valid ClassLedger backup.",
       exportSuccess: "Backup file downloaded.",
-      toastSuccess: "Success",
-      toastError: "Error",
-      toastWarning: "Warning",
-      toastInfo: "Info",
-      studentAdded: "Student added successfully.",
-      studentUpdated: "Student updated successfully.",
-      studentDeleted: "Student deleted successfully.",
-      dataCleared: "All student data was deleted.",
       saveError: "Could not save data in this browser.",
       locale: "en-GB",
     },
@@ -134,6 +150,10 @@
       heroText:
         "تابع تلاميذك، زيد الجداد، وأرشيف كل معلومة تحتاجها في مكان وحد.",
       statTotal: "مجموع التلاميذ",
+      kpiCollege: "إعدادي",
+      kpiLycee: "ثانوي",
+      distributionTitle: "إعدادي مقابل ثانوي",
+      byLevelTitle: "التلاميذ حسب القسم",
       searchPlaceholder: "ابحث بالاسم أو اللقب...",
       allLevels: "كل الأقسام",
       addStudent: "+ إضافة تلميذ",
@@ -189,14 +209,6 @@
       importSuccess: "تم إدخال البيانات بنجاح.",
       importError: "الملف هذا موش نسخة احتياطية صالحة لـ ClassLedger.",
       exportSuccess: "تم تحميل ملف النسخة الاحتياطية.",
-      toastSuccess: "نجح",
-      toastError: "خطأ",
-      toastWarning: "تنبيه",
-      toastInfo: "معلومة",
-      studentAdded: "تمت إضافة التلميذ بنجاح.",
-      studentUpdated: "تم تعديل معلومات التلميذ بنجاح.",
-      studentDeleted: "تم حذف التلميذ بنجاح.",
-      dataCleared: "تم مسح معلومات التلامذة الكل.",
       saveError: "تعذّر حفظ البيانات في هذا المتصفح.",
       locale: "ar-TN",
     },
@@ -208,6 +220,9 @@
   function levelLabel(value) {
     return LEVEL_LABELS[currentLang][value] || value;
   }
+  function shortLevelLabel(value) {
+    return LEVEL_SHORT_LABELS[currentLang][value] || value;
+  }
 
   var els = {
     pillStudentsLabel: document.getElementById("pillStudentsLabel"),
@@ -218,7 +233,13 @@
     heroText: document.getElementById("heroText"),
     actionsStudents: document.getElementById("actionsStudents"),
     actionsCalendar: document.getElementById("actionsCalendar"),
-    statsBar: document.getElementById("statsBar"),
+    kpiRow: document.getElementById("kpiRow"),
+    barChart: document.getElementById("barChart"),
+    distributionTitleEl: document.getElementById("distributionTitleEl"),
+    byLevelTitleEl: document.getElementById("byLevelTitleEl"),
+    donutTotalLabel: document.getElementById("donutTotalLabel"),
+    legendCollegeLabel: document.getElementById("legendCollegeLabel"),
+    legendLyceeLabel: document.getElementById("legendLyceeLabel"),
     tableWrap: document.getElementById("tableWrap"),
     searchInput: document.getElementById("searchInput"),
     levelFilter: document.getElementById("levelFilter"),
@@ -272,10 +293,6 @@
     exportDataLabel: document.getElementById("exportDataLabel"),
     importDataLabel: document.getElementById("importDataLabel"),
     toast: document.getElementById("toast"),
-    toastIcon: document.getElementById("toastIcon"),
-    toastTitle: document.getElementById("toastTitle"),
-    toastMessage: document.getElementById("toastMessage"),
-    toastClose: document.getElementById("toastClose"),
   };
 
   var students = [];
@@ -306,20 +323,10 @@
     }
   }
   var toastTimer = null;
-  function showToast(message, type) {
+  function showToast(message, isError) {
     if (!els.toast) return;
-    type = type || "success";
-    var titles = {
-      success: t("toastSuccess"),
-      error: t("toastError"),
-      warning: t("toastWarning"),
-      info: t("toastInfo"),
-    };
-    var icons = { success: "✓", error: "!", warning: "!", info: "i" };
-    els.toastTitle.textContent = titles[type] || titles.info;
-    els.toastMessage.textContent = message;
-    els.toastIcon.textContent = icons[type] || icons.info;
-    els.toast.className = "toast toast-" + type;
+    els.toast.textContent = message;
+    els.toast.classList.toggle("toast-error", !!isError);
     els.toast.classList.add("show");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
@@ -331,7 +338,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
     } catch (e) {
-      showToast(t("saveError"), "error");
+      showToast(t("saveError"), true);
     }
   }
   function clearAllData() {
@@ -340,7 +347,6 @@
     saveStudents();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
-    showToast(t("dataCleared"), "warning");
   }
   function exportData() {
     var backup = {
@@ -361,7 +367,7 @@
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    showToast(t("exportSuccess"), "success");
+    showToast(t("exportSuccess"));
   }
   function importData(file) {
     if (!file) return;
@@ -395,9 +401,9 @@
         saveStudents();
         renderStudentsPage();
         if (currentPage === "calendar") renderCalendar();
-        showToast(t("importSuccess"), "success");
+        showToast(t("importSuccess"));
       } catch (e) {
-        showToast(t("importError"), "error");
+        showToast(t("importError"), true);
       } finally {
         els.importFile.value = "";
       }
@@ -502,6 +508,11 @@
 
     els.pillStudentsLabel.textContent = t("navStudents");
     els.pillCalendarLabel.textContent = t("navCalendar");
+    els.distributionTitleEl.textContent = t("distributionTitle");
+    els.byLevelTitleEl.textContent = t("byLevelTitle");
+    els.donutTotalLabel.textContent = t("statTotal");
+    els.legendCollegeLabel.textContent = t("kpiCollege");
+    els.legendLyceeLabel.textContent = t("kpiLycee");
     els.heroText.textContent = t("heroText");
     els.openAddBtn.textContent = t("addStudent");
     els.clearDataLabel.textContent = t("clearAllButton");
@@ -581,32 +592,47 @@
   function renderStats() {
     var total = students.length;
     var counts = {};
+    LEVELS.forEach(function (l) { counts[l] = 0; });
+    students.forEach(function (s) { if (counts[s.level] !== undefined) counts[s.level]++; });
+
+    var totalCollege = 0, totalLycee = 0;
     LEVELS.forEach(function (l) {
-      counts[l] = 0;
-    });
-    students.forEach(function (s) {
-      if (counts[s.level] !== undefined) counts[s.level]++;
+      if (LEVEL_CATEGORY[l] === "lycee") totalLycee += counts[l];
+      else totalCollege += counts[l];
     });
 
-    var chipsHtml = LEVELS.map(function (l) {
+    /* ---- KPI cards ---- */
+    els.kpiRow.innerHTML =
+      '<div class="kpi-card kpi-total"><span class="kpi-label">' + t("statTotal") + '</span><span class="kpi-value">' + total + "</span></div>" +
+      '<div class="kpi-card kpi-college"><span class="kpi-label">' + t("kpiCollege") + '</span><span class="kpi-value">' + totalCollege + "</span></div>" +
+      '<div class="kpi-card kpi-lycee"><span class="kpi-label">' + t("kpiLycee") + '</span><span class="kpi-value">' + totalLycee + "</span></div>";
+
+    /* ---- Donut chart ---- */
+    var CIRC = 2 * Math.PI * 45;
+    var collegeLen = total ? (totalCollege / total) * CIRC : 0;
+    var lyceeLen = total ? (totalLycee / total) * CIRC : 0;
+    var donutCollege = document.getElementById("donutCollege");
+    var donutLycee = document.getElementById("donutLycee");
+    donutCollege.setAttribute("stroke-dasharray", collegeLen + " " + (CIRC - collegeLen));
+    donutCollege.setAttribute("stroke-dashoffset", "0");
+    donutLycee.setAttribute("stroke-dasharray", lyceeLen + " " + (CIRC - lyceeLen));
+    donutLycee.setAttribute("stroke-dashoffset", String(-collegeLen));
+    document.getElementById("donutTotal").textContent = total;
+    document.getElementById("legendCollegeValue").textContent = totalCollege;
+    document.getElementById("legendLyceeValue").textContent = totalLycee;
+
+    /* ---- Bar chart ---- */
+    var maxCount = Math.max.apply(null, LEVELS.map(function (l) { return counts[l]; }).concat([1]));
+    els.barChart.innerHTML = LEVELS.map(function (l) {
+      var pct = Math.round((counts[l] / maxCount) * 100);
       return (
-        '<span class="chip">' +
-        levelLabel(l) +
-        ": <b>" +
-        counts[l] +
-        "</b></span>"
+        '<div class="bar-col">' +
+        '<span class="bar-count">' + counts[l] + "</span>" +
+        '<div class="bar-shape" style="height:' + pct + '%"></div>' +
+        '<span class="bar-label">' + shortLevelLabel(l) + "</span>" +
+        "</div>"
       );
     }).join("");
-
-    els.statsBar.innerHTML =
-      '<div class="stat-card"><b>' +
-      total +
-      "</b><span>" +
-      t("statTotal") +
-      "</span></div>" +
-      '<div class="stat-card" style="flex:3;"><div class="chip-row">' +
-      chipsHtml +
-      "</div></div>";
   }
 
   function getFilteredStudents() {
@@ -816,7 +842,6 @@
     closeModal();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
-    showToast(t(id ? "studentUpdated" : "studentAdded"), "success");
   }
 
   function openNoteModal(student) {
@@ -910,7 +935,6 @@
         });
         saveStudents();
         renderStudentsPage();
-        showToast(t("studentDeleted"), "success");
       }
     } else if (btn.dataset.action === "details") {
       openNoteModal(student);
@@ -1134,9 +1158,6 @@
     closeAllKebabMenus();
   });
   els.clearDataBtn.addEventListener("click", clearAllData);
-  els.toastClose.addEventListener("click", function () {
-    els.toast.classList.remove("show");
-  });
   els.exportDataBtn.addEventListener("click", exportData);
   els.importDataBtn.addEventListener("click", function () {
     els.importFile.click();
