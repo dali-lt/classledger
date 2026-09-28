@@ -90,6 +90,9 @@
       thNotes: "Notes",
       edit: "Edit",
       delete: "Delete",
+      editPurpose: "Edit the student's name, level, dates, or notes.",
+      deletePurpose:
+        "Permanently delete the student and their payment history.",
       emptyNoneTitle: "No students yet",
       emptyNoneText: "Add your first student to get started.",
       emptyFilterTitle: "No results",
@@ -140,13 +143,15 @@
       toastErrorTitle: "Error",
       navPayments: "Payments",
       pageTitlePayments: "Payments",
-      kpiMonthlyIncome: "Expected monthly income",
+      kpiMonthlyIncome: "Monthly income",
       kpiPaidAmount: "Paid amount",
       kpiUnpaidAmount: "Unpaid amount",
       paymentsRosterTitle: "Student payments",
       paymentMonthlyFee: "Monthly fee",
+      paymentAmountDue: "Amount due",
       paymentHistoryTitle: "Payment history",
       paymentHistoryEmpty: "No payments recorded yet.",
+      halfMonthPaymentType: "Half-month charge",
       paymentDateLabel: "Paid on",
       paymentOnTime: "On time",
       paymentSlightlyLate: "Slightly late",
@@ -155,15 +160,40 @@
       dtSuffix: "DT",
       statusOverdue: "Overdue",
       statusPaidUp: "Paid up",
+      statusAmountDue: "Amount due",
+      statusInProgress: "Current cycle",
       markPaid: "Mark paid",
-      markPaidConfirm: function (name) {
+      markPaidConfirm: function (name, amount) {
         return (
-          "Mark " +
+          "Record " +
           name +
-          " as paid and set the next due date one month from now?"
+          " as paid for " +
+          amount +
+          " DT? This clears overdue monthly fees and half-month charges."
         );
       },
       markPaidSuccess: "Payment recorded.",
+      halfMonthTitle: "Half-month calculator",
+      halfMonthHint:
+        "Choose students to add half of their monthly fee to the amount due.",
+      halfMonthCalculate: "Add to amount due",
+      halfMonthAddedTitle: "Added to amount due",
+      halfMonthAddSuccess: function (count, amount) {
+        return count + " half-month charge(s) added. Total: " + amount + " DT.";
+      },
+      halfMonthPickerLabel: "Select students",
+      halfMonthAll: "All",
+      halfMonthAllSelected: "All students selected",
+      halfMonthSelectedCount: function (count) {
+        return count + " selected";
+      },
+      halfMonthNoStudents: "No students to select.",
+      halfMonthAllLabel: "Select all students",
+      halfMonthStudentLabel: function (name) {
+        return "Select " + name;
+      },
+      halfMonthResultTitle: "Half-month amounts",
+      halfMonthTotal: "Total",
       locale: "en-GB",
     },
     ar: {
@@ -192,6 +222,8 @@
       thNotes: "ملاحظات",
       edit: "تعديل",
       delete: "حذف",
+      editPurpose: "تعديل الاسم أو القسم أو التواريخ أو الملاحظات.",
+      deletePurpose: "حذف التلميذ وسجل خلاصه نهائيًا.",
       emptyNoneTitle: "ما فماش تلاميذ ثما",
       emptyNoneText: "زيد أول تلميذ باش تبدا في التسيير.",
       emptyFilterTitle: "ما فماش نتائج",
@@ -242,13 +274,15 @@
       toastErrorTitle: "خطأ",
       navPayments: "المدفوعات",
       pageTitlePayments: "المدفوعات",
-      kpiMonthlyIncome: "الدخل الشهري المتوقع",
+      kpiMonthlyIncome: "الدخل الشهري",
       kpiPaidAmount: "المبلغ المدفوع",
       kpiUnpaidAmount: "المتبقي غير المدفوع",
       paymentsRosterTitle: "خلاص التلامذة",
       paymentMonthlyFee: "المعلوم الشهري",
+      paymentAmountDue: "المبلغ المطلوب",
       paymentHistoryTitle: "سجل الدفعات",
       paymentHistoryEmpty: "ما تسجلت حتى دفعة قبل.",
+      halfMonthPaymentType: "معلوم نصف شهر",
       paymentDateLabel: "تاريخ الدفع",
       paymentOnTime: "في وقتو",
       paymentSlightlyLate: "متأخر شوية",
@@ -257,13 +291,46 @@
       dtSuffix: "د.ت",
       statusOverdue: "متأخر",
       statusPaidUp: "مخلّص",
+      statusAmountDue: "معلوم مطلوب",
+      statusInProgress: "الدورة جارية",
       markPaid: "تسجيل الخلاص",
-      markPaidConfirm: function (name) {
+      markPaidConfirm: function (name, amount) {
         return (
-          "تأكد باش تسجل " + name + " كمخلّص وتحدد تاريخ الخلاص الجاي بعد شهر؟"
+          "تأكد باش تسجل خلاص " +
+          name +
+          " بمبلغ " +
+          amount +
+          " د.ت؟ المبلغ يشمل الشهور المتأخرة ومعلوم نصف الشهر."
         );
       },
       markPaidSuccess: "تم تسجيل الخلاص.",
+      halfMonthTitle: "حساب معلوم نصف شهر",
+      halfMonthHint:
+        "اختار التلامذة باش تزيد نصف المعلوم الشهري للمبلغ المطلوب.",
+      halfMonthCalculate: "أضف للمبلغ المطلوب",
+      halfMonthAddedTitle: "تزاد للمبلغ المطلوب",
+      halfMonthAddSuccess: function (count, amount) {
+        return (
+          "تزاد معلوم نصف شهر لـ " +
+          count +
+          " تلميذ، المجموع " +
+          amount +
+          " د.ت."
+        );
+      },
+      halfMonthPickerLabel: "اختار التلامذة",
+      halfMonthAll: "الكل",
+      halfMonthAllSelected: "تم اختيار التلامذة الكل",
+      halfMonthSelectedCount: function (count) {
+        return "تم اختيار " + count;
+      },
+      halfMonthNoStudents: "ما فماش تلامذة للاختيار.",
+      halfMonthAllLabel: "اختيار التلامذة الكل",
+      halfMonthStudentLabel: function (name) {
+        return "اختيار " + name;
+      },
+      halfMonthResultTitle: "مبالغ نصف الشهر",
+      halfMonthTotal: "المجموع",
       locale: "ar-TN",
     },
   };
@@ -354,6 +421,13 @@
     pillPaymentsLabel: document.getElementById("pillPaymentsLabel"),
     paymentsKpiRow: document.getElementById("paymentsKpiRow"),
     paymentsList: document.getElementById("paymentsList"),
+    halfMonthPicker: document.querySelector(".half-month-picker"),
+    halfMonthTitle: document.getElementById("halfMonthTitle"),
+    halfMonthHint: document.getElementById("halfMonthHint"),
+    halfMonthPickerLabel: document.getElementById("halfMonthPickerLabel"),
+    halfMonthPickerOptions: document.getElementById("halfMonthPickerOptions"),
+    halfMonthCalculateBtn: document.getElementById("halfMonthCalculateBtn"),
+    halfMonthResult: document.getElementById("halfMonthResult"),
   };
 
   var LEVEL_PRICE = { college: 40, lycee: 45 };
@@ -370,6 +444,9 @@
   var currentLang = "en";
   var currentPage = "students";
   var selectedPaymentId = null;
+  var selectedHalfMonthIds = [];
+  var halfMonthCalculated = false;
+  var halfMonthResultItems = [];
 
   /* ---------------- storage ---------------- */
   function loadStudents() {
@@ -379,14 +456,17 @@
       if (!Array.isArray(students)) students = [];
       var avatarIndexes = { male: 0, female: 0 };
       students.forEach(function (student) {
-        if (student.avatar) return;
-        student.avatar = getNextAvatar(
-          student.gender,
-          avatarIndexes[student.gender] || 0,
-        );
-        if (avatarIndexes[student.gender] !== undefined)
-          avatarIndexes[student.gender]++;
+        sanitizeHalfMonthCharges(student);
+        if (!student.avatar) {
+          student.avatar = getNextAvatar(
+            student.gender,
+            avatarIndexes[student.gender] || 0,
+          );
+          if (avatarIndexes[student.gender] !== undefined)
+            avatarIndexes[student.gender]++;
+        }
       });
+      assignAvatarBackgrounds(students, []);
       saveStudents();
     } catch (e) {
       students = [];
@@ -431,7 +511,7 @@
   function exportData() {
     var backup = {
       app: "ClassLedger",
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       students: students,
       lang: currentLang,
@@ -449,6 +529,58 @@
     URL.revokeObjectURL(url);
     showToast(t("exportSuccess"));
   }
+  function sanitizePaymentHistory(student) {
+    if (!Array.isArray(student.paymentHistory)) {
+      student.paymentHistory = [];
+      return student;
+    }
+    student.paymentHistory = student.paymentHistory
+      .filter(function (p) {
+        return (
+          p &&
+          typeof p.dueDate === "string" &&
+          typeof p.paidAt === "string" &&
+          typeof p.amount === "number"
+        );
+      })
+      .map(function (p) {
+        return {
+          dueDate: p.dueDate,
+          paidAt: p.paidAt,
+          amount: p.amount,
+          timing:
+            p.timing === "slightly-late" || p.timing === "very-late"
+              ? p.timing
+              : "on-time",
+          kind: p.kind === "half-month" ? "half-month" : "monthly",
+        };
+      });
+    return student;
+  }
+
+  function sanitizeHalfMonthCharges(student) {
+    student.halfMonthCharges = Array.isArray(student.halfMonthCharges)
+      ? student.halfMonthCharges
+          .filter(function (charge) {
+            return (
+              charge &&
+              typeof charge.amount === "number" &&
+              isFinite(charge.amount) &&
+              charge.amount > 0 &&
+              typeof charge.addedAt === "string"
+            );
+          })
+          .map(function (charge) {
+            return {
+              amount: charge.amount,
+              addedAt: charge.addedAt,
+              paidAt: typeof charge.paidAt === "string" ? charge.paidAt : "",
+            };
+          })
+      : [];
+    return student;
+  }
+
   function importData(file) {
     if (!file) return;
     var reader = new FileReader();
@@ -471,6 +603,10 @@
             );
           });
         if (!valid) throw new Error("Invalid backup");
+        importedStudents = importedStudents.map(function (student) {
+          return sanitizeHalfMonthCharges(sanitizePaymentHistory(student));
+        });
+        assignAvatarBackgrounds(importedStudents, []);
         if (
           !confirm(
             t("importConfirm").replace("{count}", importedStudents.length),
@@ -635,6 +771,9 @@
     els.notes.placeholder = t("notesPlaceholder");
     els.cancelBtn.textContent = t("cancel");
     els.noteCloseBtn.textContent = t("close");
+    els.halfMonthTitle.textContent = t("halfMonthTitle");
+    els.halfMonthHint.textContent = t("halfMonthHint");
+    els.halfMonthCalculateBtn.textContent = t("halfMonthCalculate");
 
     els.pageTitle.textContent = t(PAGE_TITLE_KEY[currentPage]);
 
@@ -775,14 +914,56 @@
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7.5" r="3.3"/><path d="M12 10.8c-3.2 0-5.4 2.1-6 4.9-.1.6.4 1.1 1 1.1h3l-.4 3.2h4.8l-.4-3.2h3c.6 0 1.1-.5 1-1.1-.6-2.8-2.8-4.9-6-4.9Z"/></svg>';
   var MALE_AVATARS = [1, 3, 5, 7, 9];
   var FEMALE_AVATARS = [2, 4, 6, 8, 10];
+  var AVATAR_BACKGROUNDS = [
+    "#e8f4fc",
+    "#dbeeff",
+    "#cce5ff",
+    "#eef7fc",
+    "#f5f9fd",
+    "#f3facf",
+    "#e8f5b7",
+    "#dcf08f",
+  ];
 
   function getNextAvatar(gender, index) {
     var avatars = gender === "female" ? FEMALE_AVATARS : MALE_AVATARS;
     return "Images/slide-" + avatars[index % avatars.length] + ".svg";
   }
 
+  function assignAvatarBackgrounds(targetStudents, existingStudents) {
+    var usedColors = (existingStudents || [])
+      .concat(targetStudents)
+      .map(function (student) {
+        return student.avatarBackground;
+      })
+      .filter(function (color) {
+        return AVATAR_BACKGROUNDS.indexOf(color) !== -1;
+      });
+
+    targetStudents.forEach(function (student) {
+      if (AVATAR_BACKGROUNDS.indexOf(student.avatarBackground) !== -1) return;
+      var unusedColors = AVATAR_BACKGROUNDS.filter(function (color) {
+        return usedColors.indexOf(color) === -1;
+      });
+      var choices = unusedColors.length ? unusedColors : AVATAR_BACKGROUNDS;
+      var color = choices[Math.floor(Math.random() * choices.length)];
+      student.avatarBackground = color;
+      usedColors.push(color);
+    });
+  }
+
   function avatarMarkup(student) {
-    return '<img class="avatar" src="' + student.avatar + '" alt="">';
+    var background =
+      AVATAR_BACKGROUNDS.indexOf(student.avatarBackground) !== -1
+        ? student.avatarBackground
+        : AVATAR_BACKGROUNDS[0];
+    return (
+      '<img class="avatar" style="background-color:' +
+      background +
+      '" src="' +
+      student.avatar +
+      '" alt="">'
+    );
   }
 
   function renderTable() {
@@ -838,6 +1019,8 @@
           '<div class="card-menu">' +
           '<button type="button" class="kebab-btn" data-action="kebab" data-id="' +
           s.id +
+          '" aria-label="' +
+          t("deletePurpose") +
           '">' +
           '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>' +
           "</button>" +
@@ -894,9 +1077,110 @@
     return LEVEL_PRICE[category] || 0;
   }
 
+  function halfMonthChargeTotals(student) {
+    return (
+      Array.isArray(student.halfMonthCharges) ? student.halfMonthCharges : []
+    ).reduce(
+      function (totals, charge) {
+        if (!charge || typeof charge.amount !== "number") return totals;
+        totals.total += charge.amount;
+        if (charge.paidAt) totals.paid += charge.amount;
+        else totals.due += charge.amount;
+        return totals;
+      },
+      { total: 0, paid: 0, due: 0 },
+    );
+  }
+
   function isPastDue(iso) {
     if (!iso) return false;
     return iso < toDateKey(new Date());
+  }
+
+  function nextDate(iso) {
+    var parts = iso.split("-").map(Number);
+    if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return iso;
+    return toDateKey(new Date(parts[0], parts[1] - 1, parts[2] + 1));
+  }
+
+  function countDueMonthlyCycles(endDate, today) {
+    if (!endDate) return 0;
+    var boundary = endDate;
+    var count = 0;
+    while (boundary < today && count < 1200) {
+      var nextBoundary = advanceOneMonth(boundary);
+      if (nextBoundary <= boundary) break;
+      count++;
+      boundary = nextBoundary;
+    }
+    return count;
+  }
+
+  function currentCycleStart(student, today) {
+    var endDate = student.endDate;
+    if (!endDate) return student.startDate || today;
+    if (!isPastDue(endDate)) {
+      var coveringPayment = (
+        Array.isArray(student.paymentHistory) ? student.paymentHistory : []
+      ).filter(function (payment) {
+        return (
+          payment &&
+          payment.kind !== "half-month" &&
+          payment.dueDate &&
+          advanceOneMonth(payment.dueDate) === endDate
+        );
+      })[0];
+      return coveringPayment
+        ? nextDate(coveringPayment.dueDate)
+        : student.startDate || endDate;
+    }
+
+    var boundary = endDate;
+    var lastExpiredBoundary = endDate;
+    var count = 0;
+    while (boundary < today && count < 1200) {
+      lastExpiredBoundary = boundary;
+      var nextBoundary = advanceOneMonth(boundary);
+      if (nextBoundary <= boundary) break;
+      boundary = nextBoundary;
+      count++;
+    }
+    return nextDate(lastExpiredBoundary);
+  }
+
+  function paidAmountForCycle(student, cycleStart, today, fee, cyclePaid) {
+    var monthlyPaid = 0;
+    var halfMonthPaid = 0;
+    (Array.isArray(student.paymentHistory)
+      ? student.paymentHistory
+      : []
+    ).forEach(function (payment) {
+      if (
+        !payment ||
+        typeof payment.paidAt !== "string" ||
+        payment.paidAt < cycleStart ||
+        payment.paidAt > today ||
+        typeof payment.amount !== "number"
+      )
+        return;
+      if (payment.kind === "half-month") halfMonthPaid += payment.amount;
+      else monthlyPaid += payment.amount;
+    });
+    if (!monthlyPaid && cyclePaid) monthlyPaid = fee;
+    return monthlyPaid + halfMonthPaid;
+  }
+
+  function isCurrentCyclePaid(student) {
+    if (!student.endDate || isPastDue(student.endDate)) return false;
+    return (
+      Array.isArray(student.paymentHistory) ? student.paymentHistory : []
+    ).some(function (payment) {
+      return (
+        payment.kind !== "half-month" &&
+        payment.dueDate &&
+        advanceOneMonth(payment.dueDate) === student.endDate
+      );
+    });
   }
 
   function advanceOneMonth(iso) {
@@ -938,22 +1222,53 @@
       return s.id === id;
     })[0];
     if (!student) return;
+    var paidAt = toDateKey(new Date());
+    var monthlyDueCycles = countDueMonthlyCycles(student.endDate, paidAt);
+    var monthlyDue = studentFee(student) * monthlyDueCycles;
+    var unpaidCharges = (
+      Array.isArray(student.halfMonthCharges) ? student.halfMonthCharges : []
+    ).filter(function (charge) {
+      return charge && !charge.paidAt;
+    });
+    var halfMonthDue = unpaidCharges.reduce(function (sum, charge) {
+      return sum + charge.amount;
+    }, 0);
+    var amountDue = monthlyDue + halfMonthDue;
+    if (amountDue <= 0) return;
     if (
-      !confirm(t("markPaidConfirm")(student.firstName + " " + student.lastName))
+      !confirm(
+        t("markPaidConfirm")(
+          student.firstName + " " + student.lastName,
+          amountDue.toLocaleString(t("locale"), { maximumFractionDigits: 2 }),
+        ),
+      )
     )
       return;
-    var base = student.endDate || toDateKey(new Date());
-    var paidAt = toDateKey(new Date());
     if (!Array.isArray(student.paymentHistory)) student.paymentHistory = [];
-    student.paymentHistory.unshift({
-      dueDate: base,
-      paidAt: paidAt,
-      amount: studentFee(student),
-      timing: paymentTiming(base, paidAt),
+    if (monthlyDueCycles > 0) {
+      var base = student.endDate;
+      for (var i = 0; i < monthlyDueCycles; i++) {
+        var dueDate = base;
+        student.paymentHistory.unshift({
+          dueDate: dueDate,
+          paidAt: paidAt,
+          amount: studentFee(student),
+          timing: paymentTiming(dueDate, paidAt),
+        });
+        base = advanceOneMonth(base);
+      }
+      student.endDate = base;
+    }
+    unpaidCharges.forEach(function (charge) {
+      charge.paidAt = paidAt;
+      student.paymentHistory.unshift({
+        dueDate: charge.addedAt,
+        paidAt: paidAt,
+        amount: charge.amount,
+        timing: paymentTiming(charge.addedAt, paidAt),
+        kind: "half-month",
+      });
     });
-    var nextDueDate = advanceOneMonth(base);
-    if (isPastDue(nextDueDate)) nextDueDate = advanceOneMonth(paidAt);
-    student.endDate = nextDueDate;
     saveStudents();
     renderPaymentsPage();
     renderStudentsPage();
@@ -961,14 +1276,143 @@
     showToast(t("markPaidSuccess"));
   }
 
+  function paymentDetailMarkup(selected) {
+    var student = selected.student;
+    var selectedStatusClass =
+      selected.amountDue > 0
+        ? "overdue"
+        : selected.cyclePaid
+          ? "ok"
+          : "in-progress";
+    var selectedStatusLabel = selected.overdue
+      ? t("statusOverdue")
+      : selected.halfMonthDue > 0
+        ? t("statusAmountDue")
+        : selected.cyclePaid
+          ? t("statusPaidUp")
+          : t("statusInProgress");
+    var paymentHistory = Array.isArray(student.paymentHistory)
+      ? student.paymentHistory.slice().sort(function (a, b) {
+          return (b.paidAt || "").localeCompare(a.paidAt || "");
+        })
+      : [];
+    var historyMarkup = paymentHistory.length
+      ? paymentHistory
+          .map(function (payment) {
+            var timing = payment.timing || "on-time";
+            var timingLabel =
+              timing === "slightly-late"
+                ? t("paymentSlightlyLate")
+                : timing === "very-late"
+                  ? t("paymentVeryLate")
+                  : t("paymentOnTime");
+            var badgeClass =
+              timing === "slightly-late"
+                ? "slightly-late"
+                : timing === "very-late"
+                  ? "very-late"
+                  : "on-time";
+            return (
+              '<article class="payment-history-item"><div class="payment-history-copy"><b>' +
+              formatPaymentMonth(payment.dueDate || payment.paidAt) +
+              "</b><span>" +
+              (payment.kind === "half-month"
+                ? t("halfMonthPaymentType")
+                : t("paymentMonthlyFee")) +
+              "</span><span>" +
+              t("paymentDateLabel") +
+              " " +
+              formatDate(payment.paidAt) +
+              "</span><span>" +
+              payment.amount.toLocaleString(t("locale"), {
+                maximumFractionDigits: 2,
+              }) +
+              " " +
+              t("dtSuffix") +
+              '</span></div><span class="payment-history-badge ' +
+              badgeClass +
+              '">' +
+              timingLabel +
+              "</span></article>"
+            );
+          })
+          .join("")
+      : '<p class="payment-history-empty">' + t("paymentHistoryEmpty") + "</p>";
+
+    return (
+      '<div class="payment-details-heading">' +
+      avatarMarkup(student) +
+      '<div><p class="payment-detail-label">' +
+      t("thName") +
+      '</p><h2 class="payment-detail-name">' +
+      escapeHtml(student.firstName + " " + student.lastName) +
+      '</h2></div><span class="payment-status ' +
+      selectedStatusClass +
+      '">' +
+      selectedStatusLabel +
+      '</span></div><div class="payment-detail-grid"><div class="payment-detail-tile"><span>' +
+      t("thLevel") +
+      "</span><b>" +
+      escapeHtml(levelLabel(student.level)) +
+      '</b></div><div class="payment-detail-tile"><span>' +
+      t("paymentMonthlyFee") +
+      "</span><b>" +
+      selected.fee +
+      " " +
+      t("dtSuffix") +
+      '</b></div><div class="payment-detail-tile"><span>' +
+      t("paymentAmountDue") +
+      "</span><b>" +
+      selected.amountDue.toLocaleString(t("locale"), {
+        maximumFractionDigits: 2,
+      }) +
+      " " +
+      t("dtSuffix") +
+      '</b></div><div class="payment-detail-tile"><span>' +
+      t("thEnd") +
+      "</span><b>" +
+      formatDate(student.endDate) +
+      '</b></div></div><div class="payment-history"><h3>' +
+      t("paymentHistoryTitle") +
+      '</h3><div class="payment-history-list">' +
+      historyMarkup +
+      "</div></div>"
+    );
+  }
+
+  function isMobilePaymentsView() {
+    return (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(max-width: 920px)").matches
+    );
+  }
+
   function renderPaymentsPage() {
     if (!els.paymentsKpiRow || !els.paymentsList) return;
 
+    selectedHalfMonthIds = selectedHalfMonthIds.filter(function (id) {
+      return students.some(function (student) {
+        return student.id === id;
+      });
+    });
+    renderHalfMonthPicker();
+    els.halfMonthCalculateBtn.disabled = selectedHalfMonthIds.length === 0;
+
     var rows = students.map(function (s) {
+      var charges = halfMonthChargeTotals(s);
+      var today = toDateKey(new Date());
+      var dueCycles = countDueMonthlyCycles(s.endDate, today);
+      var cyclePaid = dueCycles === 0 && isCurrentCyclePaid(s);
       return {
         student: s,
         fee: studentFee(s),
-        overdue: isPastDue(s.endDate),
+        overdue: dueCycles > 0,
+        dueCycles: dueCycles,
+        cyclePaid: cyclePaid,
+        cycleStart: currentCycleStart(s, today),
+        halfMonthTotals: charges,
+        halfMonthDue: charges.due,
+        amountDue: studentFee(s) * dueCycles + charges.due,
       };
     });
 
@@ -976,9 +1420,20 @@
       return sum + r.fee;
     }, 0);
     var paidAmount = rows.reduce(function (sum, r) {
-      return sum + (r.overdue ? 0 : r.fee);
+      return (
+        sum +
+        paidAmountForCycle(
+          r.student,
+          r.cycleStart,
+          toDateKey(new Date()),
+          r.fee,
+          r.cyclePaid,
+        )
+      );
     }, 0);
-    var unpaidAmount = expected - paidAmount;
+    var unpaidAmount = rows.reduce(function (sum, r) {
+      return sum + r.amountDue;
+    }, 0);
 
     els.paymentsKpiRow.innerHTML =
       '<div class="kpi-card kpi-total"><span class="kpi-label">' +
@@ -1010,32 +1465,43 @@
         "</b>" +
         t("emptyNoneText") +
         "</div></div>";
+      halfMonthCalculated = false;
+      renderHalfMonthResult();
       return;
     }
 
     rows.sort(function (a, b) {
-      if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
+      if (a.amountDue > 0 !== b.amountDue > 0) return a.amountDue > 0 ? -1 : 1;
       return (a.student.endDate || "").localeCompare(b.student.endDate || "");
     });
 
+    var mobileView = isMobilePaymentsView();
     var selected = rows.filter(function (r) {
       return r.student.id === selectedPaymentId;
     })[0];
-    if (!selected) {
+    if (!selected && !mobileView) {
       selected = rows[0];
-      selectedPaymentId = selected.student.id;
+      selectedPaymentId = rows[0].student.id;
     }
 
     var roster = rows
       .map(function (r) {
         var s = r.student;
+        var isSelected = s.id === selectedPaymentId;
         var rowClass =
           "payment-row" +
-          (r.overdue ? " is-overdue" : "") +
-          (s.id === selectedPaymentId ? " is-selected" : "");
-        var statusClass = r.overdue ? "overdue" : "ok";
-        var statusLabel = r.overdue ? t("statusOverdue") : t("statusPaidUp");
-        return (
+          (r.amountDue > 0 ? " is-overdue" : "") +
+          (isSelected ? " is-selected" : "");
+        var statusClass =
+          r.amountDue > 0 ? "overdue" : r.cyclePaid ? "ok" : "in-progress";
+        var statusLabel = r.overdue
+          ? t("statusOverdue")
+          : r.halfMonthDue > 0
+            ? t("statusAmountDue")
+            : r.cyclePaid
+              ? t("statusPaidUp")
+              : t("statusInProgress");
+        var articleHtml =
           '<article class="' +
           rowClass +
           '" data-id="' +
@@ -1044,7 +1510,7 @@
           '<button type="button" class="payment-select" data-action="select-payment" data-id="' +
           s.id +
           '" aria-pressed="' +
-          (s.id === selectedPaymentId) +
+          isSelected +
           '">' +
           avatarMarkup(s) +
           '<span class="payment-info-text">' +
@@ -1057,7 +1523,7 @@
           formatDate(s.endDate) +
           "</p></span>" +
           '<span class="payment-fee">' +
-          r.fee +
+          (r.amountDue > 0 ? r.amountDue : r.fee) +
           " " +
           t("dtSuffix") +
           "</span>" +
@@ -1069,92 +1535,197 @@
           '<div class="payment-actions"><button type="button" class="btn btn-primary" data-action="mark-paid" data-id="' +
           s.id +
           '"' +
-          (r.overdue ? "" : " disabled") +
+          (r.amountDue > 0 ? "" : " disabled") +
           ">" +
           t("markPaid") +
           "</button>" +
-          "</div></article>"
-        );
+          "</div></article>";
+
+        if (isSelected && selected) {
+          articleHtml +=
+            '<div class="payment-details-inline is-open">' +
+            paymentDetailMarkup(selected) +
+            "</div>";
+        }
+        return articleHtml;
       })
       .join("");
 
-    var student = selected.student;
-    var selectedStatusClass = selected.overdue ? "overdue" : "ok";
-    var selectedStatusLabel = selected.overdue
-      ? t("statusOverdue")
-      : t("statusPaidUp");
-    var paymentHistory = Array.isArray(student.paymentHistory)
-      ? student.paymentHistory.slice().sort(function (a, b) {
-          return (b.paidAt || "").localeCompare(a.paidAt || "");
-        })
-      : [];
-    var historyMarkup = paymentHistory.length
-      ? paymentHistory
-          .map(function (payment) {
-            var timing = payment.timing || "on-time";
-            var timingLabel =
-              timing === "slightly-late"
-                ? t("paymentSlightlyLate")
-                : timing === "very-late"
-                  ? t("paymentVeryLate")
-                  : t("paymentOnTime");
-            var badgeClass =
-              timing === "slightly-late"
-                ? "slightly-late"
-                : timing === "very-late"
-                  ? "very-late"
-                  : "on-time";
-            return (
-              '<article class="payment-history-item"><div class="payment-history-copy"><b>' +
-              formatPaymentMonth(payment.dueDate || payment.paidAt) +
-              "</b><span>" +
-              t("paymentDateLabel") +
-              " " +
-              formatDate(payment.paidAt) +
-              '</span></div><span class="payment-history-badge ' +
-              badgeClass +
-              '">' +
-              timingLabel +
-              "</span></article>"
-            );
-          })
-          .join("")
-      : '<p class="payment-history-empty">' + t("paymentHistoryEmpty") + "</p>";
+    var detailsSectionHtml = selected
+      ? '<section class="payment-details">' +
+        paymentDetailMarkup(selected) +
+        "</section>"
+      : "";
 
     els.paymentsList.innerHTML =
       '<div class="payments-board"><section class="payments-roster"><h2 class="payments-board-title">' +
       t("paymentsRosterTitle") +
       '</h2><div class="payments-roster-list">' +
       roster +
-      '</div></section><section class="payment-details"><div class="payment-details-heading">' +
-      avatarMarkup(student) +
-      '<div><p class="payment-detail-label">' +
-      t("thName") +
-      '</p><h2 class="payment-detail-name">' +
-      escapeHtml(student.firstName + " " + student.lastName) +
-      '</h2></div><span class="payment-status ' +
-      selectedStatusClass +
-      '">' +
-      selectedStatusLabel +
-      '</span></div><div class="payment-detail-grid"><div class="payment-detail-tile"><span>' +
-      t("thLevel") +
-      "</span><b>" +
-      escapeHtml(levelLabel(student.level)) +
-      '</b></div><div class="payment-detail-tile"><span>' +
-      t("paymentMonthlyFee") +
-      "</span><b>" +
-      selected.fee +
+      "</div></section>" +
+      detailsSectionHtml +
+      "</div>";
+    renderHalfMonthResult();
+  }
+
+  function renderHalfMonthPicker() {
+    var allSelected =
+      students.length > 0 && selectedHalfMonthIds.length === students.length;
+    var options =
+      '<label class="half-month-option"><input type="checkbox" data-action="select-half-month-all" aria-label="' +
+      t("halfMonthAllLabel") +
+      '"' +
+      (allSelected ? " checked" : "") +
+      "><span>" +
+      t("halfMonthAll") +
+      "</span></label>";
+    if (students.length) {
+      options += students
+        .map(function (student) {
+          var selected = selectedHalfMonthIds.indexOf(student.id) !== -1;
+          var name = escapeHtml(student.firstName + " " + student.lastName);
+          return (
+            '<label class="half-month-option"><input type="checkbox" data-action="select-half-month-student" data-id="' +
+            student.id +
+            '" aria-label="' +
+            t("halfMonthStudentLabel")(name) +
+            '"' +
+            (selected ? " checked" : "") +
+            "><span>" +
+            name +
+            "</span></label>"
+          );
+        })
+        .join("");
+    } else {
+      options +=
+        '<span class="half-month-no-students">' +
+        t("halfMonthNoStudents") +
+        "</span>";
+    }
+    els.halfMonthPickerOptions.innerHTML = options;
+    updateHalfMonthPickerLabel();
+  }
+
+  function updateHalfMonthPickerLabel() {
+    if (selectedHalfMonthIds.length === 0) {
+      els.halfMonthPickerLabel.textContent = t("halfMonthPickerLabel");
+    } else if (selectedHalfMonthIds.length === students.length) {
+      els.halfMonthPickerLabel.textContent = t("halfMonthAllSelected");
+    } else {
+      els.halfMonthPickerLabel.textContent = t("halfMonthSelectedCount")(
+        selectedHalfMonthIds.length,
+      );
+    }
+    var allCheckbox = els.halfMonthPickerOptions.querySelector(
+      'input[data-action="select-half-month-all"]',
+    );
+    if (allCheckbox) {
+      allCheckbox.checked =
+        students.length > 0 && selectedHalfMonthIds.length === students.length;
+    }
+  }
+
+  function renderHalfMonthResult() {
+    if (!halfMonthCalculated || halfMonthResultItems.length === 0) {
+      els.halfMonthResult.hidden = true;
+      els.halfMonthResult.innerHTML = "";
+      return;
+    }
+    var total = halfMonthResultItems.reduce(function (sum, item) {
+      return sum + item.amount;
+    }, 0);
+    var rows = halfMonthResultItems
+      .map(function (item) {
+        return (
+          "<li><span>" +
+          escapeHtml(item.name) +
+          "</span><b>" +
+          item.amount.toLocaleString(t("locale"), {
+            maximumFractionDigits: 2,
+          }) +
+          " " +
+          t("dtSuffix") +
+          "</b></li>"
+        );
+      })
+      .join("");
+    els.halfMonthResult.innerHTML =
+      "<h3>" +
+      t("halfMonthAddedTitle") +
+      "</h3><ul>" +
+      rows +
+      "</ul><p><b>" +
+      t("halfMonthTotal") +
+      ": " +
+      total.toLocaleString(t("locale"), { maximumFractionDigits: 2 }) +
       " " +
       t("dtSuffix") +
-      '</b></div><div class="payment-detail-tile"><span>' +
-      t("thEnd") +
-      "</span><b>" +
-      formatDate(student.endDate) +
-      '</b></div></div><div class="payment-history"><h3>' +
-      t("paymentHistoryTitle") +
-      '</h3><div class="payment-history-list">' +
-      historyMarkup +
-      "</div></div></section></div>";
+      "</b></p>";
+    els.halfMonthResult.hidden = false;
+  }
+
+  function addHalfMonthDue() {
+    var selectedStudents = students.filter(function (student) {
+      return selectedHalfMonthIds.indexOf(student.id) !== -1;
+    });
+    if (selectedStudents.length === 0) return;
+    var addedAt = toDateKey(new Date());
+    halfMonthResultItems = selectedStudents.map(function (student) {
+      var amount = studentFee(student) / 2;
+      if (!Array.isArray(student.halfMonthCharges))
+        student.halfMonthCharges = [];
+      student.halfMonthCharges.push({
+        amount: amount,
+        addedAt: addedAt,
+        paidAt: "",
+      });
+      return {
+        name: student.firstName + " " + student.lastName,
+        amount: amount,
+      };
+    });
+    selectedHalfMonthIds = [];
+    halfMonthCalculated = true;
+    saveStudents();
+    renderPaymentsPage();
+    var total = halfMonthResultItems.reduce(function (sum, item) {
+      return sum + item.amount;
+    }, 0);
+    showToast(
+      t("halfMonthAddSuccess")(
+        halfMonthResultItems.length,
+        total.toLocaleString(t("locale"), { maximumFractionDigits: 2 }),
+      ),
+    );
+    renderHalfMonthResult();
+  }
+
+  function handleHalfMonthSelectionChange(e) {
+    var checkbox = e.target.closest('input[data-action^="select-half-month"]');
+    if (!checkbox) return;
+    if (checkbox.dataset.action === "select-half-month-all") {
+      selectedHalfMonthIds = checkbox.checked
+        ? students.map(function (student) {
+            return student.id;
+          })
+        : [];
+      renderHalfMonthPicker();
+    } else {
+      var id = checkbox.getAttribute("data-id");
+      if (checkbox.checked && selectedHalfMonthIds.indexOf(id) === -1) {
+        selectedHalfMonthIds.push(id);
+      } else if (!checkbox.checked) {
+        selectedHalfMonthIds = selectedHalfMonthIds.filter(function (item) {
+          return item !== id;
+        });
+      }
+      updateHalfMonthPickerLabel();
+    }
+    halfMonthCalculated = false;
+    els.halfMonthCalculateBtn.disabled = selectedHalfMonthIds.length === 0;
+    els.halfMonthResult.hidden = true;
+    els.halfMonthResult.innerHTML = "";
   }
 
   function handlePaymentsClick(e) {
@@ -1165,7 +1736,12 @@
     }
     var selectBtn = e.target.closest('button[data-action="select-payment"]');
     if (!selectBtn) return;
-    selectedPaymentId = selectBtn.getAttribute("data-id");
+    var id = selectBtn.getAttribute("data-id");
+    if (isMobilePaymentsView() && selectedPaymentId === id) {
+      selectedPaymentId = null;
+    } else {
+      selectedPaymentId = id;
+    }
     renderPaymentsPage();
   }
 
@@ -1232,6 +1808,7 @@
           return s.gender === data.gender;
         }).length,
       );
+      assignAvatarBackgrounds([data], students);
       students.push(data);
     }
     saveStudents();
@@ -1511,6 +2088,18 @@
   els.tableWrap.addEventListener("click", handleTableClick);
   if (els.paymentsList)
     els.paymentsList.addEventListener("click", handlePaymentsClick);
+  if (els.halfMonthPickerOptions)
+    els.halfMonthPickerOptions.addEventListener(
+      "change",
+      handleHalfMonthSelectionChange,
+    );
+  els.halfMonthCalculateBtn.addEventListener("click", addHalfMonthDue);
+  var paymentsResizeTimer = null;
+  window.addEventListener("resize", function () {
+    if (currentPage !== "payments") return;
+    clearTimeout(paymentsResizeTimer);
+    paymentsResizeTimer = setTimeout(renderPaymentsPage, 150);
+  });
   if (els.toastClose)
     els.toastClose.addEventListener("click", function () {
       els.toast.classList.remove("show");
@@ -1548,6 +2137,9 @@
 
   document.addEventListener("click", function (e) {
     if (!e.target.closest(".card-menu")) closeAllKebabMenus();
+    if (els.halfMonthPicker && !els.halfMonthPicker.contains(e.target)) {
+      els.halfMonthPicker.open = false;
+    }
   });
 
   document.addEventListener("keydown", function (e) {
