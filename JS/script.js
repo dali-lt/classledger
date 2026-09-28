@@ -136,6 +136,34 @@
       importError: "This file is not a valid ClassLedger backup.",
       exportSuccess: "Backup file downloaded.",
       saveError: "Could not save data in this browser.",
+      toastSuccessTitle: "Success",
+      toastErrorTitle: "Error",
+      navPayments: "Payments",
+      pageTitlePayments: "Payments",
+      kpiMonthlyIncome: "Expected monthly income",
+      kpiPaidAmount: "Paid amount",
+      kpiUnpaidAmount: "Unpaid amount",
+      paymentsRosterTitle: "Student payments",
+      paymentMonthlyFee: "Monthly fee",
+      paymentHistoryTitle: "Payment history",
+      paymentHistoryEmpty: "No payments recorded yet.",
+      paymentDateLabel: "Paid on",
+      paymentOnTime: "On time",
+      paymentSlightlyLate: "Slightly late",
+      paymentVeryLate: "Very late",
+      dueOn: "Due",
+      dtSuffix: "DT",
+      statusOverdue: "Overdue",
+      statusPaidUp: "Paid up",
+      markPaid: "Mark paid",
+      markPaidConfirm: function (name) {
+        return (
+          "Mark " +
+          name +
+          " as paid and set the next due date one month from now?"
+        );
+      },
+      markPaidSuccess: "Payment recorded.",
       locale: "en-GB",
     },
     ar: {
@@ -210,6 +238,32 @@
       importError: "الملف هذا موش نسخة احتياطية صالحة لـ ClassLedger.",
       exportSuccess: "تم تحميل ملف النسخة الاحتياطية.",
       saveError: "تعذّر حفظ البيانات في هذا المتصفح.",
+      toastSuccessTitle: "تم بنجاح",
+      toastErrorTitle: "خطأ",
+      navPayments: "المدفوعات",
+      pageTitlePayments: "المدفوعات",
+      kpiMonthlyIncome: "الدخل الشهري المتوقع",
+      kpiPaidAmount: "المبلغ المدفوع",
+      kpiUnpaidAmount: "المتبقي غير المدفوع",
+      paymentsRosterTitle: "خلاص التلامذة",
+      paymentMonthlyFee: "المعلوم الشهري",
+      paymentHistoryTitle: "سجل الدفعات",
+      paymentHistoryEmpty: "ما تسجلت حتى دفعة قبل.",
+      paymentDateLabel: "تاريخ الدفع",
+      paymentOnTime: "في وقتو",
+      paymentSlightlyLate: "متأخر شوية",
+      paymentVeryLate: "متأخر برشة",
+      dueOn: "يخلص في",
+      dtSuffix: "د.ت",
+      statusOverdue: "متأخر",
+      statusPaidUp: "مخلّص",
+      markPaid: "تسجيل الخلاص",
+      markPaidConfirm: function (name) {
+        return (
+          "تأكد باش تسجل " + name + " كمخلّص وتحدد تاريخ الخلاص الجاي بعد شهر؟"
+        );
+      },
+      markPaidSuccess: "تم تسجيل الخلاص.",
       locale: "ar-TN",
     },
   };
@@ -293,6 +347,21 @@
     exportDataLabel: document.getElementById("exportDataLabel"),
     importDataLabel: document.getElementById("importDataLabel"),
     toast: document.getElementById("toast"),
+    toastIcon: document.getElementById("toastIcon"),
+    toastTitle: document.getElementById("toastTitle"),
+    toastMessage: document.getElementById("toastMessage"),
+    toastClose: document.getElementById("toastClose"),
+    pillPaymentsLabel: document.getElementById("pillPaymentsLabel"),
+    paymentsKpiRow: document.getElementById("paymentsKpiRow"),
+    paymentsList: document.getElementById("paymentsList"),
+  };
+
+  var LEVEL_PRICE = { college: 40, lycee: 45 };
+
+  var PAGE_TITLE_KEY = {
+    students: "pageTitleStudents",
+    calendar: "pageTitleCalendar",
+    payments: "pageTitlePayments",
   };
 
   var students = [];
@@ -300,6 +369,7 @@
   var selectedDate = new Date();
   var currentLang = "en";
   var currentPage = "students";
+  var selectedPaymentId = null;
 
   /* ---------------- storage ---------------- */
   function loadStudents() {
@@ -323,9 +393,18 @@
     }
   }
   var toastTimer = null;
-  function showToast(message, isError) {
+  var TOAST_ICON_OK =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7"/></svg>';
+  var TOAST_ICON_ERR =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  function showToast(message, isError, title) {
     if (!els.toast) return;
-    els.toast.textContent = message;
+    if (els.toastIcon)
+      els.toastIcon.innerHTML = isError ? TOAST_ICON_ERR : TOAST_ICON_OK;
+    if (els.toastTitle)
+      els.toastTitle.textContent =
+        title || (isError ? t("toastErrorTitle") : t("toastSuccessTitle"));
+    if (els.toastMessage) els.toastMessage.textContent = message;
     els.toast.classList.toggle("toast-error", !!isError);
     els.toast.classList.add("show");
     clearTimeout(toastTimer);
@@ -347,6 +426,7 @@
     saveStudents();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
+    if (currentPage === "payments") renderPaymentsPage();
   }
   function exportData() {
     var backup = {
@@ -401,6 +481,7 @@
         saveStudents();
         renderStudentsPage();
         if (currentPage === "calendar") renderCalendar();
+        if (currentPage === "payments") renderPaymentsPage();
         showToast(t("importSuccess"));
       } catch (e) {
         showToast(t("importError"), true);
@@ -508,6 +589,8 @@
 
     els.pillStudentsLabel.textContent = t("navStudents");
     els.pillCalendarLabel.textContent = t("navCalendar");
+    els.pillPaymentsLabel.textContent = t("navPayments");
+    if (els.toastClose) els.toastClose.setAttribute("aria-label", t("close"));
     els.distributionTitleEl.textContent = t("distributionTitle");
     els.byLevelTitleEl.textContent = t("byLevelTitle");
     els.donutTotalLabel.textContent = t("statTotal");
@@ -553,10 +636,7 @@
     els.cancelBtn.textContent = t("cancel");
     els.noteCloseBtn.textContent = t("close");
 
-    els.pageTitle.textContent =
-      currentPage === "students"
-        ? t("pageTitleStudents")
-        : t("pageTitleCalendar");
+    els.pageTitle.textContent = t(PAGE_TITLE_KEY[currentPage]);
 
     populateLevelSelects();
   }
@@ -567,6 +647,7 @@
     applyStaticText();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
+    if (currentPage === "payments") renderPaymentsPage();
     setHeaderDate();
   }
 
@@ -579,23 +660,28 @@
     document.querySelectorAll(".page").forEach(function (sec) {
       sec.classList.toggle("active", sec.id === "page-" + pageName);
     });
-    els.pageTitle.textContent =
-      pageName === "students" ? t("pageTitleStudents") : t("pageTitleCalendar");
+    els.pageTitle.textContent = t(PAGE_TITLE_KEY[pageName]);
     els.actionsStudents.style.display =
       pageName === "students" ? "flex" : "none";
     els.actionsCalendar.style.display =
       pageName === "calendar" ? "flex" : "none";
     if (pageName === "calendar") renderCalendar();
+    if (pageName === "payments") renderPaymentsPage();
   }
 
   /* ---------------- students rendering ---------------- */
   function renderStats() {
     var total = students.length;
     var counts = {};
-    LEVELS.forEach(function (l) { counts[l] = 0; });
-    students.forEach(function (s) { if (counts[s.level] !== undefined) counts[s.level]++; });
+    LEVELS.forEach(function (l) {
+      counts[l] = 0;
+    });
+    students.forEach(function (s) {
+      if (counts[s.level] !== undefined) counts[s.level]++;
+    });
 
-    var totalCollege = 0, totalLycee = 0;
+    var totalCollege = 0,
+      totalLycee = 0;
     LEVELS.forEach(function (l) {
       if (LEVEL_CATEGORY[l] === "lycee") totalLycee += counts[l];
       else totalCollege += counts[l];
@@ -603,9 +689,21 @@
 
     /* ---- KPI cards ---- */
     els.kpiRow.innerHTML =
-      '<div class="kpi-card kpi-total"><span class="kpi-label">' + t("statTotal") + '</span><span class="kpi-value">' + total + "</span></div>" +
-      '<div class="kpi-card kpi-college"><span class="kpi-label">' + t("kpiCollege") + '</span><span class="kpi-value">' + totalCollege + "</span></div>" +
-      '<div class="kpi-card kpi-lycee"><span class="kpi-label">' + t("kpiLycee") + '</span><span class="kpi-value">' + totalLycee + "</span></div>";
+      '<div class="kpi-card kpi-total"><span class="kpi-label">' +
+      t("statTotal") +
+      '</span><span class="kpi-value">' +
+      total +
+      "</span></div>" +
+      '<div class="kpi-card kpi-college"><span class="kpi-label">' +
+      t("kpiCollege") +
+      '</span><span class="kpi-value">' +
+      totalCollege +
+      "</span></div>" +
+      '<div class="kpi-card kpi-lycee"><span class="kpi-label">' +
+      t("kpiLycee") +
+      '</span><span class="kpi-value">' +
+      totalLycee +
+      "</span></div>";
 
     /* ---- Donut chart ---- */
     var CIRC = 2 * Math.PI * 45;
@@ -613,23 +711,40 @@
     var lyceeLen = total ? (totalLycee / total) * CIRC : 0;
     var donutCollege = document.getElementById("donutCollege");
     var donutLycee = document.getElementById("donutLycee");
-    donutCollege.setAttribute("stroke-dasharray", collegeLen + " " + (CIRC - collegeLen));
+    donutCollege.setAttribute(
+      "stroke-dasharray",
+      collegeLen + " " + (CIRC - collegeLen),
+    );
     donutCollege.setAttribute("stroke-dashoffset", "0");
-    donutLycee.setAttribute("stroke-dasharray", lyceeLen + " " + (CIRC - lyceeLen));
+    donutLycee.setAttribute(
+      "stroke-dasharray",
+      lyceeLen + " " + (CIRC - lyceeLen),
+    );
     donutLycee.setAttribute("stroke-dashoffset", String(-collegeLen));
     document.getElementById("donutTotal").textContent = total;
     document.getElementById("legendCollegeValue").textContent = totalCollege;
     document.getElementById("legendLyceeValue").textContent = totalLycee;
 
     /* ---- Bar chart ---- */
-    var maxCount = Math.max.apply(null, LEVELS.map(function (l) { return counts[l]; }).concat([1]));
+    var maxCount = Math.max.apply(
+      null,
+      LEVELS.map(function (l) {
+        return counts[l];
+      }).concat([1]),
+    );
     els.barChart.innerHTML = LEVELS.map(function (l) {
       var pct = Math.round((counts[l] / maxCount) * 100);
       return (
         '<div class="bar-col">' +
-        '<span class="bar-count">' + counts[l] + "</span>" +
-        '<div class="bar-shape" style="height:' + pct + '%"></div>' +
-        '<span class="bar-label">' + shortLevelLabel(l) + "</span>" +
+        '<span class="bar-count">' +
+        counts[l] +
+        "</span>" +
+        '<div class="bar-shape" style="height:' +
+        pct +
+        '%"></div>' +
+        '<span class="bar-label">' +
+        shortLevelLabel(l) +
+        "</span>" +
         "</div>"
       );
     }).join("");
@@ -773,6 +888,287 @@
     renderTable();
   }
 
+  /* ---------------- payments ---------------- */
+  function studentFee(student) {
+    var category = LEVEL_CATEGORY[student.level];
+    return LEVEL_PRICE[category] || 0;
+  }
+
+  function isPastDue(iso) {
+    if (!iso) return false;
+    return iso < toDateKey(new Date());
+  }
+
+  function advanceOneMonth(iso) {
+    var parts = iso.split("-");
+    var y = Number(parts[0]),
+      m = Number(parts[1]),
+      d = Number(parts[2]);
+    if (!y || !m || !d) return iso;
+    var dt = new Date(y, m, d); // m is 1-indexed current month -> Date's 0-indexed next month
+    var yy = dt.getFullYear(),
+      mm = String(dt.getMonth() + 1).padStart(2, "0"),
+      dd = String(dt.getDate()).padStart(2, "0");
+    return yy + "-" + mm + "-" + dd;
+  }
+
+  function paymentTiming(dueDate, paidAt) {
+    if (!dueDate || paidAt <= dueDate) return "on-time";
+    var dueParts = dueDate.split("-").map(Number);
+    var paidParts = paidAt.split("-").map(Number);
+    var delayDays =
+      (Date.UTC(paidParts[0], paidParts[1] - 1, paidParts[2]) -
+        Date.UTC(dueParts[0], dueParts[1] - 1, dueParts[2])) /
+      86400000;
+    return delayDays <= 7 ? "slightly-late" : "very-late";
+  }
+
+  function formatPaymentMonth(iso) {
+    if (!iso) return "—";
+    var parts = iso.split("-");
+    if (parts.length !== 3) return iso;
+    return new Intl.DateTimeFormat(t("locale"), {
+      month: "long",
+      year: "numeric",
+    }).format(new Date(Number(parts[0]), Number(parts[1]) - 1, 1));
+  }
+
+  function markPaid(id) {
+    var student = students.filter(function (s) {
+      return s.id === id;
+    })[0];
+    if (!student) return;
+    if (
+      !confirm(t("markPaidConfirm")(student.firstName + " " + student.lastName))
+    )
+      return;
+    var base = student.endDate || toDateKey(new Date());
+    var paidAt = toDateKey(new Date());
+    if (!Array.isArray(student.paymentHistory)) student.paymentHistory = [];
+    student.paymentHistory.unshift({
+      dueDate: base,
+      paidAt: paidAt,
+      amount: studentFee(student),
+      timing: paymentTiming(base, paidAt),
+    });
+    var nextDueDate = advanceOneMonth(base);
+    if (isPastDue(nextDueDate)) nextDueDate = advanceOneMonth(paidAt);
+    student.endDate = nextDueDate;
+    saveStudents();
+    renderPaymentsPage();
+    renderStudentsPage();
+    if (currentPage === "calendar") renderCalendar();
+    showToast(t("markPaidSuccess"));
+  }
+
+  function renderPaymentsPage() {
+    if (!els.paymentsKpiRow || !els.paymentsList) return;
+
+    var rows = students.map(function (s) {
+      return {
+        student: s,
+        fee: studentFee(s),
+        overdue: isPastDue(s.endDate),
+      };
+    });
+
+    var expected = rows.reduce(function (sum, r) {
+      return sum + r.fee;
+    }, 0);
+    var paidAmount = rows.reduce(function (sum, r) {
+      return sum + (r.overdue ? 0 : r.fee);
+    }, 0);
+    var unpaidAmount = expected - paidAmount;
+
+    els.paymentsKpiRow.innerHTML =
+      '<div class="kpi-card kpi-total"><span class="kpi-label">' +
+      t("kpiMonthlyIncome") +
+      '</span><span class="kpi-value">' +
+      expected +
+      " " +
+      t("dtSuffix") +
+      "</span></div>" +
+      '<div class="kpi-card kpi-college"><span class="kpi-label">' +
+      t("kpiPaidAmount") +
+      '</span><span class="kpi-value">' +
+      paidAmount +
+      " " +
+      t("dtSuffix") +
+      "</span></div>" +
+      '<div class="kpi-card kpi-danger"><span class="kpi-label">' +
+      t("kpiUnpaidAmount") +
+      '</span><span class="kpi-value">' +
+      unpaidAmount +
+      " " +
+      t("dtSuffix") +
+      "</span></div>";
+
+    if (rows.length === 0) {
+      els.paymentsList.innerHTML =
+        '<div class="payments-board empty-board"><div class="empty"><b>' +
+        t("emptyNoneTitle") +
+        "</b>" +
+        t("emptyNoneText") +
+        "</div></div>";
+      return;
+    }
+
+    rows.sort(function (a, b) {
+      if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
+      return (a.student.endDate || "").localeCompare(b.student.endDate || "");
+    });
+
+    var selected = rows.filter(function (r) {
+      return r.student.id === selectedPaymentId;
+    })[0];
+    if (!selected) {
+      selected = rows[0];
+      selectedPaymentId = selected.student.id;
+    }
+
+    var roster = rows
+      .map(function (r) {
+        var s = r.student;
+        var rowClass =
+          "payment-row" +
+          (r.overdue ? " is-overdue" : "") +
+          (s.id === selectedPaymentId ? " is-selected" : "");
+        var statusClass = r.overdue ? "overdue" : "ok";
+        var statusLabel = r.overdue ? t("statusOverdue") : t("statusPaidUp");
+        return (
+          '<article class="' +
+          rowClass +
+          '" data-id="' +
+          s.id +
+          '">' +
+          '<button type="button" class="payment-select" data-action="select-payment" data-id="' +
+          s.id +
+          '" aria-pressed="' +
+          (s.id === selectedPaymentId) +
+          '">' +
+          avatarMarkup(s) +
+          '<span class="payment-info-text">' +
+          '<p class="payment-name">' +
+          escapeHtml(s.firstName + " " + s.lastName) +
+          "</p>" +
+          '<p class="payment-due">' +
+          t("dueOn") +
+          " " +
+          formatDate(s.endDate) +
+          "</p></span>" +
+          '<span class="payment-fee">' +
+          r.fee +
+          " " +
+          t("dtSuffix") +
+          "</span>" +
+          '<span class="payment-status ' +
+          statusClass +
+          '">' +
+          statusLabel +
+          "</span></button>" +
+          '<div class="payment-actions"><button type="button" class="btn btn-primary" data-action="mark-paid" data-id="' +
+          s.id +
+          '"' +
+          (r.overdue ? "" : " disabled") +
+          ">" +
+          t("markPaid") +
+          "</button>" +
+          "</div></article>"
+        );
+      })
+      .join("");
+
+    var student = selected.student;
+    var selectedStatusClass = selected.overdue ? "overdue" : "ok";
+    var selectedStatusLabel = selected.overdue
+      ? t("statusOverdue")
+      : t("statusPaidUp");
+    var paymentHistory = Array.isArray(student.paymentHistory)
+      ? student.paymentHistory.slice().sort(function (a, b) {
+          return (b.paidAt || "").localeCompare(a.paidAt || "");
+        })
+      : [];
+    var historyMarkup = paymentHistory.length
+      ? paymentHistory
+          .map(function (payment) {
+            var timing = payment.timing || "on-time";
+            var timingLabel =
+              timing === "slightly-late"
+                ? t("paymentSlightlyLate")
+                : timing === "very-late"
+                  ? t("paymentVeryLate")
+                  : t("paymentOnTime");
+            var badgeClass =
+              timing === "slightly-late"
+                ? "slightly-late"
+                : timing === "very-late"
+                  ? "very-late"
+                  : "on-time";
+            return (
+              '<article class="payment-history-item"><div class="payment-history-copy"><b>' +
+              formatPaymentMonth(payment.dueDate || payment.paidAt) +
+              "</b><span>" +
+              t("paymentDateLabel") +
+              " " +
+              formatDate(payment.paidAt) +
+              '</span></div><span class="payment-history-badge ' +
+              badgeClass +
+              '">' +
+              timingLabel +
+              "</span></article>"
+            );
+          })
+          .join("")
+      : '<p class="payment-history-empty">' + t("paymentHistoryEmpty") + "</p>";
+
+    els.paymentsList.innerHTML =
+      '<div class="payments-board"><section class="payments-roster"><h2 class="payments-board-title">' +
+      t("paymentsRosterTitle") +
+      '</h2><div class="payments-roster-list">' +
+      roster +
+      '</div></section><section class="payment-details"><div class="payment-details-heading">' +
+      avatarMarkup(student) +
+      '<div><p class="payment-detail-label">' +
+      t("thName") +
+      '</p><h2 class="payment-detail-name">' +
+      escapeHtml(student.firstName + " " + student.lastName) +
+      '</h2></div><span class="payment-status ' +
+      selectedStatusClass +
+      '">' +
+      selectedStatusLabel +
+      '</span></div><div class="payment-detail-grid"><div class="payment-detail-tile"><span>' +
+      t("thLevel") +
+      "</span><b>" +
+      escapeHtml(levelLabel(student.level)) +
+      '</b></div><div class="payment-detail-tile"><span>' +
+      t("paymentMonthlyFee") +
+      "</span><b>" +
+      selected.fee +
+      " " +
+      t("dtSuffix") +
+      '</b></div><div class="payment-detail-tile"><span>' +
+      t("thEnd") +
+      "</span><b>" +
+      formatDate(student.endDate) +
+      '</b></div></div><div class="payment-history"><h3>' +
+      t("paymentHistoryTitle") +
+      '</h3><div class="payment-history-list">' +
+      historyMarkup +
+      "</div></div></section></div>";
+  }
+
+  function handlePaymentsClick(e) {
+    var btn = e.target.closest('button[data-action="mark-paid"]');
+    if (btn) {
+      markPaid(btn.getAttribute("data-id"));
+      return;
+    }
+    var selectBtn = e.target.closest('button[data-action="select-payment"]');
+    if (!selectBtn) return;
+    selectedPaymentId = selectBtn.getAttribute("data-id");
+    renderPaymentsPage();
+  }
+
   /* ---------------- modal (add/edit) ---------------- */
   function openModal(mode, student) {
     els.studentForm.reset();
@@ -842,6 +1238,7 @@
     closeModal();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
+    if (currentPage === "payments") renderPaymentsPage();
   }
 
   function openNoteModal(student) {
@@ -935,6 +1332,7 @@
         });
         saveStudents();
         renderStudentsPage();
+        if (currentPage === "payments") renderPaymentsPage();
       }
     } else if (btn.dataset.action === "details") {
       openNoteModal(student);
@@ -1111,6 +1509,12 @@
   });
   els.studentForm.addEventListener("submit", handleSubmit);
   els.tableWrap.addEventListener("click", handleTableClick);
+  if (els.paymentsList)
+    els.paymentsList.addEventListener("click", handlePaymentsClick);
+  if (els.toastClose)
+    els.toastClose.addEventListener("click", function () {
+      els.toast.classList.remove("show");
+    });
   els.searchInput.addEventListener("input", renderTable);
   els.levelFilter.addEventListener("change", renderTable);
 
