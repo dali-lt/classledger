@@ -2,6 +2,7 @@
   "use strict";
 
   var STORAGE_KEY = "classledger:students";
+  var GROUPS_KEY = "classledger:groups";
   var LANG_KEY = "classledger:lang";
 
   var LEVELS = [
@@ -127,8 +128,39 @@
       eventsTitle: "Day events",
       legendStart: "Start of studies",
       legendEnd: "End of studies",
+      legendStudy: "Group study day",
       noEventsTitle: "No events",
       noEventsText: "Pick another day or add an end date for a student.",
+      group: "Groups",
+      groupsTitle: "Groups",
+      groupsHint: "Assign students, then filter calendar events by group.",
+      newGroupPlaceholder: "New group name",
+      addGroup: "Add",
+      allGroups: "All groups",
+      noGroups: "No groups yet",
+      groupStudentCount: function (count) {
+        return count + (count === 1 ? " student" : " students");
+      },
+      groupMemberHint:
+        "A student can join one study-days group and one price group. Another group of the same type is disabled.",
+      groupAssignedTo: "Assigned to {group}",
+      groupMembershipConflict:
+        "A student can only belong to one group of each type.",
+      groupAlsoIn: "Also in {groups}",
+      groupModeDays: "Study days (Mon-Sat)",
+      groupModePrice: "Monthly price",
+      groupModeLabel: "Group setup",
+      groupStudySchedule:
+        "Choose one or more study days from Monday through Saturday. Sunday is off.",
+      groupMonthlyFee: "Monthly fee per student",
+      deleteGroup: "Delete group",
+      deleteGroupConfirm: function (name) {
+        return (
+          "Delete group " + name + "? Its students will become unassigned."
+        );
+      },
+      groupsAdded: "Group added.",
+      groupExists: "That group already exists.",
       clearAllConfirm:
         "Delete all students and their data? This can't be undone.",
       clearAllButton: "Clear all data",
@@ -258,8 +290,35 @@
       eventsTitle: "أحداث اليوم",
       legendStart: "بداية الدراسة",
       legendEnd: "نهاية الدراسة",
+      legendStudy: "يوم دراسة للمجموعة",
       noEventsTitle: "ما فماش أحداث",
       noEventsText: "اختر يوم آخر أو زيد تاريخ انتهاء لتلميذ.",
+      group: "المجموعات",
+      groupsTitle: "المجموعات",
+      groupsHint: "عيّن التلامذة للمجموعات وفلتر أحداث التقويم.",
+      newGroupPlaceholder: "اسم مجموعة جديدة",
+      addGroup: "إضافة",
+      allGroups: "كل المجموعات",
+      noGroups: "ما فماش مجموعات",
+      groupStudentCount: function (count) {
+        return count === 1 ? "تلميذ واحد" : count + " تلامذة";
+      },
+      groupMemberHint:
+        "التلميذ ينجم يكون في مجموعة أيام ومجموعة سعر؛ مجموعة أخرى من نفس النوع تكون مطفية.",
+      groupAssignedTo: "مربوط بـ {group}",
+      groupMembershipConflict: "التلميذ ينجم يكون في مجموعة وحدة من كل نوع.",
+      groupAlsoIn: "وزادة في {groups}",
+      groupModeDays: "أيام دراسة (الاثنين-السبت)",
+      groupModePrice: "سعر شهري",
+      groupModeLabel: "نوع المجموعة",
+      groupStudySchedule: "اختار نهار ولا أكثر من الاثنين للسبت، والأحد راحة.",
+      groupMonthlyFee: "المعلوم الشهري لكل تلميذ",
+      deleteGroup: "حذف المجموعة",
+      deleteGroupConfirm: function (name) {
+        return "تحذف مجموعة " + name + "؟ التلامذة متاعها يولو بلا مجموعة.";
+      },
+      groupsAdded: "تضافت المجموعة.",
+      groupExists: "المجموعة هاذي موجودة من قبل.",
       clearAllConfirm:
         "تأكد باش تحذف التلامذة الكل ومعلوماتهم؟ العملية ما تتراجعش.",
       clearAllButton: "مسح جميع البيانات",
@@ -379,6 +438,8 @@
     genderFemaleOpt: document.getElementById("genderFemaleOpt"),
     startDate: document.getElementById("startDate"),
     endDate: document.getElementById("endDate"),
+    studentGroup: document.getElementById("studentGroup"),
+    lblGroup: document.getElementById("lblGroup"),
     endDateHint: document.getElementById("endDateHint"),
     notes: document.getElementById("notes"),
     cancelBtn: document.getElementById("cancelBtn"),
@@ -403,8 +464,17 @@
     eventsTitle: document.getElementById("eventsTitle"),
     eventsSub: document.getElementById("eventsSub"),
     eventsList: document.getElementById("eventsList"),
+    groupsTitle: document.getElementById("groupsTitle"),
+    groupsHint: document.getElementById("groupsHint"),
+    groupsTotal: document.getElementById("groupsTotal"),
+    groupsAddForm: document.getElementById("groupsAddForm"),
+    newGroupName: document.getElementById("newGroupName"),
+    newGroupLabel: document.getElementById("newGroupLabel"),
+    addGroupBtn: document.getElementById("addGroupBtn"),
+    groupsList: document.getElementById("groupsList"),
     legendStartLabel: document.getElementById("legendStartLabel"),
     legendEndLabel: document.getElementById("legendEndLabel"),
+    legendStudyLabel: document.getElementById("legendStudyLabel"),
     langSwitch: document.getElementById("langSwitch"),
     clearDataBtn: document.getElementById("clearDataBtn"),
     clearDataLabel: document.getElementById("clearDataLabel"),
@@ -439,6 +509,9 @@
   };
 
   var students = [];
+  var groups = [];
+  var activeGroup = "";
+  var expandedGroup = "";
   var calendarCursor = new Date();
   var selectedDate = new Date();
   var currentLang = "en";
@@ -500,10 +573,123 @@
       showToast(t("saveError"), true);
     }
   }
+  function saveGroups() {
+    try {
+      localStorage.setItem(GROUPS_KEY, JSON.stringify(groups));
+    } catch (e) {
+      showToast(t("saveError"), true);
+    }
+  }
+  function normalizeGroup(value) {
+    var source = typeof value === "string" ? { name: value } : value;
+    if (!source || typeof source.name !== "string" || !source.name.trim()) {
+      return null;
+    }
+    var price = Number(source.price);
+    var days = Array.isArray(source.days)
+      ? source.days
+          .map(Number)
+          .filter(function (day, index, list) {
+            return day >= 1 && day <= 6 && list.indexOf(day) === index;
+          })
+          .sort()
+      : [1, 2, 3, 4, 5, 6];
+    return {
+      name: source.name.trim(),
+      type: source.type === "price" ? "price" : "days",
+      price: isFinite(price) && price >= 0 ? price : 0,
+      days: days,
+    };
+  }
+  function groupRecord(name) {
+    var normalizedName = name.trim().toLowerCase();
+    return (
+      groups.find(function (group) {
+        return group.name.toLowerCase() === normalizedName;
+      }) || null
+    );
+  }
+  function studentGroupNames(student) {
+    var source = Array.isArray(student.groups)
+      ? student.groups
+      : typeof student.group === "string" && student.group.trim()
+        ? [student.group]
+        : [];
+    var names = Array.isArray(student.groups)
+      ? []
+      : student.group
+        ? [student.group]
+        : [];
+    source.forEach(function (name) {
+      if (typeof name !== "string" || !name.trim()) return;
+      var group = findGroup(name);
+      var canonicalName = group || name.trim();
+      if (names.indexOf(canonicalName) === -1) names.push(canonicalName);
+    });
+    return names;
+  }
+  function setStudentGroupNames(student, names) {
+    var normalizedNames = [];
+    names.forEach(function (name) {
+      var group = findGroup(name);
+      var canonicalName = group || name.trim();
+      if (canonicalName && normalizedNames.indexOf(canonicalName) === -1) {
+        normalizedNames.push(canonicalName);
+      }
+    });
+    student.groups = normalizedNames;
+    student.group = normalizedNames[0] || "";
+  }
+  function loadGroups() {
+    try {
+      var raw = localStorage.getItem(GROUPS_KEY);
+      groups = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(groups)) groups = [];
+    } catch (e) {
+      groups = [];
+    }
+    groups = groups.map(normalizeGroup).filter(function (group, index, list) {
+      return (
+        group &&
+        list.findIndex(function (candidate) {
+          return (
+            candidate &&
+            candidate.name.toLowerCase() === group.name.toLowerCase()
+          );
+        }) === index
+      );
+    });
+    students.forEach(function (student) {
+      var names = studentGroupNames(student);
+      names.forEach(function (name) {
+        if (!findGroup(name)) groups.push(normalizeGroup(name));
+      });
+      setStudentGroupNames(student, names);
+    });
+    saveGroups();
+    saveStudents();
+  }
+  function findGroup(name) {
+    var group = groupRecord(name);
+    return group ? group.name : "";
+  }
+  function addGroup(name) {
+    var trimmedName = name.trim();
+    if (!trimmedName) return "";
+    var existing = findGroup(trimmedName);
+    if (existing) return existing;
+    groups.push(normalizeGroup({ name: trimmedName, days: [] }));
+    saveGroups();
+    return trimmedName;
+  }
   function clearAllData() {
     if (!confirm(t("clearAllConfirm"))) return;
     students = [];
+    groups = [];
+    activeGroup = "";
+    expandedGroup = "";
     saveStudents();
+    saveGroups();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
     if (currentPage === "payments") renderPaymentsPage();
@@ -511,9 +697,10 @@
   function exportData() {
     var backup = {
       app: "ClassLedger",
-      version: 2,
+      version: 5,
       exportedAt: new Date().toISOString(),
       students: students,
+      groups: groups,
       lang: currentLang,
     };
     var blob = new Blob([JSON.stringify(backup, null, 2)], {
@@ -604,7 +791,46 @@
           });
         if (!valid) throw new Error("Invalid backup");
         importedStudents = importedStudents.map(function (student) {
+          var names = Array.isArray(student.groups)
+            ? student.groups
+            : typeof student.group === "string"
+              ? [student.group]
+              : [];
+          student.groups = names
+            .filter(function (name) {
+              return typeof name === "string" && name.trim();
+            })
+            .map(function (name) {
+              return name.trim();
+            })
+            .filter(function (name, index, list) {
+              return list.indexOf(name) === index;
+            });
+          student.group = student.groups[0] || "";
           return sanitizeHalfMonthCharges(sanitizePaymentHistory(student));
+        });
+        var importedGroups = Array.isArray(backup.groups)
+          ? backup.groups.map(normalizeGroup).filter(Boolean)
+          : [];
+        importedGroups = importedGroups.filter(function (group, index, list) {
+          return (
+            list.findIndex(function (candidate) {
+              return candidate.name.toLowerCase() === group.name.toLowerCase();
+            }) === index
+          );
+        });
+        importedStudents.forEach(function (student) {
+          student.groups = student.groups.map(function (name) {
+            var matchingGroup = importedGroups.find(function (group) {
+              return group.name.toLowerCase() === name.toLowerCase();
+            });
+            if (!matchingGroup) {
+              matchingGroup = normalizeGroup(name);
+              importedGroups.push(matchingGroup);
+            }
+            return matchingGroup.name;
+          });
+          student.group = student.groups[0] || "";
         });
         assignAvatarBackgrounds(importedStudents, []);
         if (
@@ -614,7 +840,11 @@
         )
           return;
         students = importedStudents;
+        groups = importedGroups;
+        activeGroup = "";
+        expandedGroup = "";
         saveStudents();
+        saveGroups();
         renderStudentsPage();
         if (currentPage === "calendar") renderCalendar();
         if (currentPage === "payments") renderPaymentsPage();
@@ -743,8 +973,15 @@
     els.importDataBtn.setAttribute("title", t("importData"));
     els.searchInput.placeholder = t("searchPlaceholder");
     els.eventsTitle.textContent = t("eventsTitle");
+    els.groupsTitle.textContent = t("groupsTitle");
+    els.groupsHint.textContent = t("groupsHint");
+    els.newGroupLabel.textContent = t("newGroupPlaceholder");
+    els.newGroupName.placeholder = t("newGroupPlaceholder");
+    els.addGroupBtn.textContent = t("addGroup");
+    els.lblGroup.textContent = t("group");
     els.legendStartLabel.textContent = t("legendStart");
     els.legendEndLabel.textContent = t("legendEnd");
+    els.legendStudyLabel.textContent = t("legendStudy");
     els.calTodayBtn.textContent = t("today");
     els.calPrevBtn.setAttribute(
       "aria-label",
@@ -778,6 +1015,7 @@
     els.pageTitle.textContent = t(PAGE_TITLE_KEY[currentPage]);
 
     populateLevelSelects();
+    renderGroups();
   }
 
   function setLang(lang) {
@@ -1073,6 +1311,12 @@
 
   /* ---------------- payments ---------------- */
   function studentFee(student) {
+    var priceGroup = studentGroupNames(student)
+      .map(groupRecord)
+      .find(function (group) {
+        return group && group.type === "price";
+      });
+    if (priceGroup) return priceGroup.price;
     var category = LEVEL_CATEGORY[student.level];
     return LEVEL_PRICE[category] || 0;
   }
@@ -1759,6 +2003,7 @@
       els.startDate.value = student.startDate;
       els.endDate.value = student.endDate || "";
       els.notes.value = student.notes || "";
+      els.studentGroup.value = studentGroupNames(student).join(", ");
       els.endDate.dataset.auto = student.endDate ? "false" : "true";
     } else {
       els.modalTitle.textContent = t("modalAddTitle");
@@ -1766,6 +2011,7 @@
       els.studentId.value = "";
       els.level.value = LEVELS[0];
       els.gender.value = "";
+      els.studentGroup.value = "";
       els.endDate.dataset.auto = "true";
     }
     els.modalOverlay.classList.add("open");
@@ -1812,6 +2058,7 @@
       students.push(data);
     }
     saveStudents();
+    renderGroups();
     closeModal();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
@@ -1919,7 +2166,14 @@
   /* ---------------- calendar ---------------- */
   function buildEventsMap() {
     var map = {};
+    var year = calendarCursor.getFullYear();
+    var month = calendarCursor.getMonth();
+    var firstOfMonth = new Date(year, month, 1);
+    var startOffset = (firstOfMonth.getDay() + 6) % 7;
+    var gridStart = new Date(year, month, 1 - startOffset);
     students.forEach(function (s) {
+      var memberships = studentGroupNames(s);
+      if (activeGroup && memberships.indexOf(activeGroup) === -1) return;
       if (s.startDate) {
         map[s.startDate] = map[s.startDate] || [];
         map[s.startDate].push({ student: s, type: "start" });
@@ -1928,11 +2182,33 @@
         map[s.endDate] = map[s.endDate] || [];
         map[s.endDate].push({ student: s, type: "end" });
       }
+      memberships.forEach(function (membership) {
+        var group = groupRecord(membership);
+        if (!group || group.type !== "days") return;
+        for (var dayOffset = 0; dayOffset < 42; dayOffset++) {
+          var studyDate = new Date(
+            gridStart.getFullYear(),
+            gridStart.getMonth(),
+            gridStart.getDate() + dayOffset,
+          );
+          if (!group.days.includes(studyDate.getDay())) continue;
+          var studyKey = toDateKey(studyDate);
+          if (s.startDate && studyKey < s.startDate) continue;
+          if (s.endDate && studyKey > s.endDate) continue;
+          map[studyKey] = map[studyKey] || [];
+          map[studyKey].push({
+            student: s,
+            type: "study",
+            groupName: group.name,
+          });
+        }
+      });
     });
     return map;
   }
 
   function renderCalendar() {
+    renderGroups();
     var eventsMap = buildEventsMap();
     var year = calendarCursor.getFullYear();
     var month = calendarCursor.getMonth();
@@ -1968,6 +2244,9 @@
       var hasEnd = dayEvents.some(function (ev) {
         return ev.type === "end";
       });
+      var hasStudy = dayEvents.some(function (ev) {
+        return ev.type === "study";
+      });
 
       var classes = ["cal-cell"];
       if (isOutside) classes.push("outside");
@@ -1975,11 +2254,12 @@
       if (sameDay(cellDate, selectedDate)) classes.push("selected");
 
       var dotsHtml = "";
-      if (hasStart || hasEnd) {
+      if (hasStart || hasEnd || hasStudy) {
         dotsHtml =
           '<div class="cal-dots">' +
           (hasStart ? '<span class="cal-dot dot-start"></span>' : "") +
           (hasEnd ? '<span class="cal-dot dot-end"></span>' : "") +
+          (hasStudy ? '<span class="cal-dot dot-study"></span>' : "") +
           "</div>";
       }
       cellsHtml +=
@@ -2022,8 +2302,15 @@
         var color =
           ev.type === "start"
             ? "var(--color-primary)"
-            : "var(--color-accent-ink)";
-        var label = ev.type === "start" ? t("legendStart") : t("legendEnd");
+            : ev.type === "end"
+              ? "var(--color-accent-ink)"
+              : "var(--color-study-day)";
+        var label =
+          ev.type === "start"
+            ? t("legendStart")
+            : ev.type === "end"
+              ? t("legendEnd")
+              : t("legendStudy") + " — " + ev.groupName;
         return (
           '<div class="event-item">' +
           '<span class="event-dot" style="background:' +
@@ -2040,6 +2327,300 @@
         );
       })
       .join("");
+  }
+
+  function renderGroups() {
+    if (!els.groupsList) return;
+    els.groupsTotal.textContent = groups.length;
+    var palette = [
+      "#136cfc",
+      "#d4535b",
+      "#438b65",
+      "#a06a16",
+      "#168c91",
+      "#8459a6",
+    ];
+    var html =
+      '<button type="button" class="group-filter' +
+      (activeGroup ? "" : " active") +
+      '" data-group-filter=""><span>' +
+      escapeHtml(t("allGroups")) +
+      "</span><b>" +
+      students.length +
+      "</b></button>";
+    groups.forEach(function (group, index) {
+      var count = students.filter(function (student) {
+        return studentGroupNames(student).indexOf(group.name) !== -1;
+      }).length;
+      var isExpanded = expandedGroup === group.name;
+      html +=
+        '<div class="group-item"><div class="group-row' +
+        (activeGroup === group.name ? " active" : "") +
+        '"><button type="button" class="group-filter" data-group-filter="' +
+        index +
+        '"><i style="--group-color:' +
+        palette[index % palette.length] +
+        '"></i><span>' +
+        escapeHtml(group.name) +
+        "</span><small>" +
+        escapeHtml(t("groupStudentCount")(count)) +
+        '</small></button><button type="button" class="group-delete" data-delete-group="' +
+        index +
+        '" aria-label="' +
+        escapeHtml(t("deleteGroup")) +
+        '" title="' +
+        escapeHtml(t("deleteGroup")) +
+        '">&times;</button></div>';
+      if (isExpanded) {
+        var configHtml =
+          '<div class="group-settings"><label><span>' +
+          escapeHtml(t("groupModeLabel")) +
+          '</span><select data-group-mode="' +
+          index +
+          '"><option value="days"' +
+          (group.type === "days" ? " selected" : "") +
+          ">" +
+          escapeHtml(t("groupModeDays")) +
+          '</option><option value="price"' +
+          (group.type === "price" ? " selected" : "") +
+          ">" +
+          escapeHtml(t("groupModePrice")) +
+          "</option></select></label>";
+        configHtml +=
+          group.type === "price"
+            ? '<label class="group-price-setting"><span>' +
+              escapeHtml(t("groupMonthlyFee")) +
+              '</span><span class="group-price-input"><input type="number" min="0" step="0.01" data-group-price="' +
+              index +
+              '" value="' +
+              escapeHtml(String(group.price)) +
+              '" /><b>DT</b></span></label>'
+            : '<fieldset class="group-days-setting"><legend>' +
+              escapeHtml(t("groupStudySchedule")) +
+              '</legend><div class="group-day-options">' +
+              [1, 2, 3, 4, 5, 6]
+                .map(function (day) {
+                  return (
+                    '<label class="group-day-option"><input type="checkbox" data-group-day="' +
+                    index +
+                    '" value="' +
+                    day +
+                    '"' +
+                    (group.days.includes(day) ? " checked" : "") +
+                    " /><span>" +
+                    escapeHtml(t("dow")[day - 1]) +
+                    "</span></label>"
+                  );
+                })
+                .join("") +
+              "</div></fieldset>";
+        configHtml += "</div>";
+        var membersHtml = students
+          .map(function (student, studentIndex) {
+            var memberships = studentGroupNames(student);
+            var conflictingMembership = memberships
+              .map(groupRecord)
+              .find(function (membership) {
+                return (
+                  membership &&
+                  membership.name !== group.name &&
+                  membership.type === group.type
+                );
+              });
+            var otherMemberships = memberships.filter(function (name) {
+              return name !== group.name;
+            });
+            var detail = conflictingMembership
+              ? t("groupAssignedTo").replace(
+                  "{group}",
+                  escapeHtml(conflictingMembership.name),
+                )
+              : otherMemberships.length
+                ? t("groupAlsoIn").replace(
+                    "{groups}",
+                    escapeHtml(otherMemberships.join(", ")),
+                  )
+                : escapeHtml(levelLabel(student.level));
+            return (
+              '<label class="group-member' +
+              (conflictingMembership ? " unavailable" : "") +
+              '"><input type="checkbox" data-member-student="' +
+              studentIndex +
+              '"' +
+              (memberships.indexOf(group.name) !== -1 ? " checked" : "") +
+              (conflictingMembership ? " disabled" : "") +
+              " /><span><b>" +
+              escapeHtml(student.firstName + " " + student.lastName) +
+              "</b><small>" +
+              detail +
+              "</small></span></label>"
+            );
+          })
+          .join("");
+        html +=
+          '<div class="group-members" data-group-index="' +
+          index +
+          '">' +
+          configHtml +
+          '<p class="group-members-hint">' +
+          escapeHtml(t("groupMemberHint")) +
+          "</p>" +
+          (membersHtml ||
+            '<p class="groups-empty">' + escapeHtml(t("noStudents")) + "</p>") +
+          "</div>";
+      }
+      html += "</div>";
+    });
+    if (groups.length === 0) {
+      html += '<p class="groups-empty">' + escapeHtml(t("noGroups")) + "</p>";
+    }
+    els.groupsList.innerHTML = html;
+  }
+
+  function handleGroupsClick(e) {
+    var deleteButton = e.target.closest("[data-delete-group]");
+    if (deleteButton) {
+      var groupToDelete = groups[Number(deleteButton.dataset.deleteGroup)];
+      if (!groupToDelete) return;
+      var name = groupToDelete.name;
+      if (!confirm(t("deleteGroupConfirm")(name))) return;
+      groups = groups.filter(function (group) {
+        return group.name !== name;
+      });
+      students.forEach(function (student) {
+        setStudentGroupNames(
+          student,
+          studentGroupNames(student).filter(function (membership) {
+            return membership !== name;
+          }),
+        );
+      });
+      if (activeGroup === name) activeGroup = "";
+      if (expandedGroup === name) expandedGroup = "";
+      saveGroups();
+      saveStudents();
+      renderStudentsPage();
+      renderCalendar();
+      return;
+    }
+    var filterButton = e.target.closest("[data-group-filter]");
+    if (!filterButton) return;
+    var groupIndex = filterButton.dataset.groupFilter;
+    if (groupIndex === "") {
+      activeGroup = "";
+      expandedGroup = "";
+    } else {
+      var group = groups[Number(groupIndex)];
+      if (!group) return;
+      activeGroup = group.name;
+      expandedGroup = expandedGroup === group.name ? "" : group.name;
+    }
+    renderCalendar();
+  }
+
+  function handleGroupMemberChange(e) {
+    var checkbox = e.target.closest("[data-member-student]");
+    if (!checkbox || checkbox.disabled) return;
+    var memberList = checkbox.closest("[data-group-index]");
+    var student = students[Number(checkbox.dataset.memberStudent)];
+    var group = groups[Number(memberList.dataset.groupIndex)];
+    if (!student || !group) return;
+    var memberships = studentGroupNames(student);
+    if (checkbox.checked) {
+      var conflict = memberships.map(groupRecord).find(function (membership) {
+        return (
+          membership &&
+          membership.name !== group.name &&
+          membership.type === group.type
+        );
+      });
+      if (conflict) {
+        showToast(t("groupMembershipConflict"), true);
+        renderCalendar();
+        return;
+      }
+      if (memberships.indexOf(group.name) === -1) memberships.push(group.name);
+    } else {
+      memberships = memberships.filter(function (name) {
+        return name !== group.name;
+      });
+    }
+    setStudentGroupNames(student, memberships);
+    saveStudents();
+    renderStudentsPage();
+    renderCalendar();
+  }
+
+  function handleGroupSettingsChange(e) {
+    var modeSelect = e.target.closest("[data-group-mode]");
+    var priceInput = e.target.closest("[data-group-price]");
+    var dayInput = e.target.closest("[data-group-day]");
+    if (!modeSelect && !priceInput && !dayInput) return;
+    var index = Number(
+      modeSelect
+        ? modeSelect.dataset.groupMode
+        : priceInput
+          ? priceInput.dataset.groupPrice
+          : dayInput.dataset.groupDay,
+    );
+    var group = groups[index];
+    if (!group) return;
+    if (modeSelect) {
+      var nextType = modeSelect.value === "price" ? "price" : "days";
+      var hasMembershipConflict = students.some(function (student) {
+        var memberships = studentGroupNames(student);
+        return (
+          memberships.indexOf(group.name) !== -1 &&
+          memberships.some(function (name) {
+            var otherGroup = groupRecord(name);
+            return (
+              otherGroup &&
+              otherGroup.name !== group.name &&
+              otherGroup.type === nextType
+            );
+          })
+        );
+      });
+      if (hasMembershipConflict) {
+        modeSelect.value = group.type;
+        showToast(t("groupMembershipConflict"), true);
+        return;
+      }
+      group.type = nextType;
+    } else if (priceInput) {
+      var price = Number(priceInput.value);
+      if (!isFinite(price) || price < 0) {
+        priceInput.value = group.price;
+        return;
+      }
+      group.price = price;
+    } else {
+      var day = Number(dayInput.value);
+      group.days = group.days.filter(function (selectedDay) {
+        return selectedDay !== day;
+      });
+      if (dayInput.checked) group.days.push(day);
+      group.days.sort();
+    }
+    saveGroups();
+    if (currentPage === "payments") renderPaymentsPage();
+    renderCalendar();
+  }
+
+  function handleAddGroup(e) {
+    e.preventDefault();
+    var name = els.newGroupName.value.trim();
+    if (!name) return;
+    if (findGroup(name)) {
+      showToast(t("groupExists"), true);
+      return;
+    }
+    addGroup(name);
+    expandedGroup = name;
+    activeGroup = name;
+    els.newGroupName.value = "";
+    renderCalendar();
+    showToast(t("groupsAdded"));
   }
 
   function handleCalGridClick(e) {
@@ -2113,6 +2694,13 @@
   });
 
   els.calGrid.addEventListener("click", handleCalGridClick);
+  els.groupsList.addEventListener("click", function (e) {
+    e.stopPropagation();
+    handleGroupsClick(e);
+  });
+  els.groupsList.addEventListener("change", handleGroupMemberChange);
+  els.groupsList.addEventListener("change", handleGroupSettingsChange);
+  els.groupsAddForm.addEventListener("submit", handleAddGroup);
   els.calPrevBtn.addEventListener("click", function () {
     calendarCursor = new Date(
       calendarCursor.getFullYear(),
@@ -2137,6 +2725,10 @@
 
   document.addEventListener("click", function (e) {
     if (!e.target.closest(".card-menu")) closeAllKebabMenus();
+    if (expandedGroup && !els.groupsList.contains(e.target)) {
+      expandedGroup = "";
+      renderGroups();
+    }
     if (els.halfMonthPicker && !els.halfMonthPicker.contains(e.target)) {
       els.halfMonthPicker.open = false;
     }
@@ -2165,6 +2757,7 @@
   /* ---------------- init ---------------- */
   loadLang();
   loadStudents();
+  loadGroups();
   applyStaticText();
   setHeaderDate();
   renderStudentsPage();

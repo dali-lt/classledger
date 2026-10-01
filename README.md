@@ -10,6 +10,7 @@ Built with plain **HTML, CSS, and JavaScript** — no frameworks, no build step,
 - **Fields per student**: first name, last name, level (grade 7–9 / lycée 1–4), start date, optional end date, optional notes
 - **Search & filter** — find students by name or by level
 - **Calendar view** — see start/end dates on a monthly calendar, color-coded, with a day-by-day event list
+- **Student groups** — assign each student to one group with selected recurring days from Monday to Saturday or a manual monthly per-student fee; filter calendar events by group and include group settings in backups
 - **Bilingual UI** — switch between English and Arabic (Tunisian) with one click; all content, dates, and level names adapt automatically
 - **Light, responsive design** — works on desktop and mobile
 - **No sign-up, no server** — your data stays in your own browser
