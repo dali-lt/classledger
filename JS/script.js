@@ -125,6 +125,15 @@
       close: "Close",
       today: "Today",
       dow: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      dowFull: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
       eventsTitle: "Day events",
       legendStart: "Start of studies",
       legendEnd: "End of studies",
@@ -150,6 +159,13 @@
       groupModeDays: "Study days (Mon-Sat)",
       groupModePrice: "Monthly price",
       groupModeLabel: "Group setup",
+      groupSummaryDays: function (days) {
+        return "Study days: " + days;
+      },
+      groupSummaryNoDays: "No study days selected",
+      groupSummaryPrice: function (price) {
+        return "Monthly fee per student: " + price + " DT";
+      },
       groupStudySchedule:
         "Choose one or more study days from Monday through Saturday. Sunday is off.",
       groupMonthlyFee: "Monthly fee per student",
@@ -287,6 +303,15 @@
       close: "إغلاق",
       today: "اليوم",
       dow: ["إثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت", "أحد"],
+      dowFull: [
+        "الاثنين",
+        "الثلاثاء",
+        "الأربعاء",
+        "الخميس",
+        "الجمعة",
+        "السبت",
+        "الأحد",
+      ],
       eventsTitle: "أحداث اليوم",
       legendStart: "بداية الدراسة",
       legendEnd: "نهاية الدراسة",
@@ -311,6 +336,13 @@
       groupModeDays: "أيام دراسة (الاثنين-السبت)",
       groupModePrice: "سعر شهري",
       groupModeLabel: "نوع المجموعة",
+      groupSummaryDays: function (days) {
+        return "أيام الدراسة: " + days;
+      },
+      groupSummaryNoDays: "ما تحدد حتى نهار دراسة",
+      groupSummaryPrice: function (price) {
+        return "المعلوم الشهري لكل تلميذ: " + price + " د.ت";
+      },
       groupStudySchedule: "اختار نهار ولا أكثر من الاثنين للسبت، والأحد راحة.",
       groupMonthlyFee: "المعلوم الشهري لكل تلميذ",
       deleteGroup: "حذف المجموعة",
@@ -423,6 +455,8 @@
     tableWrap: document.getElementById("tableWrap"),
     searchInput: document.getElementById("searchInput"),
     levelFilter: document.getElementById("levelFilter"),
+    groupFilter: document.getElementById("groupFilter"),
+    groupFilterSummary: document.getElementById("groupFilterSummary"),
     openAddBtn: document.getElementById("openAddBtn"),
     modalOverlay: document.getElementById("modalOverlay"),
     modalTitle: document.getElementById("modalTitle"),
@@ -501,6 +535,14 @@
   };
 
   var LEVEL_PRICE = { college: 40, lycee: 45 };
+  var GROUP_COLORS = [
+    "#136cfc",
+    "#d4535b",
+    "#438b65",
+    "#a06a16",
+    "#168c91",
+    "#8459a6",
+  ];
 
   var PAGE_TITLE_KEY = {
     students: "pageTitleStudents",
@@ -1130,13 +1172,17 @@
   function getFilteredStudents() {
     var query = els.searchInput.value.trim().toLowerCase();
     var levelFilterVal = els.levelFilter.value;
+    var groupFilterVal = els.groupFilter.value;
     return students
       .filter(function (s) {
         var matchesQuery =
           !query ||
           (s.firstName + " " + s.lastName).toLowerCase().indexOf(query) !== -1;
         var matchesLevel = !levelFilterVal || s.level === levelFilterVal;
-        return matchesQuery && matchesLevel;
+        var matchesGroup =
+          !groupFilterVal ||
+          studentGroupNames(s).indexOf(groupFilterVal) !== -1;
+        return matchesQuery && matchesLevel && matchesGroup;
       })
       .sort(function (a, b) {
         var ai = LEVELS.indexOf(a.level),
@@ -1144,6 +1190,62 @@
         if (ai !== bi) return ai - bi;
         return a.lastName.localeCompare(b.lastName);
       });
+  }
+
+  function populateGroupFilter() {
+    var selectedGroup = els.groupFilter.value;
+    var groupOptions =
+      '<option value="">' + escapeHtml(t("allGroups")) + "</option>";
+    groups.forEach(function (group) {
+      groupOptions +=
+        '<option value="' +
+        escapeHtml(group.name) +
+        '">' +
+        escapeHtml(group.name) +
+        "</option>";
+    });
+    els.groupFilter.innerHTML = groupOptions;
+    if (
+      groups.some(function (group) {
+        return group.name === selectedGroup;
+      })
+    )
+      els.groupFilter.value = selectedGroup;
+  }
+
+  function renderGroupFilterSummary() {
+    var group = groupRecord(els.groupFilter.value);
+    if (!group) {
+      els.groupFilterSummary.hidden = true;
+      els.groupFilterSummary.innerHTML = "";
+      return;
+    }
+    var groupIndex = groups.indexOf(group);
+    var color = GROUP_COLORS[groupIndex % GROUP_COLORS.length];
+    var details =
+      group.type === "price"
+        ? t("groupSummaryPrice")(
+            group.price.toLocaleString(t("locale"), {
+              maximumFractionDigits: 2,
+            }),
+          )
+        : group.days.length
+          ? t("groupSummaryDays")(
+              group.days
+                .map(function (day) {
+                  return t("dowFull")[day - 1];
+                })
+                .join(", "),
+            )
+          : t("groupSummaryNoDays");
+    els.groupFilterSummary.style.setProperty("--group-summary-color", color);
+    els.groupFilterSummary.innerHTML =
+      '<span class="group-filter-summary-swatch"></span><div><b>' +
+      escapeHtml(group.name) +
+      "</b><span>" +
+      escapeHtml(details) +
+      "</span></div>";
+    els.groupFilterSummary.hidden = false;
   }
 
   var MALE_ICON =
@@ -1205,6 +1307,8 @@
   }
 
   function renderTable() {
+    populateGroupFilter();
+    renderGroupFilterSummary();
     var list = getFilteredStudents();
 
     if (students.length === 0) {
@@ -2331,15 +2435,8 @@
 
   function renderGroups() {
     if (!els.groupsList) return;
+    populateGroupFilter();
     els.groupsTotal.textContent = groups.length;
-    var palette = [
-      "#136cfc",
-      "#d4535b",
-      "#438b65",
-      "#a06a16",
-      "#168c91",
-      "#8459a6",
-    ];
     var html =
       '<button type="button" class="group-filter' +
       (activeGroup ? "" : " active") +
@@ -2359,7 +2456,7 @@
         '"><button type="button" class="group-filter" data-group-filter="' +
         index +
         '"><i style="--group-color:' +
-        palette[index % palette.length] +
+        GROUP_COLORS[index % GROUP_COLORS.length] +
         '"></i><span>' +
         escapeHtml(group.name) +
         "</span><small>" +
@@ -2687,6 +2784,7 @@
     });
   els.searchInput.addEventListener("input", renderTable);
   els.levelFilter.addEventListener("change", renderTable);
+  els.groupFilter.addEventListener("change", renderTable);
 
   els.noteCloseBtn.addEventListener("click", closeNoteModal);
   els.noteModalOverlay.addEventListener("click", function (e) {
