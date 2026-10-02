@@ -77,6 +77,24 @@
           </button>
         </nav>
       </aside>
+      <button
+        class="rail-btn rail-notice"
+        id="monthEndNotice"
+        type="button"
+        aria-label="Month ended notification"
+        title="Month ended notification"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+        </svg>
+        <span class="notice-indicator" aria-hidden="true"></span>
+      </button>
 
       <div class="main-area">
         <div class="topbar">
@@ -292,7 +310,7 @@
                 <div class="cal-grid" id="calGrid"></div>
               </div>
               <div class="events-card">
-                <h3 id="eventsTitle"></h3>
+                <h3 id="eventsTitle" tabindex="-1"></h3>
                 <p class="sub" id="eventsSub"></p>
                 <div class="legend">
                   <span
@@ -354,13 +372,13 @@
                   <p id="halfMonthHint"></p>
                 </div>
                 <div class="half-month-controls">
-                  <details class="half-month-picker">
-                    <summary id="halfMonthPickerLabel"></summary>
-                    <div
-                      class="half-month-picker-options"
-                      id="halfMonthPickerOptions"
-                    ></div>
-                  </details>
+                  <button
+                    class="half-month-picker-trigger"
+                    id="halfMonthPickerLabel"
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                  ></button>
                   <button
                     class="btn btn-primary"
                     id="halfMonthCalculateBtn"
@@ -548,6 +566,51 @@
             type="button"
             class="btn btn-primary"
             id="noteCloseBtn"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="halfMonthModalOverlay">
+      <div
+        class="modal half-month-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="halfMonthModalTitle"
+      >
+        <h2 id="halfMonthModalTitle"></h2>
+        <div
+          class="half-month-picker-options"
+          id="halfMonthPickerOptions"
+        ></div>
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="halfMonthModalClose"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="monthEndModalOverlay">
+      <div
+        class="modal month-end-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="monthEndModalTitle"
+        aria-describedby="monthEndModalMessage"
+      >
+        <h2 id="monthEndModalTitle"></h2>
+        <div
+          id="monthEndModalMessage"
+          class="month-end-modal-message month-end-notice-list"
+        ></div>
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="monthEndModalClose"
           ></button>
         </div>
       </div>

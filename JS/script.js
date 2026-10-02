@@ -4,6 +4,7 @@
   var STORAGE_KEY = "classledger:students";
   var GROUPS_KEY = "classledger:groups";
   var LANG_KEY = "classledger:lang";
+  var MONTH_END_NOTICE_KEY = "classledger:month-end-notice-read";
 
   var LEVELS = [
     "7 أساسي",
@@ -140,6 +141,11 @@
       legendStudy: "Group study day",
       noEventsTitle: "No events",
       noEventsText: "Pick another day or add an end date for a student.",
+      monthEndTitle: "Ended student months",
+      monthEndEmpty: "No student monthly cycles have ended.",
+      monthEndViewEvent: function (date, names) {
+        return "View events on " + date + " for " + names;
+      },
       group: "Groups",
       groupsTitle: "Groups",
       groupsHint: "Assign students, then filter calendar events by group.",
@@ -235,6 +241,8 @@
         return count + " half-month charge(s) added. Total: " + amount + " DT.";
       },
       halfMonthPickerLabel: "Select students",
+      halfMonthDialogTitle: "Select students",
+      halfMonthDone: "Done",
       halfMonthAll: "All",
       halfMonthAllSelected: "All students selected",
       halfMonthSelectedCount: function (count) {
@@ -323,6 +331,11 @@
       legendStudy: "يوم دراسة للمجموعة",
       noEventsTitle: "ما فماش أحداث",
       noEventsText: "اختر يوم آخر أو زيد تاريخ انتهاء لتلميذ.",
+      monthEndTitle: "انتهت أشهر التلامذة",
+      monthEndEmpty: "ما فماش دورات شهرية وفات توا.",
+      monthEndViewEvent: function (date, names) {
+        return "عرض أحداث " + date + " للتلامذة: " + names;
+      },
       group: "المجموعات",
       groupsTitle: "المجموعات",
       groupsHint: "عيّن التلامذة للمجموعات وفلتر أحداث التقويم.",
@@ -420,6 +433,8 @@
         );
       },
       halfMonthPickerLabel: "اختار التلامذة",
+      halfMonthDialogTitle: "اختار التلامذة",
+      halfMonthDone: "تم",
       halfMonthAll: "الكل",
       halfMonthAllSelected: "تم اختيار التلامذة الكل",
       halfMonthSelectedCount: function (count) {
@@ -541,15 +556,22 @@
     toastTitle: document.getElementById("toastTitle"),
     toastMessage: document.getElementById("toastMessage"),
     toastClose: document.getElementById("toastClose"),
+    monthEndNotice: document.getElementById("monthEndNotice"),
+    monthEndModalOverlay: document.getElementById("monthEndModalOverlay"),
+    monthEndModalTitle: document.getElementById("monthEndModalTitle"),
+    monthEndModalMessage: document.getElementById("monthEndModalMessage"),
+    monthEndModalClose: document.getElementById("monthEndModalClose"),
     pillPaymentsLabel: document.getElementById("pillPaymentsLabel"),
     paymentsKpiRow: document.getElementById("paymentsKpiRow"),
     paymentsList: document.getElementById("paymentsList"),
-    halfMonthPicker: document.querySelector(".half-month-picker"),
     halfMonthTitle: document.getElementById("halfMonthTitle"),
     halfMonthHint: document.getElementById("halfMonthHint"),
     halfMonthPickerLabel: document.getElementById("halfMonthPickerLabel"),
     halfMonthPickerOptions: document.getElementById("halfMonthPickerOptions"),
     halfMonthCalculateBtn: document.getElementById("halfMonthCalculateBtn"),
+    halfMonthModalOverlay: document.getElementById("halfMonthModalOverlay"),
+    halfMonthModalTitle: document.getElementById("halfMonthModalTitle"),
+    halfMonthModalClose: document.getElementById("halfMonthModalClose"),
     halfMonthResult: document.getElementById("halfMonthResult"),
   };
 
@@ -582,6 +604,9 @@
   var selectedHalfMonthIds = [];
   var halfMonthCalculated = false;
   var halfMonthResultItems = [];
+  var monthEndNoticeReadKey = "";
+  var activeMonthEndNoticeKey = "";
+  var revealedEventGroupKey = "";
 
   /* ---------------- storage ---------------- */
   function loadStudents() {
@@ -612,20 +637,183 @@
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7"/></svg>';
   var TOAST_ICON_ERR =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-  function showToast(message, isError, title) {
+  var TOAST_ICON_INFO =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7h.01"/></svg>';
+  function showToast(message, isError, title, variant) {
     if (!els.toast) return;
     if (els.toastIcon)
-      els.toastIcon.innerHTML = isError ? TOAST_ICON_ERR : TOAST_ICON_OK;
+      els.toastIcon.innerHTML = isError
+        ? TOAST_ICON_ERR
+        : variant === "info"
+          ? TOAST_ICON_INFO
+          : TOAST_ICON_OK;
     if (els.toastTitle)
       els.toastTitle.textContent =
         title || (isError ? t("toastErrorTitle") : t("toastSuccessTitle"));
     if (els.toastMessage) els.toastMessage.textContent = message;
     els.toast.classList.toggle("toast-error", !!isError);
+    els.toast.classList.toggle("toast-info", variant === "info");
     els.toast.classList.add("show");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
       els.toast.classList.remove("show");
     }, 2600);
+  }
+
+  function getEndedMonthGroups() {
+    var today = toDateKey(new Date());
+    var studentsByDate = {};
+    students.forEach(function (student) {
+      if (!student.endDate || student.endDate > today) return;
+      studentsByDate[student.endDate] = studentsByDate[student.endDate] || [];
+      studentsByDate[student.endDate].push(student);
+    });
+    return Object.keys(studentsByDate)
+      .sort()
+      .map(function (date) {
+        return { date: date, students: studentsByDate[date] };
+      });
+  }
+
+  function endedMonthGroupsKey(eventGroups) {
+    return eventGroups.length
+      ? "ended:" +
+          eventGroups
+            .map(function (group) {
+              return (
+                group.date +
+                ":" +
+                group.students
+                  .map(function (student) {
+                    return student.id;
+                  })
+                  .sort()
+                  .join(",")
+              );
+            })
+            .join("|")
+      : "";
+  }
+
+  function monthEndNoticeMarkup(eventGroups) {
+    if (!eventGroups.length) {
+      return (
+        '<p class="month-end-notice-empty">' +
+        escapeHtml(t("monthEndEmpty")) +
+        "</p>"
+      );
+    }
+    return eventGroups
+      .map(function (group) {
+        var names = group.students.map(function (student) {
+          return student.firstName + " " + student.lastName;
+        });
+        var avatars = group.students
+          .slice(0, 4)
+          .map(function (student) {
+            return (
+              '<span class="event-avatar">' + avatarMarkup(student) + "</span>"
+            );
+          })
+          .join("");
+        if (group.students.length > 4) {
+          avatars +=
+            '<span class="event-avatar-overflow" aria-hidden="true">+' +
+            (group.students.length - 4) +
+            "</span>";
+        }
+        return (
+          '<button type="button" class="month-end-event" data-action="open-month-end-event" data-date="' +
+          group.date +
+          '" aria-label="' +
+          escapeHtml(
+            t("monthEndViewEvent")(formatDate(group.date), names.join(", ")),
+          ) +
+          '"><span class="month-end-event-date">' +
+          escapeHtml(formatDate(group.date)) +
+          '</span><span class="event-avatars" aria-hidden="true">' +
+          avatars +
+          '</span><span class="event-count">' +
+          group.students.length +
+          "</span></button>"
+        );
+      })
+      .join("");
+  }
+
+  function refreshMonthEndNotice() {
+    if (!els.monthEndNotice) return;
+    var eventGroups = getEndedMonthGroups();
+    var noticeKey = endedMonthGroupsKey(eventGroups);
+    var savedReadKey = "";
+    try {
+      savedReadKey = localStorage.getItem(MONTH_END_NOTICE_KEY) || "";
+    } catch (e) {}
+    var totalStudents = eventGroups.reduce(function (count, group) {
+      return count + group.students.length;
+    }, 0);
+    var isRead =
+      !noticeKey ||
+      monthEndNoticeReadKey === noticeKey ||
+      savedReadKey === noticeKey;
+    var noticeLabel = t("monthEndTitle");
+    noticeLabel += totalStudents
+      ? ": " + t("groupStudentCount")(totalStudents)
+      : ": " + t("monthEndEmpty");
+    els.monthEndNotice.dataset.noticeKey = noticeKey;
+    els.monthEndNotice.classList.toggle("has-unread", !isRead);
+    els.monthEndNotice.setAttribute("aria-label", noticeLabel);
+    els.monthEndNotice.title = noticeLabel;
+  }
+
+  function openMonthEndNotice() {
+    var eventGroups = getEndedMonthGroups();
+    activeMonthEndNoticeKey = endedMonthGroupsKey(eventGroups);
+    els.monthEndModalTitle.textContent = t("monthEndTitle");
+    els.monthEndModalMessage.innerHTML = monthEndNoticeMarkup(eventGroups);
+    els.monthEndModalClose.textContent = t("close");
+    els.monthEndModalOverlay.classList.add("open");
+    els.monthEndModalClose.focus();
+  }
+
+  function closeMonthEndNotice(returnFocus) {
+    if (!els.monthEndModalOverlay.classList.contains("open")) return;
+    if (activeMonthEndNoticeKey) {
+      monthEndNoticeReadKey = activeMonthEndNoticeKey;
+      try {
+        localStorage.setItem(MONTH_END_NOTICE_KEY, activeMonthEndNoticeKey);
+      } catch (e) {}
+    }
+    els.monthEndModalOverlay.classList.remove("open");
+    refreshMonthEndNotice();
+    activeMonthEndNoticeKey = "";
+    if (returnFocus !== false) els.monthEndNotice.focus();
+  }
+
+  function handleMonthEndEventClick(e) {
+    var button = e.target.closest('[data-action="open-month-end-event"]');
+    if (!button) return;
+    var parts = button.dataset.date.split("-").map(Number);
+    selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    calendarCursor = new Date(parts[0], parts[1] - 1, 1);
+    revealedEventGroupKey = button.dataset.date + ":end";
+    activeGroup = "";
+    closeMonthEndNotice(false);
+    switchPage("calendar");
+    els.eventsTitle.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function scheduleMonthEndNoticeRefresh() {
+    var now = new Date();
+    var nextDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+    );
+    window.setTimeout(function () {
+      refreshMonthEndNotice();
+      scheduleMonthEndNoticeRefresh();
+    }, nextDay.getTime() - now.getTime());
   }
 
   function saveStudents() {
@@ -634,6 +822,7 @@
     } catch (e) {
       showToast(t("saveError"), true);
     }
+    refreshMonthEndNotice();
   }
   function saveGroups() {
     try {
@@ -1035,6 +1224,14 @@
     els.importDataBtn.setAttribute("title", t("importData"));
     els.searchInput.placeholder = t("searchPlaceholder");
     els.eventsTitle.textContent = t("eventsTitle");
+    refreshMonthEndNotice();
+    els.monthEndModalTitle.textContent = t("monthEndTitle");
+    els.monthEndModalClose.textContent = t("close");
+    if (els.monthEndModalOverlay.classList.contains("open")) {
+      els.monthEndModalMessage.innerHTML = monthEndNoticeMarkup(
+        getEndedMonthGroups(),
+      );
+    }
     els.groupsTitle.textContent = t("groupsTitle");
     els.groupsHint.textContent = t("groupsHint");
     els.newGroupLabel.textContent = t("newGroupPlaceholder");
@@ -1073,6 +1270,8 @@
     els.halfMonthTitle.textContent = t("halfMonthTitle");
     els.halfMonthHint.textContent = t("halfMonthHint");
     els.halfMonthCalculateBtn.textContent = t("halfMonthCalculate");
+    els.halfMonthModalTitle.textContent = t("halfMonthDialogTitle");
+    els.halfMonthModalClose.textContent = t("halfMonthDone");
 
     els.pageTitle.textContent = t(PAGE_TITLE_KEY[currentPage]);
 
@@ -2096,6 +2295,18 @@
     els.halfMonthResult.innerHTML = "";
   }
 
+  function openHalfMonthModal() {
+    els.halfMonthModalOverlay.classList.add("open");
+    els.halfMonthPickerLabel.setAttribute("aria-expanded", "true");
+    els.halfMonthModalClose.focus();
+  }
+
+  function closeHalfMonthModal() {
+    els.halfMonthModalOverlay.classList.remove("open");
+    els.halfMonthPickerLabel.setAttribute("aria-expanded", "false");
+    els.halfMonthPickerLabel.focus();
+  }
+
   function handlePaymentsClick(e) {
     var btn = e.target.closest('button[data-action="mark-paid"]');
     if (btn) {
@@ -2421,33 +2632,103 @@
       return;
     }
 
-    els.eventsList.innerHTML = dayEvents
-      .map(function (ev) {
-        var color =
-          ev.type === "start"
-            ? "var(--color-primary)"
-            : ev.type === "end"
-              ? "var(--color-accent-ink)"
-              : "var(--color-study-day)";
+    var groupedEvents = [];
+    dayEvents.forEach(function (ev) {
+      var groupKey =
+        ev.type === "study" ? ev.type + ":" + ev.groupName : ev.type;
+      var eventGroup = groupedEvents.find(function (group) {
+        return group.key === groupKey;
+      });
+      if (!eventGroup) {
+        eventGroup = {
+          key: groupKey,
+          type: ev.type,
+          groupName: ev.groupName || "",
+          students: [],
+        };
+        groupedEvents.push(eventGroup);
+      }
+      if (
+        !eventGroup.students.some(function (student) {
+          return student.id === ev.student.id;
+        })
+      ) {
+        eventGroup.students.push(ev.student);
+      }
+    });
+
+    els.eventsList.innerHTML = groupedEvents
+      .map(function (eventGroup) {
+        var color;
+        if (eventGroup.type === "start") {
+          color = "var(--color-primary)";
+        } else if (eventGroup.type === "end") {
+          color = "var(--color-danger)";
+        } else {
+          var groupColorIndex = eventGroup.groupName.split("").reduce(function (
+            sum,
+            character,
+          ) {
+            return sum + character.charCodeAt(0);
+          }, 0);
+          color = GROUP_COLORS[groupColorIndex % GROUP_COLORS.length];
+        }
         var label =
-          ev.type === "start"
+          eventGroup.type === "start"
             ? t("legendStart")
-            : ev.type === "end"
+            : eventGroup.type === "end"
               ? t("legendEnd")
-              : t("legendStudy") + " — " + ev.groupName;
+              : t("legendStudy") + " — " + eventGroup.groupName;
+        var names = eventGroup.students.map(function (student) {
+          return student.firstName + " " + student.lastName;
+        });
+        var showNames = revealedEventGroupKey === key + ":" + eventGroup.type;
+        var namesMarkup = names
+          .map(function (name) {
+            return '<span role="listitem">' + escapeHtml(name) + "</span>";
+          })
+          .join("");
+        var visibleAvatars = eventGroup.students
+          .slice(0, 4)
+          .map(function (student) {
+            var name = student.firstName + " " + student.lastName;
+            return (
+              '<span class="event-avatar" title="' +
+              escapeHtml(name) +
+              '">' +
+              avatarMarkup(student) +
+              "</span>"
+            );
+          })
+          .join("");
+        if (eventGroup.students.length > 4) {
+          visibleAvatars +=
+            '<span class="event-avatar-overflow" aria-hidden="true">+' +
+            (eventGroup.students.length - 4) +
+            "</span>";
+        }
         return (
-          '<div class="event-item">' +
-          '<span class="event-dot" style="background:' +
+          '<div class="event-item" style="--event-color:' +
           color +
-          '"></span>' +
-          "<span><b>" +
-          escapeHtml(ev.student.firstName + " " + ev.student.lastName) +
-          "</b><small>" +
-          label +
-          " — " +
-          escapeHtml(levelLabel(ev.student.level)) +
-          "</small></span>" +
-          "</div>"
+          '"><div class="event-copy"><b>' +
+          escapeHtml(label) +
+          '</b></div><div class="event-members' +
+          (showNames ? " is-open" : "") +
+          '"><button type="button" class="event-avatars event-avatars-trigger" aria-label="' +
+          escapeHtml(names.join(", ")) +
+          '">' +
+          visibleAvatars +
+          '</button><button type="button" class="event-count" aria-label="' +
+          escapeHtml(
+            t("groupStudentCount")(eventGroup.students.length) +
+              ": " +
+              names.join(", "),
+          ) +
+          '">' +
+          eventGroup.students.length +
+          '</button><div class="event-member-names" role="list">' +
+          namesMarkup +
+          "</div></div></div>"
         );
       })
       .join("");
@@ -2832,6 +3113,7 @@
       Number(parts[1]) - 1,
       Number(parts[2]),
     );
+    revealedEventGroupKey = "";
     renderCalendar();
   }
 
@@ -2840,6 +3122,12 @@
     btn.addEventListener("click", function () {
       switchPage(btn.dataset.page);
     });
+  });
+  els.monthEndNotice.addEventListener("click", openMonthEndNotice);
+  els.monthEndModalClose.addEventListener("click", closeMonthEndNotice);
+  els.monthEndModalMessage.addEventListener("click", handleMonthEndEventClick);
+  els.monthEndModalOverlay.addEventListener("click", function (e) {
+    if (e.target === els.monthEndModalOverlay) closeMonthEndNotice();
   });
   if (els.langSwitch) {
     els.langSwitch.querySelectorAll(".lang-btn").forEach(function (btn) {
@@ -2886,6 +3174,11 @@
       "change",
       handleHalfMonthSelectionChange,
     );
+  els.halfMonthPickerLabel.addEventListener("click", openHalfMonthModal);
+  els.halfMonthModalClose.addEventListener("click", closeHalfMonthModal);
+  els.halfMonthModalOverlay.addEventListener("click", function (e) {
+    if (e.target === els.halfMonthModalOverlay) closeHalfMonthModal();
+  });
   els.halfMonthCalculateBtn.addEventListener("click", addHalfMonthDue);
   var paymentsResizeTimer = null;
   window.addEventListener("resize", function () {
@@ -2913,6 +3206,7 @@
   });
   els.groupsAddForm.addEventListener("submit", handleAddGroup);
   els.calPrevBtn.addEventListener("click", function () {
+    revealedEventGroupKey = "";
     calendarCursor = new Date(
       calendarCursor.getFullYear(),
       calendarCursor.getMonth() - 1,
@@ -2921,6 +3215,7 @@
     renderCalendar();
   });
   els.calNextBtn.addEventListener("click", function () {
+    revealedEventGroupKey = "";
     calendarCursor = new Date(
       calendarCursor.getFullYear(),
       calendarCursor.getMonth() + 1,
@@ -2929,6 +3224,7 @@
     renderCalendar();
   });
   els.calTodayBtn.addEventListener("click", function () {
+    revealedEventGroupKey = "";
     calendarCursor = new Date();
     selectedDate = new Date();
     renderCalendar();
@@ -2939,9 +3235,6 @@
     if (expandedGroup && !els.groupsList.contains(e.target)) {
       expandedGroup = "";
       renderGroups();
-    }
-    if (els.halfMonthPicker && !els.halfMonthPicker.contains(e.target)) {
-      els.halfMonthPicker.open = false;
     }
   });
 
@@ -2955,6 +3248,10 @@
     if (els.modalOverlay.classList.contains("open")) closeModal();
     if (els.groupModalOverlay.classList.contains("open")) closeGroupModal();
     if (els.noteModalOverlay.classList.contains("open")) closeNoteModal();
+    if (els.halfMonthModalOverlay.classList.contains("open"))
+      closeHalfMonthModal();
+    if (els.monthEndModalOverlay.classList.contains("open"))
+      closeMonthEndNotice();
     closeAllKebabMenus();
   });
   els.clearDataBtn.addEventListener("click", clearAllData);
@@ -2973,4 +3270,5 @@
   applyStaticText();
   setHeaderDate();
   renderStudentsPage();
+  scheduleMonthEndNoticeRefresh();
 })();
