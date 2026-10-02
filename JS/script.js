@@ -159,6 +159,11 @@
       groupModeDays: "Study days (Mon-Sat)",
       groupModePrice: "Monthly price",
       groupModeLabel: "Group setup",
+      groupEditTitle: "Edit group",
+      groupNameLabel: "Group name",
+      groupStudentsLabel: "Students",
+      groupSaved: "Group updated.",
+      groupPriceInvalid: "Enter a valid monthly fee.",
       groupSummaryDays: function (days) {
         return "Study days: " + days;
       },
@@ -336,6 +341,11 @@
       groupModeDays: "أيام دراسة (الاثنين-السبت)",
       groupModePrice: "سعر شهري",
       groupModeLabel: "نوع المجموعة",
+      groupEditTitle: "تعديل المجموعة",
+      groupNameLabel: "اسم المجموعة",
+      groupStudentsLabel: "التلامذة",
+      groupSaved: "تم تعديل المجموعة.",
+      groupPriceInvalid: "أدخل معلومًا شهريًا صحيحًا.",
       groupSummaryDays: function (days) {
         return "أيام الدراسة: " + days;
       },
@@ -506,6 +516,15 @@
     newGroupLabel: document.getElementById("newGroupLabel"),
     addGroupBtn: document.getElementById("addGroupBtn"),
     groupsList: document.getElementById("groupsList"),
+    groupModalOverlay: document.getElementById("groupModalOverlay"),
+    groupModalTitle: document.getElementById("groupModalTitle"),
+    groupModalForm: document.getElementById("groupModalForm"),
+    groupModalNameLabel: document.getElementById("groupModalNameLabel"),
+    groupModalName: document.getElementById("groupModalName"),
+    groupModalFields: document.getElementById("groupModalFields"),
+    groupModalStudents: document.getElementById("groupModalStudents"),
+    groupModalCancel: document.getElementById("groupModalCancel"),
+    groupModalSave: document.getElementById("groupModalSave"),
     legendStartLabel: document.getElementById("legendStartLabel"),
     legendEndLabel: document.getElementById("legendEndLabel"),
     legendStudyLabel: document.getElementById("legendStudyLabel"),
@@ -554,6 +573,7 @@
   var groups = [];
   var activeGroup = "";
   var expandedGroup = "";
+  var editingGroupIndex = -1;
   var calendarCursor = new Date();
   var selectedDate = new Date();
   var currentLang = "en";
@@ -2438,7 +2458,7 @@
     populateGroupFilter();
     els.groupsTotal.textContent = groups.length;
     var html =
-      '<button type="button" class="group-filter' +
+      '<button type="button" class="group-filter group-filter-all' +
       (activeGroup ? "" : " active") +
       '" data-group-filter=""><span>' +
       escapeHtml(t("allGroups")) +
@@ -2446,126 +2466,65 @@
       students.length +
       "</b></button>";
     groups.forEach(function (group, index) {
-      var count = students.filter(function (student) {
+      var groupMembers = students.filter(function (student) {
         return studentGroupNames(student).indexOf(group.name) !== -1;
-      }).length;
-      var isExpanded = expandedGroup === group.name;
+      });
+      var count = groupMembers.length;
+      var dayNames = Array.isArray(group.days)
+        ? group.days.map(function (day) {
+            return t("dow")[day - 1];
+          })
+        : [];
+      var summary =
+        group.type === "price"
+          ? t("groupSummaryPrice")(group.price)
+          : dayNames.length
+            ? t("groupSummaryDays")(dayNames.join(", "))
+            : t("groupSummaryNoDays");
+      var avatarHtml = groupMembers
+        .slice(0, 3)
+        .map(function (student) {
+          return (
+            '<span class="group-avatar" aria-hidden="true" title="' +
+            escapeHtml(student.firstName + " " + student.lastName) +
+            '">' +
+            avatarMarkup(student) +
+            "</span>"
+          );
+        })
+        .join("");
       html +=
         '<div class="group-item"><div class="group-row' +
         (activeGroup === group.name ? " active" : "") +
-        '"><button type="button" class="group-filter" data-group-filter="' +
+        '"><button type="button" class="group-filter group-card" data-group-filter="' +
         index +
-        '"><i style="--group-color:' +
+        '"><span class="group-card-top"><i style="--group-color:' +
         GROUP_COLORS[index % GROUP_COLORS.length] +
-        '"></i><span>' +
+        '"></i><span class="group-card-type">' +
+        escapeHtml(
+          group.type === "price" ? t("groupModePrice") : t("groupModeDays"),
+        ) +
+        '</span></span><strong class="group-card-name">' +
         escapeHtml(group.name) +
+        '</strong><span class="group-card-members"><span class="group-avatars">' +
+        avatarHtml +
         "</span><small>" +
         escapeHtml(t("groupStudentCount")(count)) +
-        '</small></button><button type="button" class="group-delete" data-delete-group="' +
+        '</small></span><span class="group-card-summary">' +
+        escapeHtml(summary) +
+        '</span></button><button type="button" class="group-edit" data-edit-group="' +
+        index +
+        '" aria-label="' +
+        escapeHtml(t("groupEditTitle")) +
+        '" title="' +
+        escapeHtml(t("groupEditTitle")) +
+        '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button><button type="button" class="group-delete" data-delete-group="' +
         index +
         '" aria-label="' +
         escapeHtml(t("deleteGroup")) +
         '" title="' +
         escapeHtml(t("deleteGroup")) +
         '">&times;</button></div>';
-      if (isExpanded) {
-        var configHtml =
-          '<div class="group-settings"><label><span>' +
-          escapeHtml(t("groupModeLabel")) +
-          '</span><select data-group-mode="' +
-          index +
-          '"><option value="days"' +
-          (group.type === "days" ? " selected" : "") +
-          ">" +
-          escapeHtml(t("groupModeDays")) +
-          '</option><option value="price"' +
-          (group.type === "price" ? " selected" : "") +
-          ">" +
-          escapeHtml(t("groupModePrice")) +
-          "</option></select></label>";
-        configHtml +=
-          group.type === "price"
-            ? '<label class="group-price-setting"><span>' +
-              escapeHtml(t("groupMonthlyFee")) +
-              '</span><span class="group-price-input"><input type="number" min="0" step="0.01" data-group-price="' +
-              index +
-              '" value="' +
-              escapeHtml(String(group.price)) +
-              '" /><b>DT</b></span></label>'
-            : '<fieldset class="group-days-setting"><legend>' +
-              escapeHtml(t("groupStudySchedule")) +
-              '</legend><div class="group-day-options">' +
-              [1, 2, 3, 4, 5, 6]
-                .map(function (day) {
-                  return (
-                    '<label class="group-day-option"><input type="checkbox" data-group-day="' +
-                    index +
-                    '" value="' +
-                    day +
-                    '"' +
-                    (group.days.includes(day) ? " checked" : "") +
-                    " /><span>" +
-                    escapeHtml(t("dow")[day - 1]) +
-                    "</span></label>"
-                  );
-                })
-                .join("") +
-              "</div></fieldset>";
-        configHtml += "</div>";
-        var membersHtml = students
-          .map(function (student, studentIndex) {
-            var memberships = studentGroupNames(student);
-            var conflictingMembership = memberships
-              .map(groupRecord)
-              .find(function (membership) {
-                return (
-                  membership &&
-                  membership.name !== group.name &&
-                  membership.type === group.type
-                );
-              });
-            var otherMemberships = memberships.filter(function (name) {
-              return name !== group.name;
-            });
-            var detail = conflictingMembership
-              ? t("groupAssignedTo").replace(
-                  "{group}",
-                  escapeHtml(conflictingMembership.name),
-                )
-              : otherMemberships.length
-                ? t("groupAlsoIn").replace(
-                    "{groups}",
-                    escapeHtml(otherMemberships.join(", ")),
-                  )
-                : escapeHtml(levelLabel(student.level));
-            return (
-              '<label class="group-member' +
-              (conflictingMembership ? " unavailable" : "") +
-              '"><input type="checkbox" data-member-student="' +
-              studentIndex +
-              '"' +
-              (memberships.indexOf(group.name) !== -1 ? " checked" : "") +
-              (conflictingMembership ? " disabled" : "") +
-              " /><span><b>" +
-              escapeHtml(student.firstName + " " + student.lastName) +
-              "</b><small>" +
-              detail +
-              "</small></span></label>"
-            );
-          })
-          .join("");
-        html +=
-          '<div class="group-members" data-group-index="' +
-          index +
-          '">' +
-          configHtml +
-          '<p class="group-members-hint">' +
-          escapeHtml(t("groupMemberHint")) +
-          "</p>" +
-          (membersHtml ||
-            '<p class="groups-empty">' + escapeHtml(t("noStudents")) + "</p>") +
-          "</div>";
-      }
       html += "</div>";
     });
     if (groups.length === 0) {
@@ -2574,7 +2533,240 @@
     els.groupsList.innerHTML = html;
   }
 
+  function openGroupModal(index) {
+    var group = groups[index];
+    if (!group) return;
+    editingGroupIndex = index;
+    els.groupModalTitle.textContent = t("groupEditTitle");
+    els.groupModalNameLabel.textContent = t("groupNameLabel");
+    els.groupModalName.value = group.name;
+    els.groupModalCancel.textContent = t("cancel");
+    els.groupModalSave.textContent = t("saveChanges");
+
+    els.groupModalFields.innerHTML =
+      '<div class="group-settings"><label><span>' +
+      escapeHtml(t("groupModeLabel")) +
+      '</span><select id="groupModalType"><option value="days"' +
+      (group.type === "days" ? " selected" : "") +
+      ">" +
+      escapeHtml(t("groupModeDays")) +
+      '</option><option value="price"' +
+      (group.type === "price" ? " selected" : "") +
+      ">" +
+      escapeHtml(t("groupModePrice")) +
+      "</option></select></label>" +
+      '<label id="groupModalPriceField"><span>' +
+      escapeHtml(t("groupMonthlyFee")) +
+      '</span><span class="group-price-input"><input id="groupModalPrice" type="number" min="0" step="0.01" value="' +
+      escapeHtml(String(group.price)) +
+      '" /><b>DT</b></span></label>' +
+      '<fieldset class="group-days-setting" id="groupModalDaysField"><legend>' +
+      escapeHtml(t("groupStudySchedule")) +
+      '</legend><div class="group-day-options">' +
+      [1, 2, 3, 4, 5, 6]
+        .map(function (day) {
+          return (
+            '<label class="group-day-option"><input type="checkbox" data-group-modal-day value="' +
+            day +
+            '"' +
+            (group.days.includes(day) ? " checked" : "") +
+            " /><span>" +
+            escapeHtml(t("dow")[day - 1]) +
+            "</span></label>"
+          );
+        })
+        .join("") +
+      "</div></fieldset></div>";
+
+    els.groupModalStudents.innerHTML =
+      '<div class="group-modal-students"><h3>' +
+      escapeHtml(t("groupStudentsLabel")) +
+      "</h3><p>" +
+      escapeHtml(t("groupMemberHint")) +
+      '</p><div class="group-modal-student-list">' +
+      (students.length
+        ? students
+            .map(function (student, studentIndex) {
+              var memberships = studentGroupNames(student);
+              var conflictingMembership = memberships
+                .map(groupRecord)
+                .find(function (membership) {
+                  return (
+                    membership &&
+                    membership.name !== group.name &&
+                    membership.type === group.type
+                  );
+                });
+              var otherMemberships = memberships.filter(function (name) {
+                return name !== group.name;
+              });
+              var detail = conflictingMembership
+                ? t("groupAssignedTo").replace(
+                    "{group}",
+                    conflictingMembership.name,
+                  )
+                : otherMemberships.length
+                  ? t("groupAlsoIn").replace(
+                      "{groups}",
+                      otherMemberships.join(", "),
+                    )
+                  : levelLabel(student.level);
+              var isMember = memberships.indexOf(group.name) !== -1;
+              return (
+                '<label class="group-member' +
+                (conflictingMembership ? " unavailable" : "") +
+                '"><input type="checkbox" data-group-modal-member="' +
+                studentIndex +
+                '"' +
+                (isMember ? " checked" : "") +
+                (conflictingMembership && !isMember ? " disabled" : "") +
+                " /><span><b>" +
+                escapeHtml(student.firstName + " " + student.lastName) +
+                '</b><small data-group-modal-detail="' +
+                studentIndex +
+                '">' +
+                escapeHtml(detail) +
+                "</small></span></label>"
+              );
+            })
+            .join("")
+        : '<p class="groups-empty">' + escapeHtml(t("noStudents")) + "</p>") +
+      "</div></div>";
+
+    updateGroupModalMemberAvailability();
+    els.groupModalOverlay.classList.add("open");
+    els.groupModalName.focus();
+  }
+
+  function updateGroupModalMemberAvailability() {
+    var group = groups[editingGroupIndex];
+    var typeSelect = document.getElementById("groupModalType");
+    if (!group || !typeSelect) return;
+    var nextType = typeSelect.value;
+    document.getElementById("groupModalPriceField").hidden =
+      nextType !== "price";
+    document.getElementById("groupModalDaysField").hidden =
+      nextType === "price";
+    els.groupModalStudents
+      .querySelectorAll("[data-group-modal-member]")
+      .forEach(function (checkbox) {
+        var student = students[Number(checkbox.dataset.groupModalMember)];
+        if (!student) return;
+        var memberships = studentGroupNames(student);
+        var otherMemberships = memberships.filter(function (name) {
+          return name !== group.name;
+        });
+        var conflict = otherMemberships
+          .map(groupRecord)
+          .find(function (membership) {
+            return membership && membership.type === nextType;
+          });
+        checkbox.disabled = !!conflict && !checkbox.checked;
+        checkbox
+          .closest(".group-member")
+          .classList.toggle("unavailable", !!conflict);
+        var detail = checkbox.parentElement.querySelector(
+          '[data-group-modal-detail="' +
+            checkbox.dataset.groupModalMember +
+            '"]',
+        );
+        if (detail) {
+          detail.textContent = conflict
+            ? t("groupAssignedTo").replace("{group}", conflict.name)
+            : otherMemberships.length
+              ? t("groupAlsoIn").replace(
+                  "{groups}",
+                  otherMemberships.join(", "),
+                )
+              : levelLabel(student.level);
+        }
+      });
+  }
+
+  function closeGroupModal() {
+    editingGroupIndex = -1;
+    els.groupModalOverlay.classList.remove("open");
+  }
+
+  function handleGroupModalSubmit(e) {
+    e.preventDefault();
+    var group = groups[editingGroupIndex];
+    if (!group) return closeGroupModal();
+    var nextName = els.groupModalName.value.trim();
+    var duplicate = groups.some(function (candidate, index) {
+      return (
+        index !== editingGroupIndex &&
+        candidate.name.toLowerCase() === nextName.toLowerCase()
+      );
+    });
+    if (duplicate) return showToast(t("groupExists"), true);
+
+    var typeSelect = document.getElementById("groupModalType");
+    var nextType = typeSelect.value === "price" ? "price" : "days";
+    var selectedMembers = {};
+    els.groupModalStudents
+      .querySelectorAll("[data-group-modal-member]")
+      .forEach(function (checkbox) {
+        selectedMembers[checkbox.dataset.groupModalMember] = checkbox.checked;
+      });
+    var hasConflict = students.some(function (student, studentIndex) {
+      if (!selectedMembers[studentIndex]) return false;
+      return studentGroupNames(student).some(function (name) {
+        var membership = groupRecord(name);
+        return (
+          name !== group.name && membership && membership.type === nextType
+        );
+      });
+    });
+    if (hasConflict) return showToast(t("groupMembershipConflict"), true);
+
+    var nextPrice = Number(document.getElementById("groupModalPrice").value);
+    var priceValue = document.getElementById("groupModalPrice").value.trim();
+    if (
+      nextType === "price" &&
+      (!priceValue || !isFinite(nextPrice) || nextPrice < 0)
+    ) {
+      return showToast(t("groupPriceInvalid"), true);
+    }
+    var oldName = group.name;
+    var membershipsByStudent = students.map(studentGroupNames);
+    group.name = nextName || oldName;
+    group.type = nextType;
+    if (nextType === "price") {
+      group.price = nextPrice;
+    } else {
+      group.days = Array.from(
+        els.groupModalFields.querySelectorAll("[data-group-modal-day]:checked"),
+      )
+        .map(function (checkbox) {
+          return Number(checkbox.value);
+        })
+        .sort();
+    }
+    students.forEach(function (student, studentIndex) {
+      var names = membershipsByStudent[studentIndex].filter(function (name) {
+        return name !== oldName;
+      });
+      if (selectedMembers[studentIndex]) names.push(group.name);
+      setStudentGroupNames(student, names);
+    });
+    if (activeGroup === oldName) activeGroup = group.name;
+    expandedGroup = "";
+    saveGroups();
+    saveStudents();
+    closeGroupModal();
+    renderStudentsPage();
+    renderCalendar();
+    if (currentPage === "payments") renderPaymentsPage();
+    showToast(t("groupSaved"));
+  }
+
   function handleGroupsClick(e) {
+    var editButton = e.target.closest("[data-edit-group]");
+    if (editButton) {
+      openGroupModal(Number(editButton.dataset.editGroup));
+      return;
+    }
     var deleteButton = e.target.closest("[data-delete-group]");
     if (deleteButton) {
       var groupToDelete = groups[Number(deleteButton.dataset.deleteGroup)];
@@ -2610,97 +2802,8 @@
       var group = groups[Number(groupIndex)];
       if (!group) return;
       activeGroup = group.name;
-      expandedGroup = expandedGroup === group.name ? "" : group.name;
+      expandedGroup = "";
     }
-    renderCalendar();
-  }
-
-  function handleGroupMemberChange(e) {
-    var checkbox = e.target.closest("[data-member-student]");
-    if (!checkbox || checkbox.disabled) return;
-    var memberList = checkbox.closest("[data-group-index]");
-    var student = students[Number(checkbox.dataset.memberStudent)];
-    var group = groups[Number(memberList.dataset.groupIndex)];
-    if (!student || !group) return;
-    var memberships = studentGroupNames(student);
-    if (checkbox.checked) {
-      var conflict = memberships.map(groupRecord).find(function (membership) {
-        return (
-          membership &&
-          membership.name !== group.name &&
-          membership.type === group.type
-        );
-      });
-      if (conflict) {
-        showToast(t("groupMembershipConflict"), true);
-        renderCalendar();
-        return;
-      }
-      if (memberships.indexOf(group.name) === -1) memberships.push(group.name);
-    } else {
-      memberships = memberships.filter(function (name) {
-        return name !== group.name;
-      });
-    }
-    setStudentGroupNames(student, memberships);
-    saveStudents();
-    renderStudentsPage();
-    renderCalendar();
-  }
-
-  function handleGroupSettingsChange(e) {
-    var modeSelect = e.target.closest("[data-group-mode]");
-    var priceInput = e.target.closest("[data-group-price]");
-    var dayInput = e.target.closest("[data-group-day]");
-    if (!modeSelect && !priceInput && !dayInput) return;
-    var index = Number(
-      modeSelect
-        ? modeSelect.dataset.groupMode
-        : priceInput
-          ? priceInput.dataset.groupPrice
-          : dayInput.dataset.groupDay,
-    );
-    var group = groups[index];
-    if (!group) return;
-    if (modeSelect) {
-      var nextType = modeSelect.value === "price" ? "price" : "days";
-      var hasMembershipConflict = students.some(function (student) {
-        var memberships = studentGroupNames(student);
-        return (
-          memberships.indexOf(group.name) !== -1 &&
-          memberships.some(function (name) {
-            var otherGroup = groupRecord(name);
-            return (
-              otherGroup &&
-              otherGroup.name !== group.name &&
-              otherGroup.type === nextType
-            );
-          })
-        );
-      });
-      if (hasMembershipConflict) {
-        modeSelect.value = group.type;
-        showToast(t("groupMembershipConflict"), true);
-        return;
-      }
-      group.type = nextType;
-    } else if (priceInput) {
-      var price = Number(priceInput.value);
-      if (!isFinite(price) || price < 0) {
-        priceInput.value = group.price;
-        return;
-      }
-      group.price = price;
-    } else {
-      var day = Number(dayInput.value);
-      group.days = group.days.filter(function (selectedDay) {
-        return selectedDay !== day;
-      });
-      if (dayInput.checked) group.days.push(day);
-      group.days.sort();
-    }
-    saveGroups();
-    if (currentPage === "payments") renderPaymentsPage();
     renderCalendar();
   }
 
@@ -2762,6 +2865,18 @@
   els.modalOverlay.addEventListener("click", function (e) {
     if (e.target === els.modalOverlay) closeModal();
   });
+  els.groupModalCancel.addEventListener("click", closeGroupModal);
+  els.groupModalOverlay.addEventListener("click", function (e) {
+    if (e.target === els.groupModalOverlay) closeGroupModal();
+  });
+  els.groupModalForm.addEventListener("submit", handleGroupModalSubmit);
+  els.groupModalFields.addEventListener("change", function (e) {
+    if (e.target.id === "groupModalType") updateGroupModalMemberAvailability();
+  });
+  els.groupModalStudents.addEventListener("change", function (e) {
+    if (e.target.matches("[data-group-modal-member]"))
+      updateGroupModalMemberAvailability();
+  });
   els.studentForm.addEventListener("submit", handleSubmit);
   els.tableWrap.addEventListener("click", handleTableClick);
   if (els.paymentsList)
@@ -2796,8 +2911,6 @@
     e.stopPropagation();
     handleGroupsClick(e);
   });
-  els.groupsList.addEventListener("change", handleGroupMemberChange);
-  els.groupsList.addEventListener("change", handleGroupSettingsChange);
   els.groupsAddForm.addEventListener("submit", handleAddGroup);
   els.calPrevBtn.addEventListener("click", function () {
     calendarCursor = new Date(
@@ -2840,6 +2953,7 @@
     }
     if (e.key !== "Escape") return;
     if (els.modalOverlay.classList.contains("open")) closeModal();
+    if (els.groupModalOverlay.classList.contains("open")) closeGroupModal();
     if (els.noteModalOverlay.classList.contains("open")) closeNoteModal();
     closeAllKebabMenus();
   });

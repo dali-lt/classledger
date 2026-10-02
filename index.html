@@ -507,6 +507,37 @@
       </div>
     </div>
 
+    <div class="modal-overlay" id="groupModalOverlay">
+      <div
+        class="modal group-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="groupModalTitle"
+      >
+        <h2 id="groupModalTitle"></h2>
+        <form id="groupModalForm">
+          <div class="field">
+            <label id="groupModalNameLabel" for="groupModalName"></label>
+            <input id="groupModalName" type="text" maxlength="50" required />
+          </div>
+          <div id="groupModalFields"></div>
+          <div id="groupModalStudents"></div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-ghost"
+              id="groupModalCancel"
+            ></button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              id="groupModalSave"
+            ></button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- ============ Student details modal ============ -->
     <div class="modal-overlay" id="noteModalOverlay">
       <div class="modal" style="max-width: 380px">

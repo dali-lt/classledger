@@ -1636,9 +1636,9 @@ main {
   grid-column: 1 / -1;
   min-width: 0;
   padding: 18px;
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  background: var(--color-surface);
+  border: 1px solid #e3ecf5;
+  border-radius: 14px;
+  background: #fff;
 }
 .groups-heading {
   display: flex;
@@ -1663,8 +1663,8 @@ main {
   height: 28px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: var(--color-light-blue);
-  color: var(--color-primary);
+  background: #e8f4fc;
+  color: #136cfc;
   font-size: 12px;
   font-weight: 800;
 }
@@ -1689,62 +1689,250 @@ main {
   padding: 8px 14px;
 }
 .groups-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.group-filter,
-.group-row {
-  min-height: 38px;
-  border: 1px solid var(--color-border);
-  border-radius: 9px;
-  background: var(--color-surface);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  align-items: start;
+  gap: 12px;
 }
 .group-filter {
+  border: 0;
+  color: #152641;
+  font: inherit;
+  cursor: pointer;
+}
+.group-filter-all {
+  grid-column: 1 / -1;
+  justify-self: start;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 11px;
-  color: var(--color-text);
-  font: inherit;
-  font-size: 12.5px;
-  cursor: pointer;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #e3ecf5;
+  border-radius: 20px;
+  background: #f5f9fd;
+  font-size: 12px;
 }
-.groups-list > .group-filter.active,
-.group-row.active {
-  border-color: var(--color-primary);
-  background: var(--color-light-blue);
-}
-.group-filter b {
-  color: var(--color-text-muted);
-  font-size: 11px;
+.group-filter-all.active {
+  border-color: #b8d8f5;
+  background: #e8f4fc;
 }
 .group-row {
-  display: inline-flex;
-  align-items: stretch;
-  overflow: hidden;
+  position: relative;
+  min-width: 0;
 }
 .group-item {
   display: flex;
   flex-direction: column;
-  min-width: min(100%, 320px);
-  max-width: 100%;
+  min-width: 0;
 }
-.group-row .group-filter {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+.group-row .group-filter.group-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 9px;
+  width: 100%;
+  min-height: 156px;
+  padding: 13px 14px 11px;
+  border: 1px solid #e3ecf5;
+  border-radius: 12px;
+  background: #fff;
+  text-align: start;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
-.group-row .group-filter i {
+.group-row .group-filter.group-card:hover {
+  transform: translateY(-2px);
+  border-color: #bfd8ef;
+  box-shadow: 0 5px 14px rgba(21, 38, 65, 0.07);
+}
+.group-row.active .group-filter.group-card {
+  border-color: #7db7ee;
+  background: #f7fbff;
+}
+.group-card-top,
+.group-card-members {
+  display: flex;
+  align-items: center;
+}
+.group-card-top {
+  gap: 7px;
+  min-width: 0;
+}
+.group-card-top > i {
   width: 9px;
   height: 9px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--group-color);
 }
-.group-row .group-filter small {
-  color: var(--color-text-muted);
+.group-card-type {
+  overflow: hidden;
+  color: #64748b;
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.group-card-arrow {
+  margin-inline-start: auto;
+  padding-inline-end: 30px;
+  color: #8190a3;
+  font-size: 14px;
+  line-height: 1;
+}
+.group-row .group-edit {
+  position: absolute;
+  inset-inline-end: 42px;
+  top: 8px;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border: 0;
+  border-radius: 7px;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  opacity: 1;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.group-row .group-edit svg {
+  width: 15px;
+  height: 15px;
+}
+.group-row:hover .group-edit,
+.group-row:focus-within .group-edit {
+  opacity: 1;
+}
+.group-row .group-edit:hover {
+  background: #e8f4fc;
+  color: #136cfc;
+}
+.group-card-name {
+  overflow: hidden;
+  color: #152641;
+  font-size: 16px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.group-card-members {
+  gap: 8px;
+  min-height: 25px;
+}
+.group-avatars {
+  display: flex;
+  align-items: center;
+  padding-inline-start: 2px;
+}
+.group-avatar {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-inline-start: -3px;
+  border-radius: 50%;
+}
+.group-avatar .avatar {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.group-card-members small {
+  color: #64748b;
   font-size: 11px;
+}
+.group-card-summary {
+  display: block;
+  padding-top: 7px;
+  border-top: 1px solid #edf2f7;
+  overflow: hidden;
+  color: #52657b;
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.group-row .group-delete {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 8px;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border: 0;
+  border-radius: 7px;
+  background: #fff;
+  color: #64748b;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.group-row:hover .group-delete,
+.group-row:focus-within .group-delete {
+  opacity: 1;
+}
+.group-row .group-delete:hover {
+  background: #fff0ef;
+  color: #e0473e;
+}
+.group-modal {
+  max-width: 560px;
+}
+.group-modal [hidden] {
+  display: none;
+}
+.group-modal .group-settings {
+  margin-bottom: 14px;
+}
+.group-modal .group-settings > label {
+  font-size: 12px;
+}
+.group-modal .group-settings select,
+.group-modal .group-price-input input {
+  min-height: 42px;
+  font-size: 14px;
+}
+.group-modal .group-days-setting legend {
+  font-size: 12px;
+}
+.group-modal-students {
+  margin-top: 12px;
+}
+.group-modal-students h3 {
+  margin: 0 0 4px;
+  color: var(--color-text);
+  font-size: 14px;
+}
+.group-modal-students > p {
+  margin: 0 0 8px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.group-modal-student-list {
+  max-height: 220px;
+  padding: 4px 10px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-sunken);
+}
+.group-modal .group-member {
+  min-height: 46px;
+}
+.group-edit:focus-visible,
+.group-delete:focus-visible {
+  opacity: 1;
 }
 .group-members {
   max-height: 240px;
@@ -2064,11 +2252,15 @@ main {
     max-width: none;
   }
   .groups-list {
-    gap: 6px;
+    gap: 10px;
   }
-  .group-filter {
+  .group-filter-all {
     gap: 6px;
     padding-inline: 9px;
+  }
+  .group-row .group-edit,
+  .group-row .group-delete {
+    opacity: 1;
   }
 }
 
