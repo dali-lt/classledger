@@ -386,18 +386,23 @@ body {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   transform: translate(-50%, 16px);
   display: flex;
   align-items: center;
-  gap: 14px;
-  min-width: 260px;
+  gap: 12px;
+  width: min(420px, calc(100vw - 32px));
   max-width: min(92vw, 420px);
-  background: linear-gradient(135deg, #1faf6e, #17924f);
-  color: #fff;
-  padding: 14px 16px;
-  border-radius: 18px;
-  box-shadow: 0 14px 34px rgba(23, 146, 79, 0.35);
+  --toast-accent: #17924f;
+  --toast-accent-soft: rgba(31, 175, 110, 0.12);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow:
+    0 14px 32px rgba(21, 38, 65, 0.13),
+    0 0 0 7px rgba(21, 38, 65, 0.035);
   z-index: 80;
   opacity: 0;
   pointer-events: none;
@@ -411,12 +416,37 @@ body {
   pointer-events: auto;
 }
 .toast.toast-error {
-  background: linear-gradient(135deg, #f0574c, #d8392e);
-  box-shadow: 0 14px 34px rgba(216, 57, 46, 0.35);
+  --toast-accent: var(--color-danger);
+  --toast-accent-soft: rgba(224, 71, 62, 0.12);
+  border-color: rgba(224, 71, 62, 0.2);
+  box-shadow:
+    0 14px 32px rgba(21, 38, 65, 0.13),
+    0 0 0 7px rgba(224, 71, 62, 0.08);
 }
-.toast.toast-info {
-  background: linear-gradient(135deg, #136cfc, #0f58cc);
-  box-shadow: 0 14px 34px rgba(19, 108, 252, 0.28);
+.toast.toast-delete {
+  --toast-accent: var(--color-danger);
+  --toast-accent-soft: rgba(224, 71, 62, 0.12);
+  border-color: rgba(224, 71, 62, 0.2);
+  box-shadow:
+    0 14px 32px rgba(21, 38, 65, 0.13),
+    0 0 0 7px rgba(224, 71, 62, 0.08);
+}
+.toast.toast-info,
+.toast.toast-add {
+  --toast-accent: var(--color-primary);
+  --toast-accent-soft: rgba(19, 108, 252, 0.12);
+  border-color: rgba(19, 108, 252, 0.2);
+  box-shadow:
+    0 14px 32px rgba(21, 38, 65, 0.13),
+    0 0 0 7px rgba(19, 108, 252, 0.08);
+}
+.toast.toast-edit {
+  --toast-accent: #17924f;
+  --toast-accent-soft: rgba(31, 175, 110, 0.12);
+  border-color: rgba(31, 175, 110, 0.2);
+  box-shadow:
+    0 14px 32px rgba(21, 38, 65, 0.13),
+    0 0 0 7px rgba(31, 175, 110, 0.08);
 }
 .month-end-modal-message {
   margin: 0;
@@ -432,28 +462,29 @@ body {
 }
 .month-end-notice-empty {
   margin: 0;
-  padding: 14px;
-  border-radius: 9px;
+  padding: 13px 15px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
   background: var(--color-sunken);
 }
 .month-end-event {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid var(--color-border);
-  border-radius: 9px;
-  background: var(--color-sunken);
+  border-radius: 12px;
+  background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
   text-align: start;
 }
 .month-end-event:hover,
 .month-end-event:focus-visible {
-  border-color: var(--color-danger);
-  background: #fbe4e2;
+  border-color: rgba(224, 71, 62, 0.35);
+  background: rgba(224, 71, 62, 0.06);
 }
 .month-end-event-date {
   font-size: 13px;
@@ -463,29 +494,77 @@ body {
   min-width: 0;
 }
 .month-end-event .event-count {
-  background: #fbe4e2;
+  background: rgba(224, 71, 62, 0.1);
   color: var(--color-danger);
 }
 .month-end-modal {
-  border: 2px solid var(--color-danger);
-  box-shadow: 0 16px 40px rgba(224, 71, 62, 0.2);
+  position: relative;
+  border: 1px solid rgba(224, 71, 62, 0.2);
+  border-radius: 20px;
+  box-shadow:
+    0 22px 56px rgba(21, 38, 65, 0.18),
+    0 0 0 7px rgba(224, 71, 62, 0.06);
 }
 .month-end-modal h2 {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-inline-end: 34px;
   color: var(--color-danger);
+  font-size: 18px;
+}
+.month-end-modal h2::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgba(224, 71, 62, 0.1);
+  color: var(--color-danger);
+  font-size: 18px;
+  font-weight: 900;
 }
 .month-end-modal .btn-primary {
-  border-color: var(--color-danger);
-  background: var(--color-danger);
+  border: 1px solid rgba(224, 71, 62, 0.22);
+  background: rgba(224, 71, 62, 0.08);
+  color: var(--color-danger);
 }
 .month-end-modal .btn-primary:hover {
-  border-color: #c9362e;
-  background: #c9362e;
+  border-color: rgba(224, 71, 62, 0.35);
+  background: rgba(224, 71, 62, 0.14);
+}
+.month-end-modal-close {
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline-end: 16px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.month-end-modal-close:hover {
+  background: rgba(224, 71, 62, 0.08);
+  color: var(--color-danger);
+}
+.month-end-modal-close svg {
+  width: 17px;
+  height: 17px;
 }
 .toast-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.22);
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--toast-accent-soft);
+  color: var(--toast-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -504,25 +583,28 @@ body {
   font-size: 14px;
   font-weight: 800;
   margin-bottom: 2px;
+  color: var(--color-text);
 }
 .toast-text span {
   display: block;
   font-size: 12.5px;
-  opacity: 0.92;
+  color: var(--color-text-muted);
   line-height: 1.35;
 }
 .toast-close {
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--color-text-muted);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
   padding: 4px;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 .toast-close:hover {
-  color: #fff;
+  color: var(--color-text);
+  background: var(--color-sunken);
 }
 
 main {
@@ -2559,6 +2641,9 @@ main {
     border-radius: 15px;
     background: var(--color-surface);
     box-shadow: 0 5px 16px rgba(21, 38, 65, 0.12);
+  }
+  .rail-notice::before {
+    display: none;
   }
   .topbar {
     padding: 10px 12px;

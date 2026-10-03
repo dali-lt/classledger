@@ -101,6 +101,9 @@
       emptyFilterText: "Try a different search or level.",
       modalAddTitle: "Add student",
       modalEditTitle: "Edit student",
+      studentAdded: "Student added.",
+      studentUpdated: "Student information updated.",
+      studentDeleted: "Student deleted.",
       firstName: "First name",
       lastName: "Last name",
       level: "Level",
@@ -187,9 +190,11 @@
         );
       },
       groupsAdded: "Group added.",
+      groupDeleted: "Group deleted.",
       groupExists: "That group already exists.",
       clearAllConfirm:
         "Delete all students and their data? This can't be undone.",
+      clearAllSuccess: "All data cleared.",
       clearAllButton: "Clear all data",
       exportData: "Export data",
       importData: "Import data",
@@ -291,6 +296,9 @@
       emptyFilterText: "جرّب كلمة بحث أو قسم آخر.",
       modalAddTitle: "إضافة تلميذ",
       modalEditTitle: "تعديل معلومات التلميذ",
+      studentAdded: "تضاف التلميذ.",
+      studentUpdated: "تعدّلت معلومات التلميذ.",
+      studentDeleted: "تحذف التلميذ.",
       firstName: "الاسم",
       lastName: "اللقب",
       level: "القسم",
@@ -373,9 +381,11 @@
         return "تحذف مجموعة " + name + "؟ التلامذة متاعها يولو بلا مجموعة.";
       },
       groupsAdded: "تضافت المجموعة.",
+      groupDeleted: "تحذفت المجموعة.",
       groupExists: "المجموعة هاذي موجودة من قبل.",
       clearAllConfirm:
         "تأكد باش تحذف التلامذة الكل ومعلوماتهم؟ العملية ما تتراجعش.",
+      clearAllSuccess: "تم مسح جميع البيانات.",
       clearAllButton: "مسح جميع البيانات",
       exportData: "إخراج البيانات",
       importData: "إدخال البيانات",
@@ -639,20 +649,35 @@
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   var TOAST_ICON_INFO =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7h.01"/></svg>';
+  var TOAST_ICON_ADD =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+  var TOAST_ICON_EDIT =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 4 4 4M4 20l4-.8L19 8a2.1 2.1 0 0 0-3-3L5 16l-1 4Z"/></svg>';
+  var TOAST_ICON_DELETE =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6"/></svg>';
   function showToast(message, isError, title, variant) {
     if (!els.toast) return;
     if (els.toastIcon)
       els.toastIcon.innerHTML = isError
         ? TOAST_ICON_ERR
-        : variant === "info"
-          ? TOAST_ICON_INFO
-          : TOAST_ICON_OK;
+        : variant === "add"
+          ? TOAST_ICON_ADD
+          : variant === "edit"
+            ? TOAST_ICON_EDIT
+            : variant === "delete"
+              ? TOAST_ICON_DELETE
+              : variant === "info"
+                ? TOAST_ICON_INFO
+                : TOAST_ICON_OK;
     if (els.toastTitle)
       els.toastTitle.textContent =
         title || (isError ? t("toastErrorTitle") : t("toastSuccessTitle"));
     if (els.toastMessage) els.toastMessage.textContent = message;
     els.toast.classList.toggle("toast-error", !!isError);
     els.toast.classList.toggle("toast-info", variant === "info");
+    els.toast.classList.toggle("toast-add", variant === "add");
+    els.toast.classList.toggle("toast-edit", variant === "edit");
+    els.toast.classList.toggle("toast-delete", variant === "delete");
     els.toast.classList.add("show");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
@@ -771,7 +796,7 @@
     activeMonthEndNoticeKey = endedMonthGroupsKey(eventGroups);
     els.monthEndModalTitle.textContent = t("monthEndTitle");
     els.monthEndModalMessage.innerHTML = monthEndNoticeMarkup(eventGroups);
-    els.monthEndModalClose.textContent = t("close");
+    els.monthEndModalClose.setAttribute("aria-label", t("close"));
     els.monthEndModalOverlay.classList.add("open");
     els.monthEndModalClose.focus();
   }
@@ -944,6 +969,7 @@
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
     if (currentPage === "payments") renderPaymentsPage();
+    showToast(t("clearAllSuccess"), false, null, "delete");
   }
   function exportData() {
     var backup = {
@@ -1226,7 +1252,7 @@
     els.eventsTitle.textContent = t("eventsTitle");
     refreshMonthEndNotice();
     els.monthEndModalTitle.textContent = t("monthEndTitle");
-    els.monthEndModalClose.textContent = t("close");
+    els.monthEndModalClose.setAttribute("aria-label", t("close"));
     if (els.monthEndModalOverlay.classList.contains("open")) {
       els.monthEndModalMessage.innerHTML = monthEndNoticeMarkup(
         getEndedMonthGroups(),
@@ -1840,7 +1866,7 @@
     renderPaymentsPage();
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
-    showToast(t("markPaidSuccess"));
+    showToast(t("markPaidSuccess"), false, null, "add");
   }
 
   function paymentDetailMarkup(selected) {
@@ -2264,6 +2290,9 @@
         halfMonthResultItems.length,
         total.toLocaleString(t("locale"), { maximumFractionDigits: 2 }),
       ),
+      false,
+      null,
+      "add",
     );
     renderHalfMonthResult();
   }
@@ -2398,6 +2427,12 @@
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
     if (currentPage === "payments") renderPaymentsPage();
+    showToast(
+      t(id ? "studentUpdated" : "studentAdded"),
+      false,
+      null,
+      id ? "edit" : "add",
+    );
   }
 
   function openNoteModal(student) {
@@ -2492,6 +2527,7 @@
         saveStudents();
         renderStudentsPage();
         if (currentPage === "payments") renderPaymentsPage();
+        showToast(t("studentDeleted"), false, null, "delete");
       }
     } else if (btn.dataset.action === "details") {
       openNoteModal(student);
@@ -3039,7 +3075,7 @@
     renderStudentsPage();
     renderCalendar();
     if (currentPage === "payments") renderPaymentsPage();
-    showToast(t("groupSaved"));
+    showToast(t("groupSaved"), false, null, "edit");
   }
 
   function handleGroupsClick(e) {
@@ -3071,6 +3107,7 @@
       saveStudents();
       renderStudentsPage();
       renderCalendar();
+      showToast(t("groupDeleted"), false, null, "delete");
       return;
     }
     var filterButton = e.target.closest("[data-group-filter]");
@@ -3101,7 +3138,7 @@
     activeGroup = name;
     els.newGroupName.value = "";
     renderCalendar();
-    showToast(t("groupsAdded"));
+    showToast(t("groupsAdded"), false, null, "add");
   }
 
   function handleCalGridClick(e) {
