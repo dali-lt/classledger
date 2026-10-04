@@ -1797,61 +1797,95 @@ main {
 /* ================= Calendar page ================= */
 .calendar-layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(370px, 0.85fr);
+  gap: 16px;
   align-items: start;
 }
 .calendar-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 8px 24px rgba(21, 38, 65, 0.045);
 }
 .calendar-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
-  margin: 0 0 16px;
-  text-align: center;
+  margin: 0 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-border);
 }
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  width: 100%;
+  max-width: 455px;
+  margin-inline: auto;
+  gap: 0;
 }
 .cal-dow {
   text-align: center;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--color-text-muted);
-  padding-bottom: 6px;
+  padding: 0 0 8px;
 }
 .cal-cell {
+  min-width: 0;
   aspect-ratio: 1 / 1;
-  border-radius: 10px;
-  border: 1.5px solid transparent;
-  background: var(--color-sunken);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--color-text);
   position: relative;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.cal-cell:not(.outside) {
+  background: var(--color-light-blue);
+}
+.cal-cell:not(.outside).month-start {
+  border-start-start-radius: 50%;
+  border-end-start-radius: 50%;
+}
+.cal-cell:not(.outside).month-end {
+  border-start-end-radius: 50%;
+  border-end-end-radius: 50%;
 }
 .cal-cell.outside {
   color: var(--color-text-muted);
-  opacity: 0.35;
+  opacity: 0.42;
   cursor: default;
 }
-.cal-cell.today {
-  border-color: var(--color-primary);
+.cal-cell.today:not(.selected) {
+  box-shadow: inset 0 0 0 1.5px var(--color-primary);
   font-weight: 900;
 }
 .cal-cell.selected {
-  background: var(--color-primary);
+  background: var(--color-light-blue);
+  color: var(--color-primary);
+  border-radius: 50%;
+  font-weight: 900;
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+.cal-cell:not(.outside).month-end {
+  background: #152641;
   color: #fff;
+  font-weight: 900;
+}
+.cal-cell:not(.outside).today {
+  background: var(--color-light-blue);
+  color: var(--color-primary);
+  border-radius: 0;
 }
 .cal-dots {
   display: flex;
@@ -1880,12 +1914,16 @@ main {
 .cal-cell.selected .dot-study {
   background: #fff;
 }
+.cal-cell.month-end .cal-dot {
+  background: #fff;
+}
 
 .events-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: 18px;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(21, 38, 65, 0.045);
 }
 .groups-card {
   grid-column: 1 / -1;
@@ -2349,16 +2387,21 @@ main {
   border: 0;
 }
 .events-card h3 {
-  margin: 0 0 4px;
-  font-size: 15px;
+  margin: 0 0 8px;
+  font-size: 16px;
 }
 .events-card p.sub {
-  margin: 0 0 14px;
-  font-size: 12.5px;
-  color: var(--color-text-muted);
+  margin: 0 -20px 16px;
+  padding: 12px 20px;
+  border-block: 1px solid var(--color-border);
+  background: var(--color-sunken);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 800;
 }
 .legend {
   display: flex;
+  flex-wrap: wrap;
   gap: 14px;
   margin-bottom: 14px;
   font-size: 12px;
@@ -2385,7 +2428,7 @@ main {
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
-  padding: 10px;
+  padding: 12px;
   border-inline-start: 3px solid var(--event-color);
   border-radius: 7px;
   background: var(--color-sunken);
@@ -2594,6 +2637,12 @@ main {
 @media (max-width: 860px) {
   .calendar-layout {
     grid-template-columns: 1fr;
+  }
+  .calendar-card {
+    grid-row: 1;
+  }
+  .events-card {
+    grid-row: 2;
   }
   .overview-charts {
     grid-template-columns: 1fr;

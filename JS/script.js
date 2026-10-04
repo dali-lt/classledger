@@ -2621,6 +2621,15 @@
 
       var classes = ["cal-cell"];
       if (isOutside) classes.push("outside");
+      if (!isOutside && cellDate.getDate() === 1) {
+        classes.push("month-start");
+      }
+      if (
+        !isOutside &&
+        cellDate.getDate() === new Date(year, month + 1, 0).getDate()
+      ) {
+        classes.push("month-end");
+      }
       if (sameDay(cellDate, today)) classes.push("today");
       if (sameDay(cellDate, selectedDate)) classes.push("selected");
 
