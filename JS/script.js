@@ -260,6 +260,14 @@
       },
       halfMonthResultTitle: "Half-month amounts",
       halfMonthTotal: "Total",
+      halfMonthModeHalf: "Half month",
+      halfMonthModeCustom: "Custom amount",
+      halfMonthAmountLabel: "Amount for each selected student",
+      halfMonthAmountPlaceholder: "Amount",
+      customChargeType: "Custom charge",
+      customChargeAddSuccess: function (count, amount) {
+        return count + " charge(s) added. Total: " + amount + " DT.";
+      },
       locale: "en-GB",
     },
     ar: {
@@ -457,6 +465,16 @@
       },
       halfMonthResultTitle: "مبالغ نصف الشهر",
       halfMonthTotal: "المجموع",
+      halfMonthModeHalf: "نصف شهر",
+      halfMonthModeCustom: "مبلغ نكتبو",
+      halfMonthAmountLabel: "المبلغ لكل تلميذ مختار",
+      halfMonthAmountPlaceholder: "المبلغ",
+      customChargeType: "معلوم إضافي",
+      customChargeAddSuccess: function (count, amount) {
+        return (
+          "تزاد معلوم لـ " + count + " تلميذ، المجموع " + amount + " د.ت."
+        );
+      },
       locale: "ar-TN",
     },
   };
@@ -579,6 +597,11 @@
     halfMonthPickerLabel: document.getElementById("halfMonthPickerLabel"),
     halfMonthPickerOptions: document.getElementById("halfMonthPickerOptions"),
     halfMonthCalculateBtn: document.getElementById("halfMonthCalculateBtn"),
+    halfMonthModeHalf: document.getElementById("halfMonthModeHalf"),
+    halfMonthModeCustom: document.getElementById("halfMonthModeCustom"),
+    halfMonthAmountWrap: document.getElementById("halfMonthAmountWrap"),
+    halfMonthAmount: document.getElementById("halfMonthAmount"),
+    halfMonthAmountUnit: document.getElementById("halfMonthAmountUnit"),
     halfMonthModalOverlay: document.getElementById("halfMonthModalOverlay"),
     halfMonthModalTitle: document.getElementById("halfMonthModalTitle"),
     halfMonthModalClose: document.getElementById("halfMonthModalClose"),
@@ -613,6 +636,7 @@
   var selectedPaymentId = null;
   var selectedHalfMonthIds = [];
   var halfMonthCalculated = false;
+  var halfMonthMode = "half"; // "half" | "custom"
   var halfMonthResultItems = [];
   var monthEndNoticeReadKey = "";
   var activeMonthEndNoticeKey = "";
@@ -1017,6 +1041,7 @@
               ? p.timing
               : "on-time",
           kind: p.kind === "half-month" ? "half-month" : "monthly",
+          custom: p.custom === true,
         };
       });
     return student;
@@ -1039,6 +1064,7 @@
               amount: charge.amount,
               addedAt: charge.addedAt,
               paidAt: typeof charge.paidAt === "string" ? charge.paidAt : "",
+              custom: charge.custom === true,
             };
           })
       : [];
@@ -1296,6 +1322,11 @@
     els.halfMonthTitle.textContent = t("halfMonthTitle");
     els.halfMonthHint.textContent = t("halfMonthHint");
     els.halfMonthCalculateBtn.textContent = t("halfMonthCalculate");
+    els.halfMonthModeHalf.textContent = t("halfMonthModeHalf");
+    els.halfMonthModeCustom.textContent = t("halfMonthModeCustom");
+    els.halfMonthAmount.placeholder = t("halfMonthAmountPlaceholder");
+    els.halfMonthAmount.setAttribute("aria-label", t("halfMonthAmountLabel"));
+    els.halfMonthAmountUnit.textContent = t("dtSuffix");
     els.halfMonthModalTitle.textContent = t("halfMonthDialogTitle");
     els.halfMonthModalClose.textContent = t("halfMonthDone");
 
@@ -1860,6 +1891,7 @@
         amount: charge.amount,
         timing: paymentTiming(charge.addedAt, paidAt),
         kind: "half-month",
+        custom: charge.custom === true,
       });
     });
     saveStudents();
@@ -1910,7 +1942,9 @@
               formatPaymentMonth(payment.dueDate || payment.paidAt) +
               "</b><span>" +
               (payment.kind === "half-month"
-                ? t("halfMonthPaymentType")
+                ? payment.custom
+                  ? t("customChargeType")
+                  : t("halfMonthPaymentType")
                 : t("paymentMonthlyFee")) +
               "</span><span>" +
               t("paymentDateLabel") +
@@ -1989,7 +2023,7 @@
       });
     });
     renderHalfMonthPicker();
-    els.halfMonthCalculateBtn.disabled = selectedHalfMonthIds.length === 0;
+    updateHalfMonthCalcState();
 
     var rows = students.map(function (s) {
       var charges = halfMonthChargeTotals(s);
@@ -2258,20 +2292,51 @@
     els.halfMonthResult.hidden = false;
   }
 
+  function customAmountValue() {
+    var v = parseFloat(String(els.halfMonthAmount.value).replace(",", "."));
+    return isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : 0;
+  }
+
+  function updateHalfMonthCalcState() {
+    var needsAmount = halfMonthMode === "custom";
+    els.halfMonthCalculateBtn.disabled =
+      selectedHalfMonthIds.length === 0 ||
+      (needsAmount && customAmountValue() <= 0);
+  }
+
+  function setHalfMonthMode(mode) {
+    halfMonthMode = mode === "custom" ? "custom" : "half";
+    var isCustom = halfMonthMode === "custom";
+    els.halfMonthModeHalf.classList.toggle("active", !isCustom);
+    els.halfMonthModeCustom.classList.toggle("active", isCustom);
+    els.halfMonthModeHalf.setAttribute("aria-pressed", String(!isCustom));
+    els.halfMonthModeCustom.setAttribute("aria-pressed", String(isCustom));
+    els.halfMonthAmountWrap.hidden = !isCustom;
+    if (isCustom) els.halfMonthAmount.focus();
+    halfMonthCalculated = false;
+    els.halfMonthResult.hidden = true;
+    els.halfMonthResult.innerHTML = "";
+    updateHalfMonthCalcState();
+  }
+
   function addHalfMonthDue() {
     var selectedStudents = students.filter(function (student) {
       return selectedHalfMonthIds.indexOf(student.id) !== -1;
     });
     if (selectedStudents.length === 0) return;
+    var isCustom = halfMonthMode === "custom";
+    var customAmount = customAmountValue();
+    if (isCustom && customAmount <= 0) return;
     var addedAt = toDateKey(new Date());
     halfMonthResultItems = selectedStudents.map(function (student) {
-      var amount = studentFee(student) / 2;
+      var amount = isCustom ? customAmount : studentFee(student) / 2;
       if (!Array.isArray(student.halfMonthCharges))
         student.halfMonthCharges = [];
       student.halfMonthCharges.push({
         amount: amount,
         addedAt: addedAt,
         paidAt: "",
+        custom: isCustom,
       });
       return {
         name: student.firstName + " " + student.lastName,
@@ -2280,13 +2345,14 @@
     });
     selectedHalfMonthIds = [];
     halfMonthCalculated = true;
+    if (isCustom) els.halfMonthAmount.value = "";
     saveStudents();
     renderPaymentsPage();
     var total = halfMonthResultItems.reduce(function (sum, item) {
       return sum + item.amount;
     }, 0);
     showToast(
-      t("halfMonthAddSuccess")(
+      t(isCustom ? "customChargeAddSuccess" : "halfMonthAddSuccess")(
         halfMonthResultItems.length,
         total.toLocaleString(t("locale"), { maximumFractionDigits: 2 }),
       ),
@@ -2319,7 +2385,7 @@
       updateHalfMonthPickerLabel();
     }
     halfMonthCalculated = false;
-    els.halfMonthCalculateBtn.disabled = selectedHalfMonthIds.length === 0;
+    updateHalfMonthCalcState();
     els.halfMonthResult.hidden = true;
     els.halfMonthResult.innerHTML = "";
   }
@@ -2600,6 +2666,27 @@
       })
       .join("");
 
+    // enrollment ranges (start date -> end date) of the visible students
+    var ranges = students
+      .filter(function (s) {
+        if (!s.startDate || !s.endDate || s.endDate < s.startDate) return false;
+        var memberships = studentGroupNames(s);
+        return !activeGroup || memberships.indexOf(activeGroup) !== -1;
+      })
+      .map(function (s) {
+        return { start: s.startDate, end: s.endDate };
+      });
+    function inEnrollmentRange(date) {
+      if (date.getMonth() !== month) return false;
+      var k = toDateKey(date);
+      return ranges.some(function (r) {
+        return k >= r.start && k <= r.end;
+      });
+    }
+    function addDays(date, n) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
+    }
+
     for (var i = 0; i < 42; i++) {
       var cellDate = new Date(
         gridStart.getFullYear(),
@@ -2629,6 +2716,16 @@
         cellDate.getDate() === new Date(year, month + 1, 0).getDate()
       ) {
         classes.push("month-end");
+      }
+      if (inEnrollmentRange(cellDate)) {
+        classes.push("in-range");
+        // round the band at the start/end of a range and at the row edges
+        if (i % 7 === 0 || !inEnrollmentRange(addDays(cellDate, -1))) {
+          classes.push("range-start");
+        }
+        if (i % 7 === 6 || !inEnrollmentRange(addDays(cellDate, 1))) {
+          classes.push("range-end");
+        }
       }
       if (sameDay(cellDate, today)) classes.push("today");
       if (sameDay(cellDate, selectedDate)) classes.push("selected");
@@ -3226,6 +3323,22 @@
     if (e.target === els.halfMonthModalOverlay) closeHalfMonthModal();
   });
   els.halfMonthCalculateBtn.addEventListener("click", addHalfMonthDue);
+  els.halfMonthModeHalf.addEventListener("click", function () {
+    setHalfMonthMode("half");
+  });
+  els.halfMonthModeCustom.addEventListener("click", function () {
+    setHalfMonthMode("custom");
+  });
+  els.halfMonthAmount.addEventListener("input", function () {
+    halfMonthCalculated = false;
+    updateHalfMonthCalcState();
+  });
+  els.halfMonthAmount.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !els.halfMonthCalculateBtn.disabled) {
+      e.preventDefault();
+      addHalfMonthDue();
+    }
+  });
   var paymentsResizeTimer = null;
   window.addEventListener("resize", function () {
     if (currentPage !== "payments") return;
