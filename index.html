@@ -230,51 +230,67 @@
                 <div class="chart-card donut-card">
                   <p class="chart-title" id="distributionTitleEl"></p>
                   <div class="donut-wrap">
-                    <svg viewBox="0 0 120 120" class="donut-svg">
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="45"
-                        fill="none"
-                        stroke="var(--color-border)"
-                        stroke-width="14"
-                      ></circle>
-                      <circle
-                        id="donutLycee"
-                        cx="60"
-                        cy="60"
-                        r="45"
-                        fill="none"
-                        stroke="var(--color-navy)"
-                        stroke-width="14"
-                        stroke-linecap="round"
-                        transform="rotate(-90 60 60)"
-                      ></circle>
-                      <circle
+                    <svg
+                      viewBox="0 0 200 104"
+                      class="donut-svg"
+                      role="img"
+                      aria-labelledby="distributionTitleEl"
+                    >
+                      <defs>
+                        <pattern
+                          id="donutHatch"
+                          patternUnits="userSpaceOnUse"
+                          width="7"
+                          height="7"
+                          patternTransform="rotate(45)"
+                        >
+                          <rect width="7" height="7" class="hatch-bg"></rect>
+                          <line
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="7"
+                            stroke-width="2.6"
+                            class="hatch-line"
+                          ></line>
+                        </pattern>
+                      </defs>
+                      <path
+                        class="donut-track"
+                        d="M 20 100 A 80 80 0 0 1 180 100"
+                        pathLength="100"
+                      ></path>
+                      <path
                         id="donutCollege"
-                        cx="60"
-                        cy="60"
-                        r="45"
-                        fill="none"
-                        stroke="var(--color-primary)"
-                        stroke-width="14"
-                        stroke-linecap="round"
-                        transform="rotate(-90 60 60)"
-                      ></circle>
+                        class="donut-seg"
+                        data-seg="college"
+                        tabindex="0"
+                        d="M 20 100 A 80 80 0 0 1 180 100"
+                        pathLength="100"
+                      ></path>
+                      <path
+                        id="donutLycee"
+                        class="donut-seg"
+                        data-seg="lycee"
+                        tabindex="0"
+                        d="M 20 100 A 80 80 0 0 1 180 100"
+                        pathLength="100"
+                      ></path>
                     </svg>
                     <div class="donut-center">
                       <b id="donutTotal">0</b>
                       <span id="donutTotalLabel"></span>
+                      <small id="donutSub" dir="ltr"></small>
                     </div>
                   </div>
                   <div class="donut-legend">
-                    <span class="legend-item"
-                      ><i style="background: var(--color-primary)"></i
+                    <span class="legend-item" data-seg="college" tabindex="0"
+                      ><i class="legend-dot" id="legendCollegeDot"></i
                       ><span id="legendCollegeLabel"></span>
                       <b id="legendCollegeValue">0</b></span
                     >
-                    <span class="legend-item"
-                      ><i style="background: var(--color-navy)"></i
+                    <span class="legend-item" data-seg="lycee" tabindex="0"
+                      ><i class="legend-dot" id="legendLyceeDot"></i
                       ><span id="legendLyceeLabel"></span>
                       <b id="legendLyceeValue">0</b></span
                     >

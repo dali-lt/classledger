@@ -264,6 +264,15 @@
       halfMonthModeCustom: "Custom amount",
       halfMonthAmountLabel: "Amount for each selected student",
       halfMonthAmountPlaceholder: "Amount",
+      thTimeLeft: "Time left",
+      moreActions: "More actions",
+      daysLeft: function (n) {
+        return n + (n === 1 ? " day left" : " days left");
+      },
+      endsToday: "Ends today",
+      daysOverdue: function (n) {
+        return n + (n === 1 ? " day overdue" : " days overdue");
+      },
       customChargeType: "Custom charge",
       customChargeAddSuccess: function (count, amount) {
         return count + " charge(s) added. Total: " + amount + " DT.";
@@ -469,6 +478,15 @@
       halfMonthModeCustom: "مبلغ نكتبو",
       halfMonthAmountLabel: "المبلغ لكل تلميذ مختار",
       halfMonthAmountPlaceholder: "المبلغ",
+      thTimeLeft: "المدة المتبقية",
+      moreActions: "خيارات أخرى",
+      daysLeft: function (n) {
+        return "باقي " + arDays(n);
+      },
+      endsToday: "ينتهي اليوم",
+      daysOverdue: function (n) {
+        return "متأخر " + arDays(n);
+      },
       customChargeType: "معلوم إضافي",
       customChargeAddSuccess: function (count, amount) {
         return (
@@ -635,6 +653,7 @@
   var currentPage = "students";
   var selectedPaymentId = null;
   var selectedHalfMonthIds = [];
+  var donutStats = null;
   var halfMonthCalculated = false;
   var halfMonthMode = "half"; // "half" | "custom"
   var halfMonthResultItems = [];
@@ -1262,7 +1281,6 @@
     if (els.toastClose) els.toastClose.setAttribute("aria-label", t("close"));
     els.distributionTitleEl.textContent = t("distributionTitle");
     els.byLevelTitleEl.textContent = t("byLevelTitle");
-    els.donutTotalLabel.textContent = t("statTotal");
     els.legendCollegeLabel.textContent = t("kpiCollege");
     els.legendLyceeLabel.textContent = t("kpiLycee");
     els.heroText.textContent = t("heroText");
@@ -1400,25 +1418,54 @@
       totalLycee +
       "</span></div>";
 
-    /* ---- Donut chart ---- */
-    var CIRC = 2 * Math.PI * 45;
-    var collegeLen = total ? (totalCollege / total) * CIRC : 0;
-    var lyceeLen = total ? (totalLycee / total) * CIRC : 0;
-    var donutCollege = document.getElementById("donutCollege");
-    var donutLycee = document.getElementById("donutLycee");
-    donutCollege.setAttribute(
-      "stroke-dasharray",
-      collegeLen + " " + (CIRC - collegeLen),
-    );
-    donutCollege.setAttribute("stroke-dashoffset", "0");
-    donutLycee.setAttribute(
-      "stroke-dasharray",
-      lyceeLen + " " + (CIRC - lyceeLen),
-    );
-    donutLycee.setAttribute("stroke-dashoffset", String(-collegeLen));
-    document.getElementById("donutTotal").textContent = total;
+    /* ---- Half-donut chart ---- */
+    var bigKey = totalCollege >= totalLycee ? "college" : "lycee";
+    var smallKey = bigKey === "college" ? "lycee" : "college";
+    var counts2 = { college: totalCollege, lycee: totalLycee };
+    var bigPct = total ? Math.round((counts2[bigKey] / total) * 100) : 0;
+    donutStats = {
+      total: total,
+      big: bigKey,
+      college: { count: totalCollege, pct: 0 },
+      lycee: { count: totalLycee, pct: 0 },
+    };
+    donutStats[bigKey].pct = bigPct;
+    donutStats[smallKey].pct = total ? 100 - bigPct : 0;
+
+    var GAP = 1.6; // visual gap between the two arcs (in % of the half circle)
+    var share = {
+      college: total ? (totalCollege / total) * 100 : 0,
+      lycee: total ? (totalLycee / total) * 100 : 0,
+    };
+    var gap = share.college > 0 && share.lycee > 0 ? GAP : 0;
+    var arcs = {
+      college: { start: 0, len: Math.max(share.college - gap / 2, 0) },
+      lycee: {
+        start: share.college + gap / 2,
+        len: Math.max(share.lycee - gap / 2, 0),
+      },
+    };
+    if (share.college === 0) arcs.lycee.start = 0;
+    ["college", "lycee"].forEach(function (key) {
+      var seg = document.getElementById(
+        key === "college" ? "donutCollege" : "donutLycee",
+      );
+      var dot = document.getElementById(
+        key === "college" ? "legendCollegeDot" : "legendLyceeDot",
+      );
+      var isBig = key === bigKey;
+      seg.setAttribute("stroke-dasharray", arcs[key].len + " 200");
+      seg.setAttribute("stroke-dashoffset", String(-arcs[key].start));
+      seg.classList.toggle("is-big", isBig);
+      seg.classList.toggle("is-small", !isBig);
+      seg.classList.remove("is-active");
+      seg.setAttribute("aria-label", t(key === "college" ? "kpiCollege" : "kpiLycee") + ": " + counts2[key]);
+      dot.classList.toggle("is-big", isBig);
+      dot.classList.toggle("is-small", !isBig);
+    });
     document.getElementById("legendCollegeValue").textContent = totalCollege;
     document.getElementById("legendLyceeValue").textContent = totalLycee;
+    showDonutSegment(null);
 
     /* ---- Bar chart ---- */
     var maxCount = Math.max.apply(
@@ -1427,22 +1474,68 @@
         return counts[l];
       }).concat([1]),
     );
+    // top 3 distinct counts get the greens (1 = most vivid); the rest stay pale
+    var topCounts = LEVELS.map(function (l) {
+      return counts[l];
+    })
+      .filter(function (n, i, all) {
+        return n > 0 && all.indexOf(n) === i;
+      })
+      .sort(function (x, y) {
+        return y - x;
+      })
+      .slice(0, 3);
     els.barChart.innerHTML = LEVELS.map(function (l) {
       var pct = Math.round((counts[l] / maxCount) * 100);
+      var rank = topCounts.indexOf(counts[l]); // -1 = not in the top 3
+      var tone = rank === -1 ? "rest" : String(rank + 1);
       return (
-        '<div class="bar-col">' +
-        '<span class="bar-count">' +
+        '<div class="bar-col" tabindex="0" role="img" aria-label="' +
+        escapeHtml(shortLevelLabel(l)) +
+        ": " +
         counts[l] +
-        "</span>" +
-        '<div class="bar-shape" style="height:' +
+        '">' +
+        '<div class="bar-track">' +
+        '<div class="bar-shape tone-' +
+        tone +
+        '" style="height:' +
         pct +
-        '%"></div>' +
+        '%"><span class="bar-tip">' +
+        counts[l] +
+        "</span></div>" +
+        "</div>" +
         '<span class="bar-label">' +
         shortLevelLabel(l) +
         "</span>" +
         "</div>"
       );
     }).join("");
+  }
+
+  // centre text of the half-donut: the big share by default, or the hovered one
+  function showDonutSegment(key) {
+    if (!donutStats) return;
+    var big = donutStats.big;
+    var k = key || big;
+    var pctEl = document.getElementById("donutTotal");
+    var labelEl = document.getElementById("donutTotalLabel");
+    var subEl = document.getElementById("donutSub");
+    if (donutStats.total === 0) {
+      pctEl.textContent = "0";
+      labelEl.textContent = t("statTotal");
+      subEl.textContent = "";
+    } else {
+      pctEl.textContent = donutStats[k].pct + "%";
+      labelEl.textContent = t(k === "college" ? "kpiCollege" : "kpiLycee");
+      subEl.textContent = donutStats[k].count + " / " + donutStats.total;
+    }
+    var focusSmall = !!key && key !== big && donutStats.total > 0;
+    document.querySelector(".donut-card").classList.toggle("is-focus-small", focusSmall);
+    ["college", "lycee"].forEach(function (name) {
+      document
+        .getElementById(name === "college" ? "donutCollege" : "donutLycee")
+        .classList.toggle("is-active", focusSmall && name === key);
+    });
   }
 
   function getFilteredStudents() {
@@ -1489,6 +1582,11 @@
       els.groupFilter.value = selectedGroup;
   }
 
+  var GROUP_DAYS_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>';
+  var GROUP_PRICE_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5V5a1.5 1.5 0 0 1 1.5-1.5h7.5l8 8a1.5 1.5 0 0 1 0 2.1l-6.9 6.9a1.5 1.5 0 0 1-2.1 0z"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/></svg>';
+
   function renderGroupFilterSummary() {
     var group = groupRecord(els.groupFilter.value);
     if (!group) {
@@ -1516,7 +1614,9 @@
           : t("groupSummaryNoDays");
     els.groupFilterSummary.style.setProperty("--group-summary-color", color);
     els.groupFilterSummary.innerHTML =
-      '<span class="group-filter-summary-swatch"></span><div><b>' +
+      '<span class="group-filter-summary-icon" aria-hidden="true">' +
+      (group.type === "price" ? GROUP_PRICE_ICON : GROUP_DAYS_ICON) +
+      "</span><div><b>" +
       escapeHtml(group.name) +
       "</b><span>" +
       escapeHtml(details) +
@@ -1582,6 +1682,43 @@
     );
   }
 
+  function arDays(n) {
+    if (n === 1) return "يوم";
+    if (n === 2) return "يومين";
+    if (n >= 3 && n <= 10) return n + " أيام";
+    return n + " يوم";
+  }
+
+  // whole days from today until the given YYYY-MM-DD (negative = already past)
+  function daysUntil(iso) {
+    var p = String(iso || "")
+      .split("-")
+      .map(Number);
+    if (p.length !== 3 || !p[0] || !p[1] || !p[2]) return null;
+    var now = new Date();
+    var target = Date.UTC(p[0], p[1] - 1, p[2]);
+    var today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((target - today) / 86400000);
+  }
+
+  function timeLeftMarkup(student) {
+    var d = daysUntil(student.endDate);
+    if (d === null) return '<span class="sc-days tl-none">—</span>';
+    if (d < 0)
+      return (
+        '<span class="sc-days tl-late">' + t("daysOverdue")(-d) + "</span>"
+      );
+    if (d === 0)
+      return '<span class="sc-days tl-soon">' + t("endsToday") + "</span>";
+    return (
+      '<span class="sc-days ' +
+      (d <= 7 ? "tl-soon" : "tl-ok") +
+      '">' +
+      t("daysLeft")(d) +
+      "</span>"
+    );
+  }
+
   function renderTable() {
     populateGroupFilter();
     renderGroupFilterSummary();
@@ -1606,82 +1743,74 @@
       return;
     }
 
-    els.tableWrap.innerHTML = list
-      .map(function (s) {
-        var badgeClass =
-          LEVEL_CATEGORY[s.level] === "lycee" ? "badge-lycee" : "badge-college";
-        var hasNotes = s.notes && s.notes.trim().length > 0;
-        var notesRow = hasNotes
-          ? '<div class="card-notes-row">📝 ' + escapeHtml(s.notes) + "</div>"
-          : "";
-        return (
-          '<div class="student-card" data-id="' +
-          s.id +
-          '">' +
-          '<div class="card-top">' +
-          '<div class="card-identity">' +
-          avatarMarkup(s) +
-          "<div>" +
-          '<p class="card-name">' +
-          escapeHtml(s.firstName) +
-          " " +
-          escapeHtml(s.lastName) +
-          "</p>" +
-          '<p class="card-sub"><span class="badge ' +
-          badgeClass +
-          '">' +
-          escapeHtml(levelLabel(s.level)) +
-          "</span></p>" +
-          "</div>" +
-          "</div>" +
-          '<div class="card-menu">' +
-          '<button type="button" class="kebab-btn" data-action="kebab" data-id="' +
-          s.id +
-          '" aria-label="' +
-          t("deletePurpose") +
-          '">' +
-          '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>' +
-          "</button>" +
-          '<div class="kebab-menu" data-menu-id="' +
-          s.id +
-          '">' +
-          '<button type="button" data-action="delete" data-id="' +
-          s.id +
-          '">' +
-          t("delete") +
-          "</button>" +
-          "</div>" +
-          "</div>" +
-          "</div>" +
-          '<div class="card-stats">' +
-          '<div class="card-stat"><span>' +
-          t("thStart") +
-          "</span><b>" +
-          formatDate(s.startDate) +
-          "</b></div>" +
-          '<div class="card-stat"><span>' +
-          t("thEnd") +
-          "</span><b>" +
-          formatDate(s.endDate) +
-          "</b></div>" +
-          "</div>" +
-          notesRow +
-          '<div class="card-actions">' +
-          '<button type="button" class="btn btn-ghost" data-action="edit" data-id="' +
-          s.id +
-          '">' +
-          t("edit") +
-          "</button>" +
-          '<button type="button" class="btn btn-primary" data-action="details" data-id="' +
-          s.id +
-          '">' +
-          t("viewDetails") +
-          "</button>" +
-          "</div>" +
-          "</div>"
-        );
-      })
-      .join("");
+    var head =
+      '<div class="students-head" aria-hidden="true"><span></span><span>' +
+      t("thName") +
+      "</span><span>" +
+      t("thLevel") +
+      "</span><span>" +
+      t("thTimeLeft") +
+      "</span><span></span></div>";
+
+    els.tableWrap.innerHTML =
+      head +
+      list
+        .map(function (s) {
+          var badgeClass =
+            LEVEL_CATEGORY[s.level] === "lycee"
+              ? "badge-lycee"
+              : "badge-college";
+          var hasNotes = s.notes && s.notes.trim().length > 0;
+          var fullName = escapeHtml(s.firstName) + " " + escapeHtml(s.lastName);
+          return (
+            '<div class="student-card" data-id="' +
+            s.id +
+            '">' +
+            avatarMarkup(s) +
+            '<p class="sc-name"><button type="button" class="sc-name-btn" data-action="details" data-id="' +
+            s.id +
+            '">' +
+            fullName +
+            "</button>" +
+            (hasNotes
+              ? '<span class="sc-note" aria-hidden="true">📝</span>'
+              : "") +
+            "</p>" +
+            '<div class="sc-meta">' +
+            '<span class="badge ' +
+            badgeClass +
+            '">' +
+            escapeHtml(levelLabel(s.level)) +
+            "</span>" +
+            "</div>" +
+            timeLeftMarkup(s) +
+            '<div class="card-menu">' +
+            '<button type="button" class="kebab-btn" data-action="kebab" data-id="' +
+            s.id +
+            '" aria-label="' +
+            t("moreActions") +
+            '">' +
+            '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>' +
+            "</button>" +
+            '<div class="kebab-menu" data-menu-id="' +
+            s.id +
+            '">' +
+            '<button type="button" data-action="edit" data-id="' +
+            s.id +
+            '">' +
+            t("edit") +
+            "</button>" +
+            '<button type="button" data-action="delete" data-id="' +
+            s.id +
+            '">' +
+            t("delete") +
+            "</button>" +
+            "</div>" +
+            "</div>" +
+            "</div>"
+          );
+        })
+        .join("");
   }
 
   function renderStudentsPage() {
@@ -2561,7 +2690,15 @@
   function handleTableClick(e) {
     var btn = e.target.closest("button[data-action]");
     if (!btn) {
+      var row = e.target.closest(".student-card");
+      var inMenu = e.target.closest(".card-menu");
       closeAllKebabMenus();
+      if (row && !inMenu) {
+        var rowStudent = students.filter(function (s) {
+          return s.id === row.getAttribute("data-id");
+        })[0];
+        if (rowStudent) openNoteModal(rowStudent);
+      }
       return;
     }
     var id = btn.getAttribute("data-id");
@@ -2581,6 +2718,7 @@
     if (!student) return;
 
     if (btn.dataset.action === "edit") {
+      closeAllKebabMenus();
       openModal("edit", student);
     } else if (btn.dataset.action === "delete") {
       closeAllKebabMenus();
@@ -3310,6 +3448,28 @@
   });
   els.studentForm.addEventListener("submit", handleSubmit);
   els.tableWrap.addEventListener("click", handleTableClick);
+  (function bindDonutHover() {
+    var card = document.querySelector(".donut-card");
+    function segOf(e) {
+      return e.target.closest ? e.target.closest("[data-seg]") : null;
+    }
+    card.addEventListener("mouseover", function (e) {
+      var el = segOf(e);
+      if (el) showDonutSegment(el.getAttribute("data-seg"));
+    });
+    card.addEventListener("mouseout", function (e) {
+      var el = segOf(e);
+      if (el && !el.contains(e.relatedTarget)) showDonutSegment(null);
+    });
+    card.addEventListener("focusin", function (e) {
+      var el = segOf(e);
+      if (el) showDonutSegment(el.getAttribute("data-seg"));
+    });
+    card.addEventListener("focusout", function (e) {
+      if (segOf(e)) showDonutSegment(null);
+    });
+  })();
+
   if (els.paymentsList)
     els.paymentsList.addEventListener("click", handlePaymentsClick);
   if (els.halfMonthPickerOptions)
