@@ -62,7 +62,7 @@ body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: "Space Grotesk", "Tajawal", "Segoe UI", Tahoma, sans-serif;
+  font-family: "Space Grotesk", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -71,6 +71,16 @@ input,
 select,
 textarea {
   font-family: inherit;
+}
+
+/* Arabic typography: Plex Sans Arabic leads, tuned to sit next to Space Grotesk */
+html[lang="ar"] body {
+  font-family: "IBM Plex Sans Arabic", "Space Grotesk", "Segoe UI", Tahoma, sans-serif;
+  line-height: 1.65;
+}
+/* Arabic letters connect, so letter-spacing breaks the joins */
+html[lang="ar"] * {
+  letter-spacing: 0 !important;
 }
 :focus-visible {
   outline: 2.5px solid var(--color-primary);
