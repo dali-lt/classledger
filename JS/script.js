@@ -628,9 +628,9 @@
 
   var LEVEL_PRICE = { college: 40, lycee: 45 };
   var GROUP_COLORS = [
-    "#136cfc",
+    "#0464de",
     "#d4535b",
-    "#438b65",
+    "#5c9b46",
     "#a06a16",
     "#168c91",
     "#8459a6",
@@ -1383,6 +1383,11 @@
   }
 
   /* ---------------- students rendering ---------------- */
+  var KPI_ICON_STUDENTS =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+  var KPI_ICON_GROUPS =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/><path d="m3 17.5 9 5 9-5" opacity=".55"/></svg>';
+
   function renderStats() {
     var total = students.length;
     var counts = {};
@@ -1402,20 +1407,19 @@
 
     /* ---- KPI cards ---- */
     els.kpiRow.innerHTML =
-      '<div class="kpi-card kpi-total"><span class="kpi-label">' +
+      '<div class="kpi-card kpi-total"><span class="kpi-icon" aria-hidden="true">' +
+      KPI_ICON_STUDENTS +
+      '</span><span class="kpi-label">' +
       t("statTotal") +
       '</span><span class="kpi-value">' +
       total +
       "</span></div>" +
-      '<div class="kpi-card kpi-college"><span class="kpi-label">' +
-      t("kpiCollege") +
+      '<div class="kpi-card kpi-groups"><span class="kpi-icon" aria-hidden="true">' +
+      KPI_ICON_GROUPS +
+      '</span><span class="kpi-label">' +
+      t("groupsTitle") +
       '</span><span class="kpi-value">' +
-      totalCollege +
-      "</span></div>" +
-      '<div class="kpi-card kpi-lycee"><span class="kpi-label">' +
-      t("kpiLycee") +
-      '</span><span class="kpi-value">' +
-      totalLycee +
+      groups.length +
       "</span></div>";
 
     /* ---- Half-donut chart ---- */
@@ -1432,20 +1436,24 @@
     donutStats[bigKey].pct = bigPct;
     donutStats[smallKey].pct = total ? 100 - bigPct : 0;
 
-    var GAP = 1.6; // visual gap between the two arcs (in % of the half circle)
+    // arcs have round ends: a round cap sticks out half the stroke width past
+    // each end of its dash, so every dash is shrunk by that amount on both sides
+    var CAP = (13 / (Math.PI * 80)) * 100; // stroke-width 26 / 2, in % of the arc
+    var GAP = 3; // visual gap between the two arcs (in % of the half circle)
     var share = {
       college: total ? (totalCollege / total) * 100 : 0,
       lycee: total ? (totalLycee / total) * 100 : 0,
     };
-    var gap = share.college > 0 && share.lycee > 0 ? GAP : 0;
-    var arcs = {
-      college: { start: 0, len: Math.max(share.college - gap / 2, 0) },
+    var twoArcs = share.college > 0 && share.lycee > 0;
+    var visual = {
+      college: { from: 0, to: twoArcs ? share.college - GAP / 2 : share.college },
       lycee: {
-        start: share.college + gap / 2,
-        len: Math.max(share.lycee - gap / 2, 0),
+        from: twoArcs ? share.college + GAP / 2 : 0,
+        to: 100,
       },
     };
-    if (share.college === 0) arcs.lycee.start = 0;
+    // the grey track only shows when there is nothing to draw
+    document.querySelector(".donut-track").style.display = total ? "none" : "";
     ["college", "lycee"].forEach(function (key) {
       var seg = document.getElementById(
         key === "college" ? "donutCollege" : "donutLycee",
@@ -1454,12 +1462,18 @@
         key === "college" ? "legendCollegeDot" : "legendLyceeDot",
       );
       var isBig = key === bigKey;
-      seg.setAttribute("stroke-dasharray", arcs[key].len + " 200");
-      seg.setAttribute("stroke-dashoffset", String(-arcs[key].start));
+      var visible = share[key] > 0;
+      var len = Math.max(visual[key].to - visual[key].from - 2 * CAP, 0.01);
+      seg.style.display = visible ? "" : "none"; // a 0-length round dash would still draw a dot
+      seg.setAttribute("stroke-dasharray", len + " 200");
+      seg.setAttribute("stroke-dashoffset", String(-(visual[key].from + CAP)));
       seg.classList.toggle("is-big", isBig);
       seg.classList.toggle("is-small", !isBig);
       seg.classList.remove("is-active");
-      seg.setAttribute("aria-label", t(key === "college" ? "kpiCollege" : "kpiLycee") + ": " + counts2[key]);
+      seg.setAttribute(
+        "aria-label",
+        t(key === "college" ? "kpiCollege" : "kpiLycee") + ": " + counts2[key],
+      );
       dot.classList.toggle("is-big", isBig);
       dot.classList.toggle("is-small", !isBig);
     });
@@ -1631,14 +1645,14 @@
   var MALE_AVATARS = [1, 3, 5, 7, 9];
   var FEMALE_AVATARS = [2, 4, 6, 8, 10];
   var AVATAR_BACKGROUNDS = [
-    "#e8f4fc",
-    "#dbeeff",
-    "#cce5ff",
-    "#eef7fc",
-    "#f5f9fd",
-    "#f3facf",
-    "#e8f5b7",
-    "#dcf08f",
+    "#e6f0fc",
+    "#d6e6fb",
+    "#c3dbfa",
+    "#edf4fd",
+    "#f1f6fd",
+    "#eef9e3",
+    "#dff3c9",
+    "#cfeaa8",
   ];
 
   function getNextAvatar(gender, index) {
@@ -3024,7 +3038,7 @@
       '" data-group-filter=""><span>' +
       escapeHtml(t("allGroups")) +
       "</span><b>" +
-      students.length +
+      groups.length +
       "</b></button>";
     groups.forEach(function (group, index) {
       var groupMembers = students.filter(function (student) {
