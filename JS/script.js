@@ -117,6 +117,7 @@
       endDateHint:
         "Auto-set to 1 month after the start date (minus 1 day) — you can change it.",
       notes: "Notes",
+      noteBadge: "Note",
       notesPlaceholder: "Any extra info about the student...",
       cancel: "Cancel",
       add: "Add",
@@ -167,6 +168,14 @@
       groupAlsoIn: "Also in {groups}",
       groupModeDays: "Study days (Mon-Sat)",
       groupModePrice: "Monthly price",
+      groupStatStudents: "Students",
+      groupStatDays: "Days / week",
+      groupStatPrice: "Monthly price",
+      groupStatTotal: "Monthly total",
+      groupStatNext: "Next session",
+      groupStudyDaysTitle: "Study days",
+      groupMembersTitle: "Students",
+      groupNoMembers: "No students in this group yet.",
       groupModeLabel: "Group setup",
       groupEditTitle: "Edit group",
       groupNameLabel: "Group name",
@@ -329,6 +338,7 @@
       endDateHint:
         "يتحسب تلقائيًا: شهر بعد تاريخ البداية ناقص يوم — تنجم تبدّلو.",
       notes: "ملاحظات",
+      noteBadge: "ملاحظة",
       notesPlaceholder: "أي معلومة إضافية على التلميذ...",
       cancel: "إلغاء",
       add: "إضافة",
@@ -378,6 +388,14 @@
       groupAlsoIn: "وزادة في {groups}",
       groupModeDays: "أيام دراسة (الاثنين-السبت)",
       groupModePrice: "سعر شهري",
+      groupStatStudents: "التلاميذ",
+      groupStatDays: "أيام / أسبوع",
+      groupStatPrice: "السعر الشهري",
+      groupStatTotal: "المجموع الشهري",
+      groupStatNext: "الحصة الجاية",
+      groupStudyDaysTitle: "أيام الدراسة",
+      groupMembersTitle: "التلاميذ",
+      groupNoMembers: "ما فما حتى تلميذ في المجموعة هاذي.",
       groupModeLabel: "نوع المجموعة",
       groupEditTitle: "تعديل المجموعة",
       groupNameLabel: "اسم المجموعة",
@@ -561,6 +579,17 @@
     noteModalTitle: document.getElementById("noteModalTitle"),
     noteModalBody: document.getElementById("noteModalBody"),
     noteCloseBtn: document.getElementById("noteCloseBtn"),
+    noteModalAvatar: document.getElementById("noteModalAvatar"),
+    noteEditBtn: document.getElementById("noteEditBtn"),
+    noteEditLabel: document.getElementById("noteEditLabel"),
+    groupDetailOverlay: document.getElementById("groupDetailOverlay"),
+    groupDetailModal: document.getElementById("groupDetailModal"),
+    groupDetailClose: document.getElementById("groupDetailClose"),
+    groupDetailMark: document.getElementById("groupDetailMark"),
+    groupDetailTitle: document.getElementById("groupDetailTitle"),
+    groupDetailBody: document.getElementById("groupDetailBody"),
+    groupDetailEditBtn: document.getElementById("groupDetailEditBtn"),
+    groupDetailEditLabel: document.getElementById("groupDetailEditLabel"),
     calMonthLabel: document.getElementById("calMonthLabel"),
     calGrid: document.getElementById("calGrid"),
     calPrevBtn: document.getElementById("calPrevBtn"),
@@ -1336,7 +1365,10 @@
     els.lblNotesOptional.textContent = t("optional");
     els.notes.placeholder = t("notesPlaceholder");
     els.cancelBtn.textContent = t("cancel");
-    els.noteCloseBtn.textContent = t("close");
+    els.noteCloseBtn.setAttribute("aria-label", t("close"));
+    els.noteEditLabel.textContent = t("edit");
+    els.groupDetailClose.setAttribute("aria-label", t("close"));
+    els.groupDetailEditLabel.textContent = t("edit");
     els.halfMonthTitle.textContent = t("halfMonthTitle");
     els.halfMonthHint.textContent = t("halfMonthHint");
     els.halfMonthCalculateBtn.textContent = t("halfMonthCalculate");
@@ -1596,6 +1628,8 @@
       els.groupFilter.value = selectedGroup;
   }
 
+  var NOTE_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
   var GROUP_DAYS_ICON =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>';
   var GROUP_PRICE_ICON =
@@ -1787,7 +1821,11 @@
             fullName +
             "</button>" +
             (hasNotes
-              ? '<span class="sc-note" aria-hidden="true">📝</span>'
+              ? '<span class="sc-note">' +
+                NOTE_ICON +
+                "<span>" +
+                t("noteBadge") +
+                "</span></span>"
               : "") +
             "</p>" +
             '<div class="sc-meta">' +
@@ -2644,8 +2682,48 @@
     );
   }
 
+  var noteStudent = null;
+
+  function profileGroupsMarkup(student) {
+    var names = studentGroupNames(student);
+    if (!names.length) return "";
+    var out = "";
+    names.forEach(function (name) {
+      var group = groupRecord(name);
+      var color = group
+        ? GROUP_COLORS[groups.indexOf(group) % GROUP_COLORS.length]
+        : GROUP_COLORS[0];
+      var detail = "";
+      if (group) {
+        detail =
+          group.type === "price"
+            ? group.price.toLocaleString(t("locale"), {
+                maximumFractionDigits: 2,
+              }) +
+              " " +
+              t("dtSuffix")
+            : (group.days || [])
+                .map(function (day) {
+                  return t("dow")[day - 1];
+                })
+                .join(" · ");
+      }
+      out +=
+        '<span class="profile-group" style="--gc:' +
+        color +
+        '"><b>' +
+        escapeHtml(name) +
+        "</b>" +
+        (detail ? "<small>" + escapeHtml(detail) + "</small>" : "") +
+        "</span>";
+    });
+    return out;
+  }
+
   function openNoteModal(student) {
+    noteStudent = student;
     els.noteModalTitle.textContent = student.firstName + " " + student.lastName;
+    els.noteModalAvatar.innerHTML = avatarMarkup(student);
     var badgeClass =
       LEVEL_CATEGORY[student.level] === "lycee"
         ? "badge-lycee"
@@ -2655,44 +2733,45 @@
         ? t("genderFemale")
         : student.gender === "male"
           ? t("genderMale")
-          : "—";
+          : "";
     var html =
-      '<div class="detail-profile">' +
-      avatarMarkup(student) +
-      "<span>" +
-      escapeHtml(student.firstName + " " + student.lastName) +
-      "</span></div>" +
-      '<div class="detail-row"><span>' +
-      t("thLevel") +
-      '</span><b><span class="badge ' +
+      '<div class="profile-meta"><span class="badge ' +
       badgeClass +
       '">' +
       escapeHtml(levelLabel(student.level)) +
-      "</span></b></div>" +
-      '<div class="detail-row"><span>' +
-      t("gender") +
-      "</span><b>" +
-      genderLabel +
-      "</b></div>" +
-      '<div class="detail-row"><span>' +
+      "</span>" +
+      (genderLabel
+        ? '<span class="profile-chip">' + escapeHtml(genderLabel) + "</span>"
+        : "") +
+      profileGroupsMarkup(student) +
+      "</div>" +
+      '<div class="profile-stats">' +
+      '<div class="profile-stat"><b>' +
+      escapeHtml(formatDate(student.startDate)) +
+      "</b><span>" +
       t("thStart") +
-      "</span><b>" +
-      formatDate(student.startDate) +
-      "</b></div>" +
-      '<div class="detail-row"><span>' +
+      "</span></div>" +
+      '<div class="profile-stat"><b>' +
+      escapeHtml(formatDate(student.endDate)) +
+      "</b><span>" +
       t("thEnd") +
-      "</span><b>" +
-      formatDate(student.endDate) +
-      "</b></div>";
+      "</span></div>" +
+      '<div class="profile-stat"><b>' +
+      timeLeftMarkup(student) +
+      "</b><span>" +
+      t("thTimeLeft") +
+      "</span></div>" +
+      "</div>";
     if (student.notes && student.notes.trim()) {
       html +=
-        '<div class="detail-notes">' + escapeHtml(student.notes) + "</div>";
+        '<div class="profile-notes">' + escapeHtml(student.notes) + "</div>";
     }
     els.noteModalBody.innerHTML = html;
     els.noteModalOverlay.classList.add("open");
   }
   function closeNoteModal() {
     els.noteModalOverlay.classList.remove("open");
+    noteStudent = null;
   }
 
   function closeAllKebabMenus() {
@@ -3026,6 +3105,148 @@
         );
       })
       .join("");
+  }
+
+  var GROUP_MARK_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+  var groupDetailIndex = -1;
+
+  function nextGroupSession(group) {
+    if (!group.days || !group.days.length) return null;
+    var now = new Date();
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      if (group.days.indexOf(d.getDay()) !== -1) {
+        return { date: toDateKey(d), today: i === 0 };
+      }
+    }
+    return null;
+  }
+
+  function openGroupDetail(index) {
+    var group = groups[index];
+    if (!group) return;
+    groupDetailIndex = index;
+    var color = GROUP_COLORS[index % GROUP_COLORS.length];
+    var members = students.filter(function (student) {
+      return studentGroupNames(student).indexOf(group.name) !== -1;
+    });
+    var isPrice = group.type === "price";
+    var priceText =
+      group.price.toLocaleString(t("locale"), { maximumFractionDigits: 2 }) +
+      " " +
+      t("dtSuffix");
+    var totalText =
+      (group.price * members.length).toLocaleString(t("locale"), {
+        maximumFractionDigits: 2,
+      }) +
+      " " +
+      t("dtSuffix");
+
+    els.groupDetailModal.style.setProperty("--gc", color);
+    els.groupDetailTitle.textContent = group.name;
+    els.groupDetailMark.innerHTML =
+      '<span class="group-mark">' + GROUP_MARK_ICON + "</span>";
+
+    var stat = function (value, label) {
+      return (
+        '<div class="profile-stat"><b>' +
+        value +
+        "</b><span>" +
+        escapeHtml(label) +
+        "</span></div>"
+      );
+    };
+    var statsHtml = stat(members.length, t("groupStatStudents"));
+    if (isPrice) {
+      statsHtml += stat(escapeHtml(priceText), t("groupStatPrice"));
+      statsHtml += stat(escapeHtml(totalText), t("groupStatTotal"));
+    } else {
+      var next = nextGroupSession(group);
+      statsHtml += stat(group.days.length, t("groupStatDays"));
+      statsHtml += stat(
+        next
+          ? next.today
+            ? escapeHtml(t("today"))
+            : escapeHtml(formatDate(next.date))
+          : "—",
+        t("groupStatNext"),
+      );
+    }
+
+    var html =
+      '<div class="profile-meta"><span class="profile-group"><b>' +
+      escapeHtml(isPrice ? t("groupModePrice") : t("groupModeDays")) +
+      "</b></span></div>" +
+      '<div class="profile-stats">' +
+      statsHtml +
+      "</div>";
+
+    if (!isPrice) {
+      html +=
+        '<div class="profile-section"><div class="profile-section-title">' +
+        escapeHtml(t("groupStudyDaysTitle")) +
+        '</div><div class="group-week">' +
+        t("dow")
+          .slice(0, 6)
+          .map(function (label, i) {
+            return (
+              '<span class="group-day' +
+              (group.days.indexOf(i + 1) !== -1 ? " on" : "") +
+              '">' +
+              escapeHtml(label) +
+              "</span>"
+            );
+          })
+          .join("") +
+        "</div></div>";
+    }
+
+    html +=
+      '<div class="profile-section"><div class="profile-section-title">' +
+      escapeHtml(t("groupMembersTitle")) +
+      "<em>" +
+      members.length +
+      "</em></div>";
+    if (members.length) {
+      html +=
+        '<div class="group-members">' +
+        members
+          .map(function (student) {
+            var badgeClass =
+              LEVEL_CATEGORY[student.level] === "lycee"
+                ? "badge-lycee"
+                : "badge-college";
+            return (
+              '<button type="button" class="group-member" data-member-id="' +
+              escapeHtml(student.id) +
+              '">' +
+              avatarMarkup(student) +
+              "<span>" +
+              escapeHtml(student.firstName + " " + student.lastName) +
+              '</span><span class="badge ' +
+              badgeClass +
+              '">' +
+              escapeHtml(levelLabel(student.level)) +
+              "</span></button>"
+            );
+          })
+          .join("") +
+        "</div>";
+    } else {
+      html +=
+        '<p class="group-members-empty">' +
+        escapeHtml(t("groupNoMembers")) +
+        "</p>";
+    }
+    html += "</div>";
+
+    els.groupDetailBody.innerHTML = html;
+    els.groupDetailOverlay.classList.add("open");
+  }
+  function closeGroupDetail() {
+    els.groupDetailOverlay.classList.remove("open");
+    groupDetailIndex = -1;
   }
 
   function renderGroups() {
@@ -3381,6 +3602,7 @@
       expandedGroup = "";
     }
     renderCalendar();
+    if (groupIndex !== "") openGroupDetail(Number(groupIndex));
   }
 
   function handleAddGroup(e) {
@@ -3528,10 +3750,34 @@
   els.groupFilter.addEventListener("change", renderTable);
 
   els.noteCloseBtn.addEventListener("click", closeNoteModal);
+  els.noteEditBtn.addEventListener("click", function () {
+    var st = noteStudent;
+    closeNoteModal();
+    if (st) openModal("edit", st);
+  });
   els.noteModalOverlay.addEventListener("click", function (e) {
     if (e.target === els.noteModalOverlay) closeNoteModal();
   });
 
+  els.groupDetailClose.addEventListener("click", closeGroupDetail);
+  els.groupDetailOverlay.addEventListener("click", function (e) {
+    if (e.target === els.groupDetailOverlay) closeGroupDetail();
+  });
+  els.groupDetailEditBtn.addEventListener("click", function () {
+    var idx = groupDetailIndex;
+    closeGroupDetail();
+    if (idx >= 0) openGroupModal(idx);
+  });
+  els.groupDetailBody.addEventListener("click", function (e) {
+    var row = e.target.closest("[data-member-id]");
+    if (!row) return;
+    var member = students.filter(function (s) {
+      return s.id === row.getAttribute("data-member-id");
+    })[0];
+    if (!member) return;
+    closeGroupDetail();
+    openNoteModal(member);
+  });
   els.calGrid.addEventListener("click", handleCalGridClick);
   els.groupsList.addEventListener("click", function (e) {
     e.stopPropagation();
@@ -3581,6 +3827,7 @@
     if (els.modalOverlay.classList.contains("open")) closeModal();
     if (els.groupModalOverlay.classList.contains("open")) closeGroupModal();
     if (els.noteModalOverlay.classList.contains("open")) closeNoteModal();
+    if (els.groupDetailOverlay.classList.contains("open")) closeGroupDetail();
     if (els.halfMonthModalOverlay.classList.contains("open"))
       closeHalfMonthModal();
     if (els.monthEndModalOverlay.classList.contains("open"))

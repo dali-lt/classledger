@@ -584,17 +584,95 @@
       </div>
     </div>
 
-    <!-- ============ Student details modal ============ -->
+    <!-- ============ Student details modal (profile card) ============ -->
     <div class="modal-overlay" id="noteModalOverlay">
-      <div class="modal" style="max-width: 380px">
-        <h2 id="noteModalTitle">Details</h2>
-        <div id="noteModalBody"></div>
-        <div class="modal-actions">
-          <button
-            type="button"
-            class="btn btn-primary"
-            id="noteCloseBtn"
-          ></button>
+      <div
+        class="modal profile-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="noteModalTitle"
+      >
+        <div class="profile-banner">
+          <button type="button" class="profile-close" id="noteCloseBtn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="m6 6 12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+        <div class="profile-avatar" id="noteModalAvatar"></div>
+        <div class="profile-body">
+          <h2 class="profile-name" id="noteModalTitle"></h2>
+          <div id="noteModalBody"></div>
+          <button type="button" class="profile-edit-btn" id="noteEditBtn">
+            <span class="profile-edit-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+            </span>
+            <span class="profile-edit-label" id="noteEditLabel"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Group details modal (profile card) ============ -->
+    <div class="modal-overlay" id="groupDetailOverlay">
+      <div
+        class="modal profile-modal group-detail-modal"
+        id="groupDetailModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="groupDetailTitle"
+      >
+        <div class="profile-banner group-banner">
+          <button type="button" class="profile-close" id="groupDetailClose">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="m6 6 12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+        <div class="profile-avatar" id="groupDetailMark"></div>
+        <div class="profile-body">
+          <h2 class="profile-name" id="groupDetailTitle"></h2>
+          <div id="groupDetailBody"></div>
+          <button type="button" class="profile-edit-btn" id="groupDetailEditBtn">
+            <span class="profile-edit-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+            </span>
+            <span class="profile-edit-label" id="groupDetailEditLabel"></span>
+          </button>
         </div>
       </div>
     </div>
