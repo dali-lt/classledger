@@ -507,9 +507,7 @@
       },
       customChargeType: "معلوم إضافي",
       customChargeAddSuccess: function (count, amount) {
-        return (
-          "تزاد معلوم لـ " + count + " تلميذ، المجموع " + amount + " د.ت."
-        );
+        return "تزاد معلوم لـ " + count + " تلميذ، المجموع " + amount + " د.ت.";
       },
       locale: "ar-TN",
     },
@@ -567,6 +565,8 @@
     notes: document.getElementById("notes"),
     cancelBtn: document.getElementById("cancelBtn"),
     submitBtn: document.getElementById("submitBtn"),
+    submitIcon: document.getElementById("submitIcon"),
+    submitLabel: document.getElementById("submitLabel"),
     lblFirstName: document.getElementById("lblFirstName"),
     lblLastName: document.getElementById("lblLastName"),
     lblLevel: document.getElementById("lblLevel"),
@@ -615,6 +615,7 @@
     groupModalStudents: document.getElementById("groupModalStudents"),
     groupModalCancel: document.getElementById("groupModalCancel"),
     groupModalSave: document.getElementById("groupModalSave"),
+    groupModalSaveLabel: document.getElementById("groupModalSaveLabel"),
     legendStartLabel: document.getElementById("legendStartLabel"),
     legendEndLabel: document.getElementById("legendEndLabel"),
     legendStudyLabel: document.getElementById("legendStudyLabel"),
@@ -652,6 +653,8 @@
     halfMonthModalOverlay: document.getElementById("halfMonthModalOverlay"),
     halfMonthModalTitle: document.getElementById("halfMonthModalTitle"),
     halfMonthModalClose: document.getElementById("halfMonthModalClose"),
+    halfMonthModalX: document.getElementById("halfMonthModalX"),
+    halfMonthDoneLabel: document.getElementById("halfMonthDoneLabel"),
     halfMonthResult: document.getElementById("halfMonthResult"),
   };
 
@@ -1364,7 +1367,7 @@
     els.lblNotesText.textContent = t("notes");
     els.lblNotesOptional.textContent = t("optional");
     els.notes.placeholder = t("notesPlaceholder");
-    els.cancelBtn.textContent = t("cancel");
+    els.cancelBtn.setAttribute("aria-label", t("close"));
     els.noteCloseBtn.setAttribute("aria-label", t("close"));
     els.noteEditLabel.textContent = t("edit");
     els.groupDetailClose.setAttribute("aria-label", t("close"));
@@ -1378,7 +1381,8 @@
     els.halfMonthAmount.setAttribute("aria-label", t("halfMonthAmountLabel"));
     els.halfMonthAmountUnit.textContent = t("dtSuffix");
     els.halfMonthModalTitle.textContent = t("halfMonthDialogTitle");
-    els.halfMonthModalClose.textContent = t("halfMonthDone");
+    els.halfMonthDoneLabel.textContent = t("halfMonthDone");
+    els.halfMonthModalX.setAttribute("aria-label", t("close"));
 
     els.pageTitle.textContent = t(PAGE_TITLE_KEY[currentPage]);
 
@@ -1478,7 +1482,10 @@
     };
     var twoArcs = share.college > 0 && share.lycee > 0;
     var visual = {
-      college: { from: 0, to: twoArcs ? share.college - GAP / 2 : share.college },
+      college: {
+        from: 0,
+        to: twoArcs ? share.college - GAP / 2 : share.college,
+      },
       lycee: {
         from: twoArcs ? share.college + GAP / 2 : 0,
         to: 100,
@@ -1576,7 +1583,9 @@
       subEl.textContent = donutStats[k].count + " / " + donutStats.total;
     }
     var focusSmall = !!key && key !== big && donutStats.total > 0;
-    document.querySelector(".donut-card").classList.toggle("is-focus-small", focusSmall);
+    document
+      .querySelector(".donut-card")
+      .classList.toggle("is-focus-small", focusSmall);
     ["college", "lycee"].forEach(function (name) {
       document
         .getElementById(name === "college" ? "donutCollege" : "donutLycee")
@@ -1630,6 +1639,8 @@
 
   var NOTE_ICON =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
+  var GROUP_MARK_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
   var GROUP_DAYS_ICON =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>';
   var GROUP_PRICE_ICON =
@@ -2601,11 +2612,16 @@
   }
 
   /* ---------------- modal (add/edit) ---------------- */
+  var SUBMIT_ICON_ADD =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>';
+  var SUBMIT_ICON_SAVE =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
   function openModal(mode, student) {
     els.studentForm.reset();
     if (mode === "edit" && student) {
       els.modalTitle.textContent = t("modalEditTitle");
-      els.submitBtn.textContent = t("saveChanges");
+      els.submitLabel.textContent = t("saveChanges");
+      els.submitIcon.innerHTML = SUBMIT_ICON_SAVE;
       els.studentId.value = student.id;
       els.firstName.value = student.firstName;
       els.lastName.value = student.lastName;
@@ -2618,7 +2634,8 @@
       els.endDate.dataset.auto = student.endDate ? "false" : "true";
     } else {
       els.modalTitle.textContent = t("modalAddTitle");
-      els.submitBtn.textContent = t("add");
+      els.submitLabel.textContent = t("add");
+      els.submitIcon.innerHTML = SUBMIT_ICON_ADD;
       els.studentId.value = "";
       els.level.value = LEVELS[0];
       els.gender.value = "";
@@ -3107,8 +3124,6 @@
       .join("");
   }
 
-  var GROUP_MARK_ICON =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
   var groupDetailIndex = -1;
 
   function nextGroupSession(group) {
@@ -3210,7 +3225,7 @@
       "</em></div>";
     if (members.length) {
       html +=
-        '<div class="group-members">' +
+        '<div class="group-detail-members">' +
         members
           .map(function (student) {
             var badgeClass =
@@ -3218,7 +3233,7 @@
                 ? "badge-lycee"
                 : "badge-college";
             return (
-              '<button type="button" class="group-member" data-member-id="' +
+              '<button type="button" class="group-detail-member" data-member-id="' +
               escapeHtml(student.id) +
               '">' +
               avatarMarkup(student) +
@@ -3235,7 +3250,7 @@
         "</div>";
     } else {
       html +=
-        '<p class="group-members-empty">' +
+        '<p class="group-detail-empty">' +
         escapeHtml(t("groupNoMembers")) +
         "</p>";
     }
@@ -3294,9 +3309,11 @@
         (activeGroup === group.name ? " active" : "") +
         '"><button type="button" class="group-filter group-card" data-group-filter="' +
         index +
-        '"><span class="group-card-top"><i style="--group-color:' +
+        '"><span class="group-card-top"><i aria-hidden="true" style="--group-color:' +
         GROUP_COLORS[index % GROUP_COLORS.length] +
-        '"></i><span class="group-card-type">' +
+        '">' +
+        GROUP_MARK_ICON +
+        '</i><span class="group-card-type">' +
         escapeHtml(
           group.type === "price" ? t("groupModePrice") : t("groupModeDays"),
         ) +
@@ -3336,8 +3353,8 @@
     els.groupModalTitle.textContent = t("groupEditTitle");
     els.groupModalNameLabel.textContent = t("groupNameLabel");
     els.groupModalName.value = group.name;
-    els.groupModalCancel.textContent = t("cancel");
-    els.groupModalSave.textContent = t("saveChanges");
+    els.groupModalCancel.setAttribute("aria-label", t("close"));
+    els.groupModalSaveLabel.textContent = t("saveChanges");
 
     els.groupModalFields.innerHTML =
       '<div class="group-settings"><label><span>' +
@@ -3715,6 +3732,7 @@
     );
   els.halfMonthPickerLabel.addEventListener("click", openHalfMonthModal);
   els.halfMonthModalClose.addEventListener("click", closeHalfMonthModal);
+  els.halfMonthModalX.addEventListener("click", closeHalfMonthModal);
   els.halfMonthModalOverlay.addEventListener("click", function (e) {
     if (e.target === els.halfMonthModalOverlay) closeHalfMonthModal();
   });
@@ -3759,6 +3777,40 @@
     if (e.target === els.noteModalOverlay) closeNoteModal();
   });
 
+  /* Lock page scroll while any modal/notification overlay is open */
+  var lockedScrollX = 0;
+  var lockedScrollY = 0;
+  function syncScrollLock() {
+    var root = document.documentElement;
+    var anyOpen = !!document.querySelector(".modal-overlay.open");
+    if (anyOpen === root.classList.contains("modal-open")) return;
+    if (anyOpen) {
+      lockedScrollX = window.scrollX;
+      lockedScrollY = window.scrollY;
+      root.style.setProperty("--modal-scroll-x", -lockedScrollX + "px");
+      root.style.setProperty("--modal-scroll-y", -lockedScrollY + "px");
+      var gap = window.innerWidth - root.clientWidth;
+      root.style.setProperty(
+        "--scrollbar-gap",
+        (gap > 0 && gap < 40 ? gap : 0) + "px",
+      );
+    } else {
+      root.style.removeProperty("--scrollbar-gap");
+      root.style.removeProperty("--modal-scroll-x");
+      root.style.removeProperty("--modal-scroll-y");
+    }
+    root.classList.toggle("modal-open", anyOpen);
+    if (!anyOpen) window.scrollTo(lockedScrollX, lockedScrollY);
+  }
+  if (typeof MutationObserver === "function") {
+    var scrollLockObserver = new MutationObserver(syncScrollLock);
+    document.querySelectorAll(".modal-overlay").forEach(function (overlay) {
+      scrollLockObserver.observe(overlay, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+    });
+  }
   els.groupDetailClose.addEventListener("click", closeGroupDetail);
   els.groupDetailOverlay.addEventListener("click", function (e) {
     if (e.target === els.groupDetailOverlay) closeGroupDetail();

@@ -62,7 +62,8 @@ body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: "Space Grotesk", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  font-family:
+    "Space Grotesk", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -75,7 +76,8 @@ textarea {
 
 /* Arabic typography: Plex Sans Arabic leads, tuned to sit next to Space Grotesk */
 html[lang="ar"] body {
-  font-family: "IBM Plex Sans Arabic", "Space Grotesk", "Segoe UI", Tahoma, sans-serif;
+  font-family:
+    "IBM Plex Sans Arabic", "Space Grotesk", "Segoe UI", Tahoma, sans-serif;
   line-height: 1.65;
 }
 /* Arabic letters connect, so letter-spacing breaks the joins */
@@ -567,12 +569,13 @@ body {
   padding: 0;
   border: 0;
   border-radius: 9px;
-  background: transparent;
+  background: var(--color-surface);
   color: var(--color-text-muted);
   cursor: pointer;
+  z-index: 2;
 }
 .month-end-modal-close:hover {
-  background: rgba(224, 71, 62, 0.08);
+  background: #fdeeed;
   color: var(--color-danger);
 }
 .month-end-modal-close svg {
@@ -954,7 +957,11 @@ main {
 /* hovered small share turns solid navy, the big one steps back */
 .donut-card {
   --donut-active: var(--color-navy);
-  --donut-small: color-mix(in srgb, var(--color-primary) 28%, var(--color-surface));
+  --donut-small: color-mix(
+    in srgb,
+    var(--color-primary) 28%,
+    var(--color-surface)
+  );
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .donut-card {
@@ -1178,7 +1185,8 @@ main {
   gap: 12px;
   margin: -4px 0 16px;
   padding: 10px 14px;
-  border: 1px solid color-mix(in srgb, var(--gfs-color) 65%, var(--color-surface));
+  border: 1px solid
+    color-mix(in srgb, var(--gfs-color) 65%, var(--color-surface));
   border-radius: 10px;
   background: color-mix(in srgb, var(--gfs-color) 8%, var(--color-surface));
   color: color-mix(in srgb, var(--gfs-color) 80%, var(--color-text));
@@ -1309,9 +1317,6 @@ main {
   background: var(--color-sunken);
 }
 
-
-
-
 /* ---------- Students list: compact rows (mobile) / table rows (desktop) ---------- */
 .cards-grid {
   display: flex;
@@ -1342,7 +1347,11 @@ main {
     background 0.15s ease;
 }
 .student-card:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 40%,
+    var(--color-border)
+  );
 }
 .student-card:active {
   background: var(--color-sunken);
@@ -1450,7 +1459,8 @@ main {
   .student-card {
     display: grid;
     grid-template-columns:
-      44px minmax(160px, 2fr) minmax(110px, 1fr) minmax(130px, 1fr) 36px;
+      44px minmax(160px, 2fr) minmax(110px, 1fr) minmax(130px, 1fr)
+      36px;
     grid-template-areas: none;
     column-gap: 14px;
     align-items: center;
@@ -2439,15 +2449,23 @@ main {
   align-items: center;
 }
 .group-card-top {
-  gap: 7px;
+  gap: 9px;
   min-width: 0;
 }
 .group-card-top > i {
-  width: 9px;
-  height: 9px;
+  width: 30px;
+  height: 30px;
   flex: 0 0 auto;
+  display: grid;
+  place-items: center;
   border-radius: 50%;
-  background: var(--group-color);
+  background: #f1f6fd;
+  background: color-mix(in srgb, var(--group-color) 14%, #fff);
+  color: var(--group-color);
+}
+.group-card-top > i svg {
+  width: 17px;
+  height: 17px;
 }
 .group-card-type {
   overflow: hidden;
@@ -2466,7 +2484,7 @@ main {
 .group-row .group-edit {
   position: absolute;
   inset-inline-end: 42px;
-  top: 8px;
+  top: 14px;
   display: grid;
   place-items: center;
   width: 27px;
@@ -2544,7 +2562,7 @@ main {
 .group-row .group-delete {
   position: absolute;
   inset-inline-end: 8px;
-  top: 8px;
+  top: 14px;
   display: grid;
   place-items: center;
   width: 27px;
@@ -2934,6 +2952,22 @@ main {
 }
 
 /* ---------- Modal ---------- */
+html.modal-open {
+  overflow: hidden;
+  padding-inline-end: var(--scrollbar-gap, 0px);
+}
+html.modal-open body {
+  position: fixed;
+  top: var(--modal-scroll-y, 0px);
+  left: var(--modal-scroll-x, 0px);
+  width: 100%;
+  height: auto;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.modal {
+  overscroll-behavior: contain;
+}
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -3016,19 +3050,31 @@ main {
   margin: 12px 12px 0;
   border-radius: 14px;
   background:
-    radial-gradient(circle at 12% 115%, rgba(174, 227, 123, 0.9) 0, transparent 55%),
-    radial-gradient(circle at 92% -10%, rgba(240, 255, 244, 0.4) 0, transparent 45%),
+    radial-gradient(
+      circle at 12% 115%,
+      rgba(174, 227, 123, 0.9) 0,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 92% -10%,
+      rgba(240, 255, 244, 0.4) 0,
+      transparent 45%
+    ),
     linear-gradient(135deg, var(--brand-royal-blue), var(--brand-dark-azure));
 }
 .profile-close {
   position: absolute;
-  top: 10px;
-  inset-inline-end: 10px;
+  top: 22px;
+  inset-inline-end: 22px;
+  z-index: 3;
   width: 34px;
   height: 34px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(1, 9, 45, 0.4);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(1, 9, 45, 0.15);
   color: #fff;
   display: flex;
   align-items: center;
@@ -3037,7 +3083,10 @@ main {
   transition: background 0.15s ease;
 }
 .profile-close:hover {
-  background: rgba(255, 255, 255, 0.38);
+  background: rgba(1, 9, 45, 0.6);
+}
+.modal-scroll.profile-scroll {
+  padding: 0;
 }
 .profile-close svg {
   width: 17px;
@@ -3086,7 +3135,11 @@ main {
   padding: 4px 11px;
   border-radius: 999px;
   background: var(--color-sunken);
-  background: color-mix(in srgb, var(--gc, var(--color-primary)) 12%, var(--color-surface));
+  background: color-mix(
+    in srgb,
+    var(--gc, var(--color-primary)) 12%,
+    var(--color-surface)
+  );
   font-size: 12px;
 }
 .profile-group::before {
@@ -3147,7 +3200,11 @@ main {
   padding: 0 9px;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--color-navy), var(--brand-dark-azure));
+  background: linear-gradient(
+    90deg,
+    var(--color-navy),
+    var(--brand-dark-azure)
+  );
   color: #fff;
   font-size: 15px;
   font-weight: 700;
@@ -3184,13 +3241,33 @@ main {
 }
 .profile-banner.group-banner {
   background:
-    radial-gradient(circle at 12% 115%, rgba(174, 227, 123, 0.75) 0, transparent 55%),
-    radial-gradient(circle at 92% -10%, rgba(240, 255, 244, 0.4) 0, transparent 45%),
+    radial-gradient(
+      circle at 12% 115%,
+      rgba(174, 227, 123, 0.75) 0,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 92% -10%,
+      rgba(240, 255, 244, 0.4) 0,
+      transparent 45%
+    ),
     linear-gradient(135deg, var(--gc), var(--brand-deep-navy));
   background:
-    radial-gradient(circle at 12% 115%, rgba(174, 227, 123, 0.75) 0, transparent 55%),
-    radial-gradient(circle at 92% -10%, rgba(240, 255, 244, 0.4) 0, transparent 45%),
-    linear-gradient(135deg, var(--gc), color-mix(in srgb, var(--gc) 45%, var(--brand-deep-navy)));
+    radial-gradient(
+      circle at 12% 115%,
+      rgba(174, 227, 123, 0.75) 0,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 92% -10%,
+      rgba(240, 255, 244, 0.4) 0,
+      transparent 45%
+    ),
+    linear-gradient(
+      135deg,
+      var(--gc),
+      color-mix(in srgb, var(--gc) 45%, var(--brand-deep-navy))
+    );
 }
 .group-mark {
   width: 80px;
@@ -3250,15 +3327,19 @@ main {
   color: #fff;
   font-weight: 700;
 }
-.group-members {
+.group-detail-members {
   display: flex;
   flex-direction: column;
   gap: 2px;
   max-height: 232px;
+  margin: 6px -8px 0;
+  padding: 9px;
   overflow-y: auto;
-  margin-inline: -8px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-sunken);
 }
-.group-member {
+.group-detail-member {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -3268,32 +3349,33 @@ main {
   border-radius: 12px;
   background: transparent;
   color: var(--color-text);
+  font-family: inherit;
   font-size: 14px;
   font-weight: 700;
   text-align: start;
   cursor: pointer;
 }
-.group-member:hover,
-.group-member:focus-visible {
-  background: var(--color-sunken);
+.group-detail-member:hover,
+.group-detail-member:focus-visible {
+  background: var(--color-light-blue);
 }
-.group-member .avatar {
+.group-detail-member .avatar {
   width: 36px;
   height: 36px;
 }
-.group-member > span:not(.badge) {
+.group-detail-member > span:not(.badge) {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.group-member .badge {
+.group-detail-member .badge {
   flex-shrink: 0;
   padding: 2px 8px;
   font-size: 11px;
 }
-.group-members-empty {
+.group-detail-empty {
   margin: 0;
   padding: 14px;
   border-radius: 12px;
@@ -3301,6 +3383,53 @@ main {
   color: var(--color-text-muted);
   font-size: 13.5px;
   text-align: center;
+}
+
+/* ---------- Add / edit student modal ---------- */
+.modal.modal-fixed {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.modal-scroll {
+  min-height: 0;
+  padding: 26px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.modal-scroll > h2 {
+  padding-inline-end: 44px;
+}
+.modal-x {
+  position: absolute;
+  top: 18px;
+  inset-inline-end: 18px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-sunken);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.modal-x:hover {
+  background: var(--color-light-blue);
+  color: var(--color-navy);
+}
+.modal-x svg {
+  width: 17px;
+  height: 17px;
+}
+.modal-actions .profile-edit-btn {
+  margin-top: 0;
 }
 
 .note-view-body {

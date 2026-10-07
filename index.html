@@ -487,7 +487,25 @@
 
     <!-- ============ Add/Edit Modal ============ -->
     <div class="modal-overlay" id="modalOverlay">
-      <div class="modal">
+      <div
+        class="modal modal-fixed"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+      >
+        <button type="button" class="modal-x" id="cancelBtn">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+        <div class="modal-scroll">
         <h2 id="modalTitle"></h2>
         <form id="studentForm">
           <input type="hidden" id="studentId" />
@@ -542,77 +560,95 @@
             <textarea id="notes" rows="3"></textarea>
           </div>
           <div class="modal-actions">
-            <button type="button" class="btn btn-ghost" id="cancelBtn"></button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              id="submitBtn"
-            ></button>
+            <button type="submit" class="profile-edit-btn" id="submitBtn">
+              <span class="profile-edit-icon" id="submitIcon" aria-hidden="true"></span>
+              <span class="profile-edit-label" id="submitLabel"></span>
+            </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
 
     <div class="modal-overlay" id="groupModalOverlay">
       <div
-        class="modal group-modal"
+        class="modal group-modal modal-fixed"
         role="dialog"
         aria-modal="true"
         aria-labelledby="groupModalTitle"
       >
-        <h2 id="groupModalTitle"></h2>
-        <form id="groupModalForm">
-          <div class="field">
-            <label id="groupModalNameLabel" for="groupModalName"></label>
-            <input id="groupModalName" type="text" maxlength="50" required />
-          </div>
-          <div id="groupModalFields"></div>
-          <div id="groupModalStudents"></div>
-          <div class="modal-actions">
-            <button
-              type="button"
-              class="btn btn-ghost"
-              id="groupModalCancel"
-            ></button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              id="groupModalSave"
-            ></button>
-          </div>
-        </form>
+        <button type="button" class="modal-x" id="groupModalCancel">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+        <div class="modal-scroll">
+          <h2 id="groupModalTitle"></h2>
+          <form id="groupModalForm">
+            <div class="field">
+              <label id="groupModalNameLabel" for="groupModalName"></label>
+              <input id="groupModalName" type="text" maxlength="50" required />
+            </div>
+            <div id="groupModalFields"></div>
+            <div id="groupModalStudents"></div>
+            <div class="modal-actions">
+              <button type="submit" class="profile-edit-btn" id="groupModalSave">
+                <span class="profile-edit-icon" aria-hidden="true">
+                  <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m5 12.5 4.5 4.5L19 7.5" />
+              </svg>
+                </span>
+                <span class="profile-edit-label" id="groupModalSaveLabel"></span>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
 
     <!-- ============ Student details modal (profile card) ============ -->
     <div class="modal-overlay" id="noteModalOverlay">
       <div
-        class="modal profile-modal"
+        class="modal profile-modal modal-fixed"
         role="dialog"
         aria-modal="true"
         aria-labelledby="noteModalTitle"
       >
-        <div class="profile-banner">
-          <button type="button" class="profile-close" id="noteCloseBtn">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.2"
-              stroke-linecap="round"
-              aria-hidden="true"
-            >
-              <path d="m6 6 12 12M18 6 6 18" />
-            </svg>
-          </button>
-        </div>
-        <div class="profile-avatar" id="noteModalAvatar"></div>
-        <div class="profile-body">
-          <h2 class="profile-name" id="noteModalTitle"></h2>
-          <div id="noteModalBody"></div>
-          <button type="button" class="profile-edit-btn" id="noteEditBtn">
-            <span class="profile-edit-icon" aria-hidden="true">
-              <svg
+        <button type="button" class="profile-close" id="noteCloseBtn">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+        <div class="modal-scroll profile-scroll">
+          <div class="profile-banner"></div>
+          <div class="profile-avatar" id="noteModalAvatar"></div>
+          <div class="profile-body">
+            <h2 class="profile-name" id="noteModalTitle"></h2>
+            <div id="noteModalBody"></div>
+            <button type="button" class="profile-edit-btn" id="noteEditBtn">
+              <span class="profile-edit-icon" aria-hidden="true">
+                <svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -623,9 +659,10 @@
                 <path d="M12 20h9" />
                 <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
               </svg>
-            </span>
-            <span class="profile-edit-label" id="noteEditLabel"></span>
-          </button>
+              </span>
+              <span class="profile-edit-label" id="noteEditLabel"></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -633,33 +670,33 @@
     <!-- ============ Group details modal (profile card) ============ -->
     <div class="modal-overlay" id="groupDetailOverlay">
       <div
-        class="modal profile-modal group-detail-modal"
+        class="modal profile-modal group-detail-modal modal-fixed"
         id="groupDetailModal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="groupDetailTitle"
       >
-        <div class="profile-banner group-banner">
-          <button type="button" class="profile-close" id="groupDetailClose">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.2"
-              stroke-linecap="round"
-              aria-hidden="true"
-            >
-              <path d="m6 6 12 12M18 6 6 18" />
-            </svg>
-          </button>
-        </div>
-        <div class="profile-avatar" id="groupDetailMark"></div>
-        <div class="profile-body">
-          <h2 class="profile-name" id="groupDetailTitle"></h2>
-          <div id="groupDetailBody"></div>
-          <button type="button" class="profile-edit-btn" id="groupDetailEditBtn">
-            <span class="profile-edit-icon" aria-hidden="true">
-              <svg
+        <button type="button" class="profile-close" id="groupDetailClose">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+        <div class="modal-scroll profile-scroll">
+          <div class="profile-banner group-banner"></div>
+          <div class="profile-avatar" id="groupDetailMark"></div>
+          <div class="profile-body">
+            <h2 class="profile-name" id="groupDetailTitle"></h2>
+            <div id="groupDetailBody"></div>
+            <button type="button" class="profile-edit-btn" id="groupDetailEditBtn">
+              <span class="profile-edit-icon" aria-hidden="true">
+                <svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -670,48 +707,68 @@
                 <path d="M12 20h9" />
                 <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
               </svg>
-            </span>
-            <span class="profile-edit-label" id="groupDetailEditLabel"></span>
-          </button>
+              </span>
+              <span class="profile-edit-label" id="groupDetailEditLabel"></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="modal-overlay" id="halfMonthModalOverlay">
       <div
-        class="modal half-month-modal"
+        class="modal half-month-modal modal-fixed"
         role="dialog"
         aria-modal="true"
         aria-labelledby="halfMonthModalTitle"
       >
-        <h2 id="halfMonthModalTitle"></h2>
-        <div
-          class="half-month-picker-options"
-          id="halfMonthPickerOptions"
-        ></div>
-        <div class="modal-actions">
-          <button
-            type="button"
-            class="btn btn-primary"
-            id="halfMonthModalClose"
-          ></button>
+        <button type="button" class="modal-x" id="halfMonthModalX">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+        <div class="modal-scroll">
+          <h2 id="halfMonthModalTitle"></h2>
+          <div
+            class="half-month-picker-options"
+            id="halfMonthPickerOptions"
+          ></div>
+          <div class="modal-actions">
+            <button type="button" class="profile-edit-btn" id="halfMonthModalClose">
+              <span class="profile-edit-icon" aria-hidden="true">
+                <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m5 12.5 4.5 4.5L19 7.5" />
+              </svg>
+              </span>
+              <span class="profile-edit-label" id="halfMonthDoneLabel"></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="modal-overlay" id="monthEndModalOverlay">
       <div
-        class="modal month-end-modal"
+        class="modal month-end-modal modal-fixed"
         role="dialog"
         aria-modal="true"
         aria-labelledby="monthEndModalTitle"
         aria-describedby="monthEndModalMessage"
       >
-        <h2 id="monthEndModalTitle"></h2>
-        <div
-          id="monthEndModalMessage"
-          class="month-end-modal-message month-end-notice-list"
-        ></div>
         <button
           type="button"
           class="month-end-modal-close"
@@ -728,6 +785,13 @@
             <path d="m6 6 12 12M18 6 6 18" />
           </svg>
         </button>
+        <div class="modal-scroll">
+          <h2 id="monthEndModalTitle"></h2>
+          <div
+            id="monthEndModalMessage"
+            class="month-end-modal-message month-end-notice-list"
+          ></div>
+        </div>
       </div>
     </div>
 
