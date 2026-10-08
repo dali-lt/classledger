@@ -795,6 +795,99 @@
       </div>
     </div>
 
+    <!-- ============ Action result: import / export / delete (loading → success / failure) ============ -->
+    <div class="modal-overlay" id="actionResultOverlay">
+      <div
+        class="modal action-result"
+        id="actionResultBox"
+        data-state="loading"
+        data-kind="import"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="actionResultTitle"
+        aria-describedby="actionResultText"
+      >
+        <div class="action-visual" aria-hidden="true">
+          <svg class="action-ring" viewBox="0 0 120 120">
+            <circle
+              class="action-ring-arc"
+              cx="60"
+              cy="60"
+              r="52"
+              fill="none"
+              stroke-width="6"
+              stroke-linecap="round"
+              stroke-dasharray="62 265"
+            />
+            <circle
+              class="action-ring-dot"
+              cx="60"
+              cy="60"
+              r="52"
+              fill="none"
+              stroke-width="10"
+              stroke-linecap="round"
+              stroke-dasharray="0.1 326.6"
+              stroke-dashoffset="-62"
+            />
+          </svg>
+          <span class="action-disc">
+            <svg
+              class="action-icon action-icon-ok"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m6.5 12.5 3.8 3.8 7.2-8" pathLength="1" />
+            </svg>
+            <svg
+              class="action-icon action-icon-export"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 4v11" pathLength="1" />
+              <path d="m7.5 11 4.5 4.5 4.5-4.5" pathLength="1" />
+              <path d="M5 20h14" pathLength="1" />
+            </svg>
+            <svg
+              class="action-icon action-icon-trash"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M4.5 7h15" pathLength="1" />
+              <path d="M9.5 7V4.5h5V7" pathLength="1" />
+              <path d="m6.5 7 .9 12.5h9.2L17.5 7" pathLength="1" />
+              <path d="M10 11v5.5M14 11v5.5" pathLength="1" />
+            </svg>
+            <svg
+              class="action-icon action-icon-err"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+            >
+              <path d="m7.5 7.5 9 9" pathLength="1" />
+              <path d="m16.5 7.5-9 9" pathLength="1" />
+            </svg>
+          </span>
+        </div>
+        <h2 id="actionResultTitle"></h2>
+        <p id="actionResultText"></p>
+      </div>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite">
       <span class="toast-icon" id="toastIcon"></span>
       <div class="toast-text">

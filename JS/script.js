@@ -210,6 +210,23 @@
       importConfirm: "Import {count} students and replace the current data?",
       importSuccess: "Data imported successfully.",
       importError: "This file is not a valid ClassLedger backup.",
+      importLoadingTitle: "Importing…",
+      importLoadingText: "Checking your backup file.",
+      importDoneTitle: "Import complete",
+      importDoneText: "{students} students and {groups} groups imported.",
+      importFailTitle: "Import failed",
+      exportLoadingTitle: "Exporting…",
+      exportLoadingText: "Preparing your backup file.",
+      exportDoneTitle: "Backup exported",
+      exportDoneText: "{students} students and {groups} groups saved to your device.",
+      exportFailTitle: "Export failed",
+      exportFailText: "Couldn't create the backup file.",
+      clearLoadingTitle: "Clearing data…",
+      clearLoadingText: "Removing students and groups.",
+      clearDoneTitle: "Data cleared",
+      clearDoneText: "{students} students and {groups} groups removed.",
+      clearFailTitle: "Couldn't clear data",
+      clearFailText: "Something went wrong. Nothing was changed.",
       exportSuccess: "Backup file downloaded.",
       saveError: "Could not save data in this browser.",
       toastSuccessTitle: "Success",
@@ -427,6 +444,23 @@
       importConfirm: "باش تدخل {count} تلامذة وتعوّض البيانات الحالية؟",
       importSuccess: "تم إدخال البيانات بنجاح.",
       importError: "الملف هذا موش نسخة احتياطية صالحة لـ ClassLedger.",
+      importLoadingTitle: "جاري الإدخال…",
+      importLoadingText: "نثبّت في ملف النسخة الاحتياطية.",
+      importDoneTitle: "تم الإدخال",
+      importDoneText: "تم إدخال {students} تلميذ و{groups} مجموعة.",
+      importFailTitle: "فشل الإدخال",
+      exportLoadingTitle: "جاري التصدير…",
+      exportLoadingText: "نجهّزو ملف النسخة الاحتياطية.",
+      exportDoneTitle: "تم التصدير",
+      exportDoneText: "تم حفظ {students} تلميذ و{groups} مجموعة على جهازك.",
+      exportFailTitle: "فشل التصدير",
+      exportFailText: "ما نجّمناش نكوّنو ملف النسخة الاحتياطية.",
+      clearLoadingTitle: "جاري المسح…",
+      clearLoadingText: "نحيّو التلامذة والمجموعات.",
+      clearDoneTitle: "تم مسح البيانات",
+      clearDoneText: "تم حذف {students} تلميذ و{groups} مجموعة.",
+      clearFailTitle: "فشل المسح",
+      clearFailText: "صار مشكل. ما تبدّل شيء.",
       exportSuccess: "تم تحميل ملف النسخة الاحتياطية.",
       saveError: "تعذّر حفظ البيانات في هذا المتصفح.",
       toastSuccessTitle: "تم بنجاح",
@@ -625,6 +659,10 @@
     exportDataBtn: document.getElementById("exportDataBtn"),
     importDataBtn: document.getElementById("importDataBtn"),
     importFile: document.getElementById("importFile"),
+    actionResultOverlay: document.getElementById("actionResultOverlay"),
+    actionResultBox: document.getElementById("actionResultBox"),
+    actionResultTitle: document.getElementById("actionResultTitle"),
+    actionResultText: document.getElementById("actionResultText"),
     exportDataLabel: document.getElementById("exportDataLabel"),
     importDataLabel: document.getElementById("importDataLabel"),
     toast: document.getElementById("toast"),
@@ -1035,38 +1073,66 @@
   }
   function clearAllData() {
     if (!confirm(t("clearAllConfirm"))) return;
-    students = [];
-    groups = [];
-    activeGroup = "";
-    expandedGroup = "";
-    saveStudents();
-    saveGroups();
-    renderStudentsPage();
-    if (currentPage === "calendar") renderCalendar();
-    if (currentPage === "payments") renderPaymentsPage();
-    showToast(t("clearAllSuccess"), false, null, "delete");
+    var removed = fmtCounts(t("clearDoneText"), students.length, groups.length);
+    playActionResult({
+      kind: "delete",
+      ok: true,
+      loadingTitle: t("clearLoadingTitle"),
+      loadingText: t("clearLoadingText"),
+      doneTitle: t("clearDoneTitle"),
+      doneText: removed,
+      failTitle: t("clearFailTitle"),
+      failText: t("clearFailText"),
+      apply: function () {
+        students = [];
+        groups = [];
+        activeGroup = "";
+        expandedGroup = "";
+        saveStudents();
+        saveGroups();
+        renderStudentsPage();
+        if (currentPage === "calendar") renderCalendar();
+        if (currentPage === "payments") renderPaymentsPage();
+      },
+    });
   }
   function exportData() {
-    var backup = {
-      app: "ClassLedger",
-      version: 5,
-      exportedAt: new Date().toISOString(),
-      students: students,
-      groups: groups,
-      lang: currentLang,
-    };
-    var blob = new Blob([JSON.stringify(backup, null, 2)], {
-      type: "application/json",
+    var ok = true;
+    try {
+      var backup = {
+        app: "ClassLedger",
+        version: 5,
+        exportedAt: new Date().toISOString(),
+        students: students,
+        groups: groups,
+        lang: currentLang,
+      };
+      var blob = new Blob([JSON.stringify(backup, null, 2)], {
+        type: "application/json",
+      });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement("a");
+      link.href = url;
+      link.download = "classledger-backup-" + toDateKey(new Date()) + ".json";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function () {
+        URL.revokeObjectURL(url);
+      }, 1000);
+    } catch (e) {
+      ok = false;
+    }
+    playActionResult({
+      kind: "export",
+      ok: ok,
+      loadingTitle: t("exportLoadingTitle"),
+      loadingText: t("exportLoadingText"),
+      doneTitle: t("exportDoneTitle"),
+      doneText: fmtCounts(t("exportDoneText"), students.length, groups.length),
+      failTitle: t("exportFailTitle"),
+      failText: t("exportFailText"),
     });
-    var url = URL.createObjectURL(blob);
-    var link = document.createElement("a");
-    link.href = url;
-    link.download = "classledger-backup-" + toDateKey(new Date()) + ".json";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    showToast(t("exportSuccess"));
   }
   function sanitizePaymentHistory(student) {
     if (!Array.isArray(student.paymentHistory)) {
@@ -1120,6 +1186,53 @@
           })
       : [];
     return student;
+  }
+
+  /* ---- import feedback: loading → success (green ✓) / failure (red ✕) ---- */
+  function fmtCounts(template, studentCount, groupCount) {
+    return template
+      .replace("{students}", studentCount)
+      .replace("{groups}", groupCount)
+      .replace(/\b1 students\b/, "1 student")
+      .replace(/\b1 groups\b/, "1 group");
+  }
+  var ACTION_LOADING_MS = 1100;
+  var actionResultTimer = null;
+  var actionResultBusy = false;
+
+  function setActionResult(state, title, text) {
+    els.actionResultBox.setAttribute("data-state", state);
+    els.actionResultTitle.textContent = title;
+    els.actionResultText.textContent = text;
+  }
+  function closeActionResult() {
+    if (actionResultBusy) return;
+    clearTimeout(actionResultTimer);
+    els.actionResultOverlay.classList.remove("open");
+  }
+  function playActionResult(o) {
+    clearTimeout(actionResultTimer);
+    actionResultBusy = true;
+    els.actionResultBox.setAttribute("data-kind", o.kind);
+    setActionResult("loading", o.loadingTitle, o.loadingText);
+    els.actionResultOverlay.classList.add("open");
+    actionResultTimer = setTimeout(function () {
+      var success = o.ok;
+      if (success && o.apply) {
+        try {
+          o.apply();
+        } catch (e) {
+          success = false;
+        }
+      }
+      if (success) {
+        setActionResult("success", o.doneTitle, o.doneText);
+      } else {
+        setActionResult("error", o.failTitle, o.failText);
+      }
+      actionResultBusy = false;
+      actionResultTimer = setTimeout(closeActionResult, success ? 1600 : 2400);
+    }, ACTION_LOADING_MS);
   }
 
   function importData(file) {
@@ -1193,18 +1306,41 @@
           )
         )
           return;
-        students = importedStudents;
-        groups = importedGroups;
-        activeGroup = "";
-        expandedGroup = "";
-        saveStudents();
-        saveGroups();
-        renderStudentsPage();
-        if (currentPage === "calendar") renderCalendar();
-        if (currentPage === "payments") renderPaymentsPage();
-        showToast(t("importSuccess"));
+        var summary = fmtCounts(
+          t("importDoneText"),
+          importedStudents.length,
+          importedGroups.length,
+        );
+        playActionResult({
+          kind: "import",
+          ok: true,
+          loadingTitle: t("importLoadingTitle"),
+          loadingText: t("importLoadingText"),
+          doneTitle: t("importDoneTitle"),
+          doneText: summary,
+          failTitle: t("importFailTitle"),
+          failText: t("importError"),
+          apply: function () {
+            students = importedStudents;
+            groups = importedGroups;
+            activeGroup = "";
+            expandedGroup = "";
+            saveStudents();
+            saveGroups();
+            renderStudentsPage();
+            if (currentPage === "calendar") renderCalendar();
+            if (currentPage === "payments") renderPaymentsPage();
+          },
+        });
       } catch (e) {
-        showToast(t("importError"), true);
+        playActionResult({
+          kind: "import",
+          ok: false,
+          loadingTitle: t("importLoadingTitle"),
+          loadingText: t("importLoadingText"),
+          failTitle: t("importFailTitle"),
+          failText: t("importError"),
+        });
       } finally {
         els.importFile.value = "";
       }
@@ -3777,30 +3913,30 @@
     if (e.target === els.noteModalOverlay) closeNoteModal();
   });
 
-  /* Lock page scroll while any modal/notification overlay is open */
-  var lockedScrollX = 0;
+  /* Lock page scroll while any modal/notification overlay is open,
+     and put the page back exactly where it was when the last one closes */
   var lockedScrollY = 0;
   function syncScrollLock() {
     var root = document.documentElement;
     var anyOpen = !!document.querySelector(".modal-overlay.open");
     if (anyOpen === root.classList.contains("modal-open")) return;
     if (anyOpen) {
-      lockedScrollX = window.scrollX;
-      lockedScrollY = window.scrollY;
-      root.style.setProperty("--modal-scroll-x", -lockedScrollX + "px");
-      root.style.setProperty("--modal-scroll-y", -lockedScrollY + "px");
+      lockedScrollY = window.pageYOffset || root.scrollTop || 0;
       var gap = window.innerWidth - root.clientWidth;
       root.style.setProperty(
         "--scrollbar-gap",
         (gap > 0 && gap < 40 ? gap : 0) + "px",
       );
+      root.classList.add("modal-open");
     } else {
       root.style.removeProperty("--scrollbar-gap");
-      root.style.removeProperty("--modal-scroll-x");
-      root.style.removeProperty("--modal-scroll-y");
+      root.classList.remove("modal-open");
+      try {
+        if (Math.abs((window.pageYOffset || 0) - lockedScrollY) > 1) {
+          window.scrollTo(0, lockedScrollY);
+        }
+      } catch (e) {}
     }
-    root.classList.toggle("modal-open", anyOpen);
-    if (!anyOpen) window.scrollTo(lockedScrollX, lockedScrollY);
   }
   if (typeof MutationObserver === "function") {
     var scrollLockObserver = new MutationObserver(syncScrollLock);
@@ -3811,6 +3947,7 @@
       });
     });
   }
+  els.actionResultOverlay.addEventListener("click", closeActionResult);
   els.groupDetailClose.addEventListener("click", closeGroupDetail);
   els.groupDetailOverlay.addEventListener("click", function (e) {
     if (e.target === els.groupDetailOverlay) closeGroupDetail();
@@ -3880,6 +4017,7 @@
     if (els.groupModalOverlay.classList.contains("open")) closeGroupModal();
     if (els.noteModalOverlay.classList.contains("open")) closeNoteModal();
     if (els.groupDetailOverlay.classList.contains("open")) closeGroupDetail();
+    if (els.actionResultOverlay.classList.contains("open")) closeActionResult();
     if (els.halfMonthModalOverlay.classList.contains("open"))
       closeHalfMonthModal();
     if (els.monthEndModalOverlay.classList.contains("open"))
