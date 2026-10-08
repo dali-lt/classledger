@@ -730,6 +730,15 @@
   var monthEndNoticeReadKey = "";
   var activeMonthEndNoticeKey = "";
   var revealedEventGroupKey = "";
+  var suppressDataEvents = false;
+
+  // Tells the optional cloud-sync module (JS/firebase-sync.js) that local data changed
+  function emitDataChanged() {
+    if (suppressDataEvents) return;
+    try {
+      window.dispatchEvent(new CustomEvent("classledger:data-changed"));
+    } catch (e) {}
+  }
 
   /* ---------------- storage ---------------- */
   function loadStudents() {
@@ -961,6 +970,7 @@
       showToast(t("saveError"), true);
     }
     refreshMonthEndNotice();
+    emitDataChanged();
   }
   function saveGroups() {
     try {
@@ -968,6 +978,7 @@
     } catch (e) {
       showToast(t("saveError"), true);
     }
+    emitDataChanged();
   }
   function normalizeGroup(value) {
     var source = typeof value === "string" ? { name: value } : value;
@@ -4032,6 +4043,92 @@
   els.importFile.addEventListener("change", function () {
     importData(els.importFile.files[0]);
   });
+
+  /* ---------------- cloud sync bridge ---------------- */
+  // Used by JS/firebase-sync.js. The app works the same without it.
+  function applyRemoteChanges(change) {
+    change = change || {};
+    if (change.replaceAll) {
+      students = [];
+      groups = [];
+      activeGroup = "";
+    }
+    var indexById = {};
+    students.forEach(function (student, index) {
+      indexById[student.id] = index;
+    });
+    (change.upsertStudents || []).forEach(function (incoming) {
+      if (!incoming || typeof incoming.id !== "string") return;
+      sanitizeHalfMonthCharges(sanitizePaymentHistory(incoming));
+      if (indexById[incoming.id] !== undefined) {
+        students[indexById[incoming.id]] = incoming;
+      } else {
+        indexById[incoming.id] = students.length;
+        students.push(incoming);
+      }
+    });
+    var removeIds = change.removeStudentIds || [];
+    if (removeIds.length) {
+      students = students.filter(function (student) {
+        return removeIds.indexOf(student.id) === -1;
+      });
+    }
+    if (Array.isArray(change.groups)) {
+      groups = change.groups
+        .map(normalizeGroup)
+        .filter(function (group, index, list) {
+          return (
+            group &&
+            list.findIndex(function (candidate) {
+              return (
+                candidate &&
+                candidate.name.toLowerCase() === group.name.toLowerCase()
+              );
+            }) === index
+          );
+        });
+    }
+    // every group a student belongs to must exist
+    students.forEach(function (student) {
+      var names = studentGroupNames(student);
+      names.forEach(function (name) {
+        if (!findGroup(name)) groups.push(normalizeGroup(name));
+      });
+      setStudentGroupNames(student, names);
+    });
+    // avatars are assigned locally when missing
+    var avatarIndexes = { male: 0, female: 0 };
+    students.forEach(function (student) {
+      if (!student.avatar) {
+        student.avatar = getNextAvatar(
+          student.gender,
+          avatarIndexes[student.gender] || 0,
+        );
+        if (avatarIndexes[student.gender] !== undefined)
+          avatarIndexes[student.gender]++;
+      }
+    });
+    assignAvatarBackgrounds(students, []);
+
+    suppressDataEvents = true;
+    try {
+      saveStudents();
+      saveGroups();
+    } finally {
+      suppressDataEvents = false;
+    }
+    renderStudentsPage();
+    if (currentPage === "calendar") renderCalendar();
+    if (currentPage === "payments") renderPaymentsPage();
+  }
+
+  window.ClassLedgerApp = {
+    getSnapshot: function () {
+      return { students: students.slice(), groups: groups.slice() };
+    },
+    applyRemote: applyRemoteChanges,
+    toast: showToast,
+  };
 
   /* ---------------- init ---------------- */
   loadLang();

@@ -322,6 +322,86 @@ body {
   flex-direction: column;
   align-items: center;
 }
+/* ---------- Cloud sync (sign-in + status) ---------- */
+.cloud-sync {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  text-align: center;
+}
+.cloud-sync[hidden] {
+  display: none;
+}
+.cloud-hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.cloud-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+.cloud-avatar {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-light-blue);
+}
+.cloud-email {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cloud-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+.cloud-status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+}
+.cloud-status.is-synced {
+  color: #3f8a2a;
+}
+.cloud-status.is-synced::before {
+  background: #5c9b46;
+}
+.cloud-status.is-syncing::before {
+  background: var(--color-primary);
+}
+.cloud-status.is-offline::before {
+  background: #c77d0a;
+}
+.cloud-status.is-error {
+  color: var(--color-danger);
+}
+.cloud-status.is-error::before {
+  background: var(--color-danger);
+}
 .data-transfer-actions {
   display: flex;
   gap: 10px;
