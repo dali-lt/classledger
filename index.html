@@ -7,6 +7,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>ClassLedger</title>
+    <link rel="icon" type="image/svg+xml" href="Images/logo-icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,7 +19,15 @@
   <body>
     <div class="app-shell">
       <aside class="icon-rail">
-        <div class="rail-brand"><span class="brand-dot"></span></div>
+        <div class="rail-brand">
+          <img
+            class="brand-icon"
+            src="Images/logo-icon.svg"
+            alt="ClassLedger"
+            width="32"
+            height="32"
+          />
+        </div>
         <nav class="rail-nav">
           <button
             class="nav-target rail-btn active"
@@ -98,7 +107,11 @@
 
       <div class="main-area">
         <div class="topbar">
-          <span class="brand-mark">Class<span>Ledger</span></span>
+          <img
+            class="brand-wordmark"
+            src="Images/logo-wordmark.svg"
+            alt="ClassLedger"
+          />
           <div class="nav-pills">
             <button
               class="nav-target pill active"
@@ -203,21 +216,12 @@
           <!-- ================= STUDENTS PAGE ================= -->
           <section class="page active" id="page-students">
             <div class="hero">
-              <svg
-                class="hero-blob"
-                viewBox="0 0 400 140"
-                preserveAspectRatio="none"
-              >
-                <circle cx="360" cy="15" r="80" fill="#0464DE" opacity="0.06" />
-                <circle cx="330" cy="95" r="50" fill="#AEE37B" opacity="0.14" />
-                <circle
-                  cx="405"
-                  cy="115"
-                  r="34"
-                  fill="#0464DE"
-                  opacity="0.10"
-                />
-              </svg>
+              <img
+                class="hero-watermark"
+                src="Images/logo-icon.svg"
+                alt=""
+                aria-hidden="true"
+              />
               <div class="hero-content">
                 <h2 id="heroGreeting"></h2>
                 <p id="heroText"></p>
