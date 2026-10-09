@@ -36,15 +36,7 @@ var STR = {
     domainHint:
       "This website address isn't authorized yet. Add it in Firebase → Authentication → Settings → Authorized domains.",
     rulesHint: "The cloud refused access. Check the Firestore security rules.",
-    account: "My account",
-    acctTitle: "My account",
-    acctName: "Name",
-    acctPhone: "Phone",
-    acctSubject: "Subject / specialty",
-    acctEmail: "Signed in as",
-    acctSave: "Save",
-    acctSaved: "Your details were saved.",
-    close: "Close",
+    acctTitle: "Account",
     dangerTitle: "Delete account",
     dangerText:
       "This permanently deletes all your data from the cloud (students, groups, details) and closes your account. It cannot be undone. Tip: use “Export data” first to keep a backup file.",
@@ -72,15 +64,7 @@ var STR = {
     domainHint:
       "عنوان الموقع هذا موش مصرّح بيه. زيدو في Firebase ← Authentication ← Settings ← Authorized domains.",
     rulesHint: "السحابة رفضت الوصول. تثبّت من قواعد أمان Firestore.",
-    account: "حسابي",
-    acctTitle: "حسابي",
-    acctName: "الاسم",
-    acctPhone: "الهاتف",
-    acctSubject: "المادة / الاختصاص",
-    acctEmail: "مسجّل بحساب",
-    acctSave: "حفظ",
-    acctSaved: "تم حفظ معلوماتك.",
-    close: "إغلاق",
+    acctTitle: "الحساب",
     dangerTitle: "حذف الحساب",
     dangerText:
       "هذا يمسح بياناتك كلها من السحابة نهائياً (التلاميذ، المجموعات، المعلومات) ويغلق حسابك. ما ينجمش يتراجع. نصيحة: اعمل «إخراج البيانات» قبل باش تخزّن نسخة احتياطية.",
@@ -184,8 +168,19 @@ async function main() {
     if (!sync || !sync.reconciled || sync.inflight > 0) return "syncing";
     return "synced";
   }
+  var lastAccountKey = "";
+  function syncAccountInfo() {
+    // tells the Profile page who is signed in (photo, email)
+    var info = user ? { email: user.email || "", photoURL: user.photoURL || "", displayName: user.displayName || "" } : null;
+    var key = JSON.stringify(info);
+    if (key === lastAccountKey) return;
+    lastAccountKey = key;
+    app.setAccount(info);
+  }
   function render() {
     if (!authReady) return;
+    syncAccountInfo();
+    renderAccountSection();
     mount.hidden = false;
     mount.textContent = "";
     if (!user) {
@@ -200,103 +195,80 @@ async function main() {
       img.src = user.photoURL;
       account.append(img);
     }
-    var shownName = (app.getProfile && app.getProfile().name) || user.email || user.displayName || "";
+    var shownName = app.getProfile().name || user.email || user.displayName || "";
     account.append(el("span", "cloud-email", shownName));
     var status = currentStatus();
-    var actions = el("div", "cloud-actions");
-    actions.append(
-      button(t("account"), ICON_USER, openAccountModal),
+    mount.append(
+      account,
+      el("span", "cloud-status is-" + status, t("status_" + status)),
       button(t("signOut"), ICON_OUT, function () {
         sdk.signOut(auth);
       }),
     );
-    mount.append(account, el("span", "cloud-status is-" + status, t("status_" + status)), actions);
   }
 
-  /* ---------------- account modal ---------------- */
-  function closeAccountModal() {
-    var overlay = document.getElementById("acctOverlay");
-    if (overlay) overlay.remove();
-    document.removeEventListener("keydown", onAcctKey);
-  }
-  function onAcctKey(e) {
-    if (e.key === "Escape") closeAccountModal();
-  }
-  function field(labelText, value, type, max) {
-    var wrap = el("label", "acct-field");
-    wrap.append(el("span", "acct-label", labelText));
-    var input = el("input", "acct-input");
-    input.type = type;
-    input.value = value || "";
-    input.maxLength = max;
-    wrap.append(input);
-    return { wrap: wrap, input: input };
-  }
-  function openAccountModal() {
-    if (!user || document.getElementById("acctOverlay")) return;
-    var p = app.getProfile();
-    var overlay = el("div", "acct-overlay");
-    overlay.id = "acctOverlay";
-    var modal = el("div", "acct-modal");
-    modal.setAttribute("role", "dialog");
-    modal.setAttribute("aria-modal", "true");
-    modal.setAttribute("aria-label", t("acctTitle"));
-
-    var head = el("div", "acct-head");
-    head.append(el("h2", "acct-title", t("acctTitle")));
-    var x = el("button", "acct-close", "×");
-    x.type = "button";
-    x.setAttribute("aria-label", t("close"));
-    x.addEventListener("click", closeAccountModal);
-    head.append(x);
-
-    var emailLine = el("p", "acct-email");
-    emailLine.append(el("span", "", t("acctEmail") + " "), el("strong", "", user.email || ""));
-
-    var fName = field(t("acctName"), p.name || user.displayName || "", "text", 60);
-    var fPhone = field(t("acctPhone"), p.phone, "tel", 30);
-    var fSubject = field(t("acctSubject"), p.subject, "text", 60);
-    var save = el("button", "acct-primary", t("acctSave"));
-    save.type = "button";
-    save.addEventListener("click", function () {
-      app.setProfile({
-        name: fName.input.value,
-        phone: fPhone.input.value,
-        subject: fSubject.input.value,
-      });
-      app.toast(t("acctSaved"), false, null, "info");
-      closeAccountModal();
-      render();
-    });
+  /* ---------------- account section (on the Profile page) ---------------- */
+  var acctUi = { erase: false, text: "" }; // survives re-renders caused by sync status changes
+  function renderAccountSection() {
+    var host = document.getElementById("profileAccount");
+    if (!host) return;
+    host.textContent = "";
+    if (!authReady || !user) return;
+    var card = el("section", "me-card account-card");
+    card.append(el("h3", "account-title", t("acctTitle")));
+    var info = el("div", "account-info");
+    if (user.photoURL) {
+      var img = el("img", "cloud-avatar");
+      img.alt = "";
+      img.referrerPolicy = "no-referrer";
+      img.src = user.photoURL;
+      info.append(img);
+    }
+    info.append(el("span", "cloud-email", user.email || ""));
+    var status = currentStatus();
+    info.append(el("span", "cloud-status is-" + status, t("status_" + status)));
+    card.append(info);
+    card.append(
+      button(t("signOut"), ICON_OUT, function () {
+        sdk.signOut(auth);
+      }),
+    );
 
     var danger = el("div", "acct-danger");
-    danger.append(el("h3", "acct-danger-title", t("dangerTitle")), el("p", "acct-danger-text", t("dangerText")));
+    danger.append(
+      el("h3", "acct-danger-title", t("dangerTitle")),
+      el("p", "acct-danger-text", t("dangerText")),
+    );
     var eraseWrap = el("label", "acct-check");
     var erase = el("input");
     erase.type = "checkbox";
+    erase.checked = acctUi.erase;
+    erase.addEventListener("change", function () {
+      acctUi.erase = erase.checked;
+    });
     eraseWrap.append(erase, el("span", "", t("eraseLocal")));
-    var confirmField = field(t("typeToConfirm"), "", "text", 10);
-    confirmField.input.autocomplete = "off";
-    confirmField.input.setAttribute("dir", "ltr");
+    var confirmWrap = el("label", "acct-field");
+    confirmWrap.append(el("span", "acct-label", t("typeToConfirm")));
+    var confirmInput = el("input", "acct-input");
+    confirmInput.type = "text";
+    confirmInput.autocomplete = "off";
+    confirmInput.setAttribute("dir", "ltr");
+    confirmInput.maxLength = 10;
+    confirmInput.value = acctUi.text;
+    confirmWrap.append(confirmInput);
     var del = el("button", "acct-delete", t("deleteBtn"));
     del.type = "button";
-    del.disabled = true;
-    confirmField.input.addEventListener("input", function () {
-      del.disabled = confirmField.input.value.trim() !== "DELETE";
+    del.disabled = acctUi.text.trim() !== "DELETE";
+    confirmInput.addEventListener("input", function () {
+      acctUi.text = confirmInput.value;
+      del.disabled = confirmInput.value.trim() !== "DELETE";
     });
     del.addEventListener("click", function () {
       deleteAccount(erase.checked, del);
     });
-    danger.append(eraseWrap, confirmField.wrap, del);
-
-    modal.append(head, emailLine, fName.wrap, fPhone.wrap, fSubject.wrap, save, danger);
-    overlay.append(modal);
-    overlay.addEventListener("mousedown", function (e) {
-      if (e.target === overlay) closeAccountModal();
-    });
-    document.body.append(overlay);
-    document.addEventListener("keydown", onAcctKey);
-    fName.input.focus();
+    danger.append(eraseWrap, confirmWrap, del);
+    card.append(danger);
+    host.append(card);
   }
 
   async function deleteAccount(eraseLocal, delBtn) {
@@ -352,7 +324,8 @@ async function main() {
       app.applyRemote({ replaceAll: true });
       app.setProfile({}, { silent: true });
     }
-    closeAccountModal();
+    acctUi.erase = false;
+    acctUi.text = "";
     app.toast(t("deleted"), false, null, "info");
     render();
   }

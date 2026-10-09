@@ -233,6 +233,18 @@
       toastErrorTitle: "Error",
       navPayments: "Payments",
       pageTitlePayments: "Payments",
+      navProfile: "Profile",
+      pageTitleProfile: "Profile",
+      profileEdit: "Edit",
+      profileSave: "Save",
+      profileCancel: "Cancel",
+      profileName: "Name",
+      profilePhone: "Phone",
+      profileSubject: "Subject / specialty",
+      profileEmail: "Email",
+      profileNoName: "Add your name",
+      profileNotSet: "Not set",
+      profileSaved: "Your profile was saved.",
       kpiMonthlyIncome: "Monthly income",
       kpiPaidAmount: "Paid amount",
       kpiUnpaidAmount: "Unpaid amount",
@@ -467,6 +479,18 @@
       toastErrorTitle: "خطأ",
       navPayments: "المدفوعات",
       pageTitlePayments: "المدفوعات",
+      navProfile: "البروفايل",
+      pageTitleProfile: "البروفايل",
+      profileEdit: "تعديل",
+      profileSave: "حفظ",
+      profileCancel: "إلغاء",
+      profileName: "الاسم",
+      profilePhone: "الهاتف",
+      profileSubject: "المادة / الاختصاص",
+      profileEmail: "الإيميل",
+      profileNoName: "زيد اسمك",
+      profileNotSet: "موش محدد",
+      profileSaved: "تم حفظ البروفايل.",
       kpiMonthlyIncome: "الدخل الشهري",
       kpiPaidAmount: "المبلغ المدفوع",
       kpiUnpaidAmount: "المتبقي غير المدفوع",
@@ -676,6 +700,9 @@
     monthEndModalMessage: document.getElementById("monthEndModalMessage"),
     monthEndModalClose: document.getElementById("monthEndModalClose"),
     pillPaymentsLabel: document.getElementById("pillPaymentsLabel"),
+    pillProfileLabel: document.getElementById("pillProfileLabel"),
+    profileCard: document.getElementById("profileCard"),
+    railProfileBtn: document.getElementById("railProfileBtn"),
     paymentsKpiRow: document.getElementById("paymentsKpiRow"),
     paymentsList: document.getElementById("paymentsList"),
     halfMonthTitle: document.getElementById("halfMonthTitle"),
@@ -710,6 +737,7 @@
     students: "pageTitleStudents",
     calendar: "pageTitleCalendar",
     payments: "pageTitlePayments",
+    profile: "pageTitleProfile",
   };
 
   var students = [];
@@ -1499,6 +1527,8 @@
     els.pillStudentsLabel.textContent = t("navStudents");
     els.pillCalendarLabel.textContent = t("navCalendar");
     els.pillPaymentsLabel.textContent = t("navPayments");
+    els.pillProfileLabel.textContent = t("navProfile");
+    els.railProfileBtn.setAttribute("title", t("navProfile"));
     if (els.toastClose) els.toastClose.setAttribute("aria-label", t("close"));
     els.distributionTitleEl.textContent = t("distributionTitle");
     els.byLevelTitleEl.textContent = t("byLevelTitle");
@@ -1586,6 +1616,7 @@
     renderStudentsPage();
     if (currentPage === "calendar") renderCalendar();
     if (currentPage === "payments") renderPaymentsPage();
+    if (currentPage === "profile") renderProfilePage();
     setHeaderDate();
   }
 
@@ -1605,6 +1636,124 @@
       pageName === "calendar" ? "flex" : "none";
     if (pageName === "calendar") renderCalendar();
     if (pageName === "payments") renderPaymentsPage();
+    if (pageName === "profile") {
+      profileEditing = false;
+      renderProfilePage();
+    }
+  }
+
+  /* ---------------- profile page ---------------- */
+  var profileEditing = false;
+  var accountInfo = null; // set by the cloud-sync module when someone is signed in
+
+  function pEl(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+  var PROFILE_ICON_USER =
+    '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>';
+  var PROFILE_ICON_EDIT =
+    '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/><path d="m14.5 7.5 3 3"/></svg>';
+
+  function profileAvatarNode(name) {
+    var wrap = pEl("div", "me-avatar");
+    if (accountInfo && accountInfo.photoURL) {
+      var img = pEl("img");
+      img.alt = "";
+      img.referrerPolicy = "no-referrer";
+      img.src = accountInfo.photoURL;
+      wrap.appendChild(img);
+    } else if (name) {
+      wrap.textContent = name.trim().charAt(0).toUpperCase();
+    } else {
+      wrap.innerHTML = PROFILE_ICON_USER; // static, trusted SVG
+    }
+    return wrap;
+  }
+  function profileRow(label, value, ltr) {
+    var row = pEl("div", "me-row");
+    row.appendChild(pEl("span", "me-row-label", label));
+    var val = pEl("span", "me-row-value" + (value ? "" : " is-empty"), value || t("profileNotSet"));
+    if (ltr && value) val.setAttribute("dir", "ltr");
+    row.appendChild(val);
+    return row;
+  }
+
+  function renderProfilePage() {
+    var host = els.profileCard;
+    if (!host) return;
+    host.textContent = "";
+    var shownName = profile.name || (accountInfo && accountInfo.displayName) || "";
+
+    if (!profileEditing) {
+      var top = pEl("div", "me-top");
+      top.appendChild(profileAvatarNode(shownName));
+      var who = pEl("div", "me-who");
+      who.appendChild(pEl("h2", "me-name" + (shownName ? "" : " is-empty"), shownName || t("profileNoName")));
+      if (profile.subject) who.appendChild(pEl("p", "me-subject", profile.subject));
+      top.appendChild(who);
+      var editBtn = pEl("button", "me-edit-btn");
+      editBtn.type = "button";
+      var ic = pEl("span", "data-btn-icon");
+      ic.innerHTML = PROFILE_ICON_EDIT;
+      editBtn.append(ic, pEl("span", "", t("profileEdit")));
+      editBtn.addEventListener("click", function () {
+        profileEditing = true;
+        renderProfilePage();
+      });
+      top.appendChild(editBtn);
+      host.appendChild(top);
+
+      var rows = pEl("div", "me-rows");
+      rows.appendChild(profileRow(t("profilePhone"), profile.phone, true));
+      rows.appendChild(profileRow(t("profileSubject"), profile.subject, false));
+      if (accountInfo && accountInfo.email)
+        rows.appendChild(profileRow(t("profileEmail"), accountInfo.email, true));
+      host.appendChild(rows);
+      return;
+    }
+
+    var form = pEl("form", "me-form");
+    function field(labelText, value, type, max) {
+      var label = pEl("label", "me-field");
+      label.appendChild(pEl("span", "me-row-label", labelText));
+      var input = pEl("input", "me-input");
+      input.type = type;
+      input.value = value || "";
+      input.maxLength = max;
+      label.appendChild(input);
+      return { label: label, input: input };
+    }
+    var fName = field(t("profileName"), shownName, "text", 60);
+    var fPhone = field(t("profilePhone"), profile.phone, "tel", 30);
+    fPhone.input.setAttribute("dir", "ltr");
+    var fSubject = field(t("profileSubject"), profile.subject, "text", 60);
+    var actions = pEl("div", "me-form-actions");
+    var save = pEl("button", "me-save-btn", t("profileSave"));
+    save.type = "submit";
+    var cancel = pEl("button", "me-cancel-btn", t("profileCancel"));
+    cancel.type = "button";
+    cancel.addEventListener("click", function () {
+      profileEditing = false;
+      renderProfilePage();
+    });
+    actions.append(save, cancel);
+    form.append(fName.label, fPhone.label, fSubject.label, actions);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      setProfile({
+        name: fName.input.value,
+        phone: fPhone.input.value,
+        subject: fSubject.input.value,
+      });
+      profileEditing = false;
+      renderProfilePage();
+      showToast(t("profileSaved"), false, null, "info");
+    });
+    host.appendChild(form);
+    fName.input.focus();
   }
 
   /* ---------------- students rendering ---------------- */
@@ -3841,6 +3990,9 @@
   }
 
   /* ---------------- events ---------------- */
+  window.addEventListener("classledger:profile-applied", function () {
+    if (currentPage === "profile" && !profileEditing) renderProfilePage();
+  });
   document.querySelectorAll(".nav-target").forEach(function (btn) {
     btn.addEventListener("click", function () {
       switchPage(btn.dataset.page);
@@ -4173,6 +4325,10 @@
       return Object.assign({}, profile);
     },
     setProfile: setProfile,
+    setAccount: function (info) {
+      accountInfo = info || null;
+      if (currentPage === "profile" && !profileEditing) renderProfilePage();
+    },
     toast: showToast,
   };
 
