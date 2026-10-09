@@ -740,6 +740,45 @@
     } catch (e) {}
   }
 
+  /* ---------------- profile (account details) ---------------- */
+  var PROFILE_KEY = "classledger:profile";
+  var profile = { name: "", phone: "", subject: "" };
+
+  function cleanProfile(raw) {
+    raw = raw && typeof raw === "object" ? raw : {};
+    function field(value, max) {
+      return typeof value === "string" ? value.trim().slice(0, max) : "";
+    }
+    return {
+      name: field(raw.name, 60),
+      phone: field(raw.phone, 30),
+      subject: field(raw.subject, 60),
+    };
+  }
+  function loadProfile() {
+    try {
+      profile = cleanProfile(JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}"));
+    } catch (e) {
+      profile = cleanProfile(null);
+    }
+  }
+  // opts.silent: don't tell the cloud-sync module (used when the change came from the cloud)
+  function setProfile(next, opts) {
+    profile = cleanProfile(next);
+    try {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    } catch (e) {}
+    if (!(opts && opts.silent)) {
+      try {
+        window.dispatchEvent(new CustomEvent("classledger:profile-changed"));
+      } catch (e) {}
+    } else {
+      try {
+        window.dispatchEvent(new CustomEvent("classledger:profile-applied"));
+      } catch (e) {}
+    }
+  }
+
   /* ---------------- storage ---------------- */
   function loadStudents() {
     try {
@@ -1116,6 +1155,7 @@
         exportedAt: new Date().toISOString(),
         students: students,
         groups: groups,
+        profile: profile,
         lang: currentLang,
       };
       var blob = new Blob([JSON.stringify(backup, null, 2)], {
@@ -1332,6 +1372,8 @@
           failTitle: t("importFailTitle"),
           failText: t("importError"),
           apply: function () {
+            if (backup.profile && typeof backup.profile === "object")
+              setProfile(backup.profile);
             students = importedStudents;
             groups = importedGroups;
             activeGroup = "";
@@ -4127,11 +4169,16 @@
       return { students: students.slice(), groups: groups.slice() };
     },
     applyRemote: applyRemoteChanges,
+    getProfile: function () {
+      return Object.assign({}, profile);
+    },
+    setProfile: setProfile,
     toast: showToast,
   };
 
   /* ---------------- init ---------------- */
   loadLang();
+  loadProfile();
   loadStudents();
   loadGroups();
   applyStaticText();

@@ -3,6 +3,7 @@
    mirrors the data to the signed-in user's own space in Firebase:
      users/{uid}/students/{studentId}   one document per student
      users/{uid}/meta/groups            one document with all groups
+     users/{uid}/meta/profile           the teacher's own details (name, phone, subject)
    Loaded as <script type="module">. If the config is not filled in, or Firebase can't be
    reached, nothing here runs and the app behaves exactly as before. */
 import { stableStringify, diffStudents, mergeGroups } from "./sync-core.js";
@@ -35,6 +36,24 @@ var STR = {
     domainHint:
       "This website address isn't authorized yet. Add it in Firebase → Authentication → Settings → Authorized domains.",
     rulesHint: "The cloud refused access. Check the Firestore security rules.",
+    account: "My account",
+    acctTitle: "My account",
+    acctName: "Name",
+    acctPhone: "Phone",
+    acctSubject: "Subject / specialty",
+    acctEmail: "Signed in as",
+    acctSave: "Save",
+    acctSaved: "Your details were saved.",
+    close: "Close",
+    dangerTitle: "Delete account",
+    dangerText:
+      "This permanently deletes all your data from the cloud (students, groups, details) and closes your account. It cannot be undone. Tip: use “Export data” first to keep a backup file.",
+    eraseLocal: "Also erase the data stored on this device",
+    typeToConfirm: "Type DELETE to confirm",
+    deleteBtn: "Delete my account",
+    deleting: "Deleting…",
+    deleted: "Account deleted.",
+    deleteFail: "Couldn't delete the account.",
   },
   ar: {
     hint: "سجّل دخولك باش تحفظ بياناتك وتستعملها في أجهزتك الأخرى.",
@@ -53,6 +72,24 @@ var STR = {
     domainHint:
       "عنوان الموقع هذا موش مصرّح بيه. زيدو في Firebase ← Authentication ← Settings ← Authorized domains.",
     rulesHint: "السحابة رفضت الوصول. تثبّت من قواعد أمان Firestore.",
+    account: "حسابي",
+    acctTitle: "حسابي",
+    acctName: "الاسم",
+    acctPhone: "الهاتف",
+    acctSubject: "المادة / الاختصاص",
+    acctEmail: "مسجّل بحساب",
+    acctSave: "حفظ",
+    acctSaved: "تم حفظ معلوماتك.",
+    close: "إغلاق",
+    dangerTitle: "حذف الحساب",
+    dangerText:
+      "هذا يمسح بياناتك كلها من السحابة نهائياً (التلاميذ، المجموعات، المعلومات) ويغلق حسابك. ما ينجمش يتراجع. نصيحة: اعمل «إخراج البيانات» قبل باش تخزّن نسخة احتياطية.",
+    eraseLocal: "امسح كذلك البيانات المخزّنة في الجهاز هذا",
+    typeToConfirm: "اكتب DELETE للتأكيد",
+    deleteBtn: "حذف حسابي",
+    deleting: "جاري الحذف…",
+    deleted: "تم حذف الحساب.",
+    deleteFail: "ما نجمناش نحذفو الحساب.",
   },
 };
 
@@ -163,15 +200,161 @@ async function main() {
       img.src = user.photoURL;
       account.append(img);
     }
-    account.append(el("span", "cloud-email", user.email || user.displayName || ""));
+    var shownName = (app.getProfile && app.getProfile().name) || user.email || user.displayName || "";
+    account.append(el("span", "cloud-email", shownName));
     var status = currentStatus();
-    mount.append(
-      account,
-      el("span", "cloud-status is-" + status, t("status_" + status)),
+    var actions = el("div", "cloud-actions");
+    actions.append(
+      button(t("account"), ICON_USER, openAccountModal),
       button(t("signOut"), ICON_OUT, function () {
         sdk.signOut(auth);
       }),
     );
+    mount.append(account, el("span", "cloud-status is-" + status, t("status_" + status)), actions);
+  }
+
+  /* ---------------- account modal ---------------- */
+  function closeAccountModal() {
+    var overlay = document.getElementById("acctOverlay");
+    if (overlay) overlay.remove();
+    document.removeEventListener("keydown", onAcctKey);
+  }
+  function onAcctKey(e) {
+    if (e.key === "Escape") closeAccountModal();
+  }
+  function field(labelText, value, type, max) {
+    var wrap = el("label", "acct-field");
+    wrap.append(el("span", "acct-label", labelText));
+    var input = el("input", "acct-input");
+    input.type = type;
+    input.value = value || "";
+    input.maxLength = max;
+    wrap.append(input);
+    return { wrap: wrap, input: input };
+  }
+  function openAccountModal() {
+    if (!user || document.getElementById("acctOverlay")) return;
+    var p = app.getProfile();
+    var overlay = el("div", "acct-overlay");
+    overlay.id = "acctOverlay";
+    var modal = el("div", "acct-modal");
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", t("acctTitle"));
+
+    var head = el("div", "acct-head");
+    head.append(el("h2", "acct-title", t("acctTitle")));
+    var x = el("button", "acct-close", "×");
+    x.type = "button";
+    x.setAttribute("aria-label", t("close"));
+    x.addEventListener("click", closeAccountModal);
+    head.append(x);
+
+    var emailLine = el("p", "acct-email");
+    emailLine.append(el("span", "", t("acctEmail") + " "), el("strong", "", user.email || ""));
+
+    var fName = field(t("acctName"), p.name || user.displayName || "", "text", 60);
+    var fPhone = field(t("acctPhone"), p.phone, "tel", 30);
+    var fSubject = field(t("acctSubject"), p.subject, "text", 60);
+    var save = el("button", "acct-primary", t("acctSave"));
+    save.type = "button";
+    save.addEventListener("click", function () {
+      app.setProfile({
+        name: fName.input.value,
+        phone: fPhone.input.value,
+        subject: fSubject.input.value,
+      });
+      app.toast(t("acctSaved"), false, null, "info");
+      closeAccountModal();
+      render();
+    });
+
+    var danger = el("div", "acct-danger");
+    danger.append(el("h3", "acct-danger-title", t("dangerTitle")), el("p", "acct-danger-text", t("dangerText")));
+    var eraseWrap = el("label", "acct-check");
+    var erase = el("input");
+    erase.type = "checkbox";
+    eraseWrap.append(erase, el("span", "", t("eraseLocal")));
+    var confirmField = field(t("typeToConfirm"), "", "text", 10);
+    confirmField.input.autocomplete = "off";
+    confirmField.input.setAttribute("dir", "ltr");
+    var del = el("button", "acct-delete", t("deleteBtn"));
+    del.type = "button";
+    del.disabled = true;
+    confirmField.input.addEventListener("input", function () {
+      del.disabled = confirmField.input.value.trim() !== "DELETE";
+    });
+    del.addEventListener("click", function () {
+      deleteAccount(erase.checked, del);
+    });
+    danger.append(eraseWrap, confirmField.wrap, del);
+
+    modal.append(head, emailLine, fName.wrap, fPhone.wrap, fSubject.wrap, save, danger);
+    overlay.append(modal);
+    overlay.addEventListener("mousedown", function (e) {
+      if (e.target === overlay) closeAccountModal();
+    });
+    document.body.append(overlay);
+    document.addEventListener("keydown", onAcctKey);
+    fName.input.focus();
+  }
+
+  async function deleteAccount(eraseLocal, delBtn) {
+    var u = auth.currentUser;
+    if (!u) return;
+    var label = delBtn.textContent;
+    function restore() {
+      delBtn.disabled = false;
+      delBtn.textContent = label;
+    }
+    delBtn.disabled = true;
+    delBtn.textContent = t("deleting");
+    // deleting an account is a sensitive action: Google asks the person to sign in again
+    try {
+      await sdk.reauthenticateWithPopup(u, new sdk.GoogleAuthProvider());
+    } catch (err) {
+      restore();
+      var rc = err && err.code;
+      if (rc !== "auth/popup-closed-by-user" && rc !== "auth/cancelled-popup-request")
+        app.toast(t("deleteFail") + (rc ? " (" + rc + ")" : ""), true);
+      return;
+    }
+    var uid = u.uid;
+    stopSync(); // stop listening and pushing, otherwise the sync would re-upload what we delete
+    try {
+      var snap = await sdk.getDocs(sdk.collection(db, "users", uid, "students"));
+      var refs = snap.docs
+        .map(function (d) {
+          return d.ref;
+        })
+        .concat([sdk.doc(db, "users", uid, "meta", "groups"), sdk.doc(db, "users", uid, "meta", "profile")]);
+      for (var i = 0; i < refs.length; i += 400) {
+        var batch = sdk.writeBatch(db);
+        refs.slice(i, i + 400).forEach(function (ref) {
+          batch.delete(ref);
+        });
+        await batch.commit();
+      }
+      await sdk.deleteUser(u);
+    } catch (err2) {
+      restore();
+      var code = err2 && err2.code;
+      app.toast(t("deleteFail") + (code ? " (" + code + ")" : ""), true);
+      if (auth.currentUser) startSync(auth.currentUser); // nothing is lost: resume syncing
+      render();
+      return;
+    }
+    try {
+      window.localStorage.removeItem(UID_KEY);
+      window.localStorage.removeItem(idsKey(uid));
+    } catch (e) {}
+    if (eraseLocal) {
+      app.applyRemote({ replaceAll: true });
+      app.setProfile({}, { silent: true });
+    }
+    closeAccountModal();
+    app.toast(t("deleted"), false, null, "info");
+    render();
   }
 
   /* ---------------- auth ---------------- */
@@ -234,6 +417,8 @@ async function main() {
       uid: u.uid,
       studentsCol: sdk.collection(db, "users", u.uid, "students"),
       groupsRef: sdk.doc(db, "users", u.uid, "meta", "groups"),
+      profileRef: sdk.doc(db, "users", u.uid, "meta", "profile"),
+      lastProfile: null, // stable string of the profile last known in the cloud
       lastSynced: new Map(), // student id -> stable string last known in the cloud
       lastGroups: null, // stable string of the groups last known in the cloud
       previousIds: readIds(u.uid), // students this device had synced in an earlier visit
@@ -251,6 +436,7 @@ async function main() {
     current.unsubs.push(
       sdk.onSnapshot(current.studentsCol, { includeMetadataChanges: true }, onStudents, onSyncError),
       sdk.onSnapshot(current.groupsRef, { includeMetadataChanges: true }, onGroups, onSyncError),
+      sdk.onSnapshot(current.profileRef, { includeMetadataChanges: true }, onProfile, onSyncError),
     );
   }
 
@@ -340,6 +526,41 @@ async function main() {
     sync.error = null;
     render();
     schedulePush(0);
+  }
+
+  function hasProfile(p) {
+    return !!(p && (p.name || p.phone || p.subject));
+  }
+  function onProfile(snap) {
+    if (!sync) return;
+    if (snap.exists()) {
+      var data = snap.data();
+      var p = { name: data.name || "", phone: data.phone || "", subject: data.subject || "" };
+      var str = stableStringify(p);
+      if (str !== sync.lastProfile) {
+        sync.lastProfile = str; // also stops our own write from echoing back
+        app.setProfile(p, { silent: true });
+      }
+    } else if (!snap.metadata.fromCache) {
+      pushProfile(); // first sign-in: upload the details already typed on this device
+    }
+    render();
+  }
+  function pushProfile() {
+    var current = sync;
+    if (!current) return;
+    var p = app.getProfile();
+    var str = stableStringify(p);
+    if (str === current.lastProfile) return;
+    if (current.lastProfile === null && !hasProfile(p)) return;
+    current.lastProfile = str;
+    sdk
+      .setDoc(current.profileRef, Object.assign({}, p, { updatedAt: sdk.serverTimestamp() }))
+      .catch(function (err) {
+        if (sync !== current) return;
+        current.lastProfile = null;
+        onSyncError(err);
+      });
   }
 
   function onSyncError(err) {
@@ -435,6 +656,11 @@ async function main() {
     if (sync) sync.localDirty = true;
     schedulePush(PUSH_DELAY_MS);
   });
+  window.addEventListener("classledger:profile-changed", function () {
+    pushProfile();
+    render();
+  });
+  window.addEventListener("classledger:profile-applied", render);
   window.addEventListener("online", function () {
     render();
     schedulePush(0);
