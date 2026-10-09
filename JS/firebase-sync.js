@@ -3,7 +3,7 @@
    mirrors the data to the signed-in user's own space in Firebase:
      users/{uid}/students/{studentId}   one document per student
      users/{uid}/meta/groups            one document with all groups
-     users/{uid}/meta/profile           the teacher's own details (name, phone, subject)
+     users/{uid}/meta/profile           the teacher's own details (first name, last name, phone, subject)
    Loaded as <script type="module">. If the config is not filled in, or Firebase can't be
    reached, nothing here runs and the app behaves exactly as before. */
 import { stableStringify, diffStudents, mergeGroups } from "./sync-core.js";
@@ -182,6 +182,11 @@ async function main() {
     syncAccountInfo();
     mount.hidden = false;
     mount.textContent = "";
+    var mark = el("img", "cloud-watermark");
+    mark.src = "Images/logo-icon.svg";
+    mark.alt = "";
+    mark.setAttribute("aria-hidden", "true");
+    mount.append(mark);
     if (!user) {
       mount.append(el("p", "cloud-hint", t("hint")), button(t("signIn"), ICON_USER, signIn));
       return;
@@ -194,7 +199,9 @@ async function main() {
       img.src = user.photoURL;
       account.append(img);
     }
-    var shownName = app.getProfile().name || user.email || user.displayName || "";
+    var own = app.getProfile();
+    var shownName =
+      [own.firstName, own.lastName].filter(Boolean).join(" ") || user.displayName || user.email || "";
     account.append(el("span", "cloud-email", shownName));
     var status = currentStatus();
     var actions = el("div", "cloud-actions");
@@ -489,13 +496,13 @@ async function main() {
   }
 
   function hasProfile(p) {
-    return !!(p && (p.name || p.phone || p.subject));
+    return !!(p && (p.firstName || p.lastName || p.phone || p.subject));
   }
   function onProfile(snap) {
     if (!sync) return;
     if (snap.exists()) {
       var data = snap.data();
-      var p = { name: data.name || "", phone: data.phone || "", subject: data.subject || "" };
+      var p = app.normalizeProfile(data); // also understands the older single "name" field
       var str = stableStringify(p);
       if (str !== sync.lastProfile) {
         sync.lastProfile = str; // also stops our own write from echoing back

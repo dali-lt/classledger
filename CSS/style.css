@@ -337,6 +337,35 @@ body {
   background: var(--color-surface);
   text-align: center;
 }
+.cloud-sync {
+  position: relative;
+  overflow: hidden;
+}
+.cloud-sync > :not(.cloud-watermark) {
+  position: relative;
+  z-index: 1;
+}
+/* same cropped logo mark as the greeting box, but on the opposite side */
+.cloud-watermark {
+  position: absolute;
+  inset-inline-start: -14%;
+  top: 50%;
+  height: 260%;
+  width: auto;
+  transform: translateY(-50%);
+  object-fit: contain;
+  opacity: 0.35;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+@media (max-width: 720px) {
+  .cloud-watermark {
+    height: 200%;
+    inset-inline-start: -30%;
+    opacity: 0.28;
+  }
+}
 .cloud-sync[hidden] {
   display: none;
 }

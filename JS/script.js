@@ -235,7 +235,8 @@
       pageTitlePayments: "Payments",
       profileEdit: "Edit",
       profileSave: "Save",
-      profileName: "Name",
+      profileFirstName: "First name",
+      profileLastName: "Last name",
       profilePhone: "Phone",
       profileSubject: "Subject / specialty",
       profileEmail: "Email",
@@ -478,7 +479,8 @@
       pageTitlePayments: "المدفوعات",
       profileEdit: "تعديل",
       profileSave: "حفظ",
-      profileName: "الاسم",
+      profileFirstName: "الاسم",
+      profileLastName: "اللقب",
       profilePhone: "الهاتف",
       profileSubject: "المادة / الاختصاص",
       profileEmail: "الإيميل",
@@ -765,18 +767,38 @@
 
   /* ---------------- profile (account details) ---------------- */
   var PROFILE_KEY = "classledger:profile";
-  var profile = { name: "", phone: "", subject: "" };
+  var profile = { firstName: "", lastName: "", phone: "", subject: "" };
 
   function cleanProfile(raw) {
     raw = raw && typeof raw === "object" ? raw : {};
     function field(value, max) {
       return typeof value === "string" ? value.trim().slice(0, max) : "";
     }
+    var firstName = field(raw.firstName, 40);
+    var lastName = field(raw.lastName, 40);
+    if (!firstName && !lastName && typeof raw.name === "string") {
+      // older saves had a single "name" field: the last word is the family name
+      var split = splitFullName(raw.name);
+      firstName = split.firstName.slice(0, 40);
+      lastName = split.lastName.slice(0, 40);
+    }
     return {
-      name: field(raw.name, 60),
+      firstName: firstName,
+      lastName: lastName,
       phone: field(raw.phone, 30),
       subject: field(raw.subject, 60),
     };
+  }
+  function splitFullName(full) {
+    var words = String(full || "").trim().split(/\s+/).filter(Boolean);
+    if (words.length < 2) return { firstName: words[0] || "", lastName: "" };
+    return {
+      firstName: words.slice(0, -1).join(" "),
+      lastName: words[words.length - 1],
+    };
+  }
+  function profileFullName(p) {
+    return [p.firstName, p.lastName].filter(Boolean).join(" ");
   }
   function loadProfile() {
     try {
@@ -791,6 +813,7 @@
     try {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
     } catch (e) {}
+    if (typeof setHeaderDate === "function" && els.heroGreeting) setHeaderDate();
     if (!(opts && opts.silent)) {
       try {
         window.dispatchEvent(new CustomEvent("classledger:profile-changed"));
@@ -1500,12 +1523,22 @@
       year: "numeric",
     });
     var hour = now.getHours();
-    els.heroGreeting.textContent =
+    var greeting =
       hour < 12
         ? t("heroMorning")
         : hour < 18
           ? t("heroDay")
           : t("heroEvening");
+    // signed in: greet the account owner by first name; otherwise keep the generic greeting
+    var owner = accountInfo
+      ? profile.firstName || splitFullName(accountInfo.displayName).firstName
+      : "";
+    if (owner) {
+      var wave = " \u{1F44B}";
+      var base = greeting.replace(wave, "");
+      greeting = base + (currentLang === "ar" ? " " : ", ") + owner + wave;
+    }
+    els.heroGreeting.textContent = greeting;
   }
 
   /* ---------------- language ---------------- */
@@ -1681,7 +1714,12 @@
   }
 
   function renderProfileModal() {
-    var shownName = profile.name || (accountInfo && accountInfo.displayName) || "";
+    // the Google name is only a fallback until the teacher saves their own
+    var google = splitFullName(accountInfo && accountInfo.displayName);
+    var hasOwn = !!(profile.firstName || profile.lastName);
+    var shownFirst = hasOwn ? profile.firstName : google.firstName;
+    var shownLast = hasOwn ? profile.lastName : google.lastName;
+    var shownName = [shownFirst, shownLast].filter(Boolean).join(" ");
     els.profileModalTitle.textContent = shownName || t("profileNoName");
 
     // avatar: Google photo when signed in, otherwise the first letter / a person icon
@@ -1734,12 +1772,14 @@
       label.appendChild(input);
       return { label: label, input: input };
     }
-    var fName = field(t("profileName"), shownName, "text", 60);
+    var fFirst = field(t("profileFirstName"), shownFirst, "text", 40);
+    var fLast = field(t("profileLastName"), shownLast, "text", 40);
     var fPhone = field(t("profilePhone"), profile.phone, "tel", 30);
     fPhone.input.setAttribute("dir", "ltr");
     var fSubject = field(t("profileSubject"), profile.subject, "text", 60);
     form.append(
-      fName.label,
+      fFirst.label,
+      fLast.label,
       fPhone.label,
       fSubject.label,
       profileButton(t("profileSave"), PROFILE_ICON_CHECK, null, "submit"),
@@ -1747,7 +1787,8 @@
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       setProfile({
-        name: fName.input.value,
+        firstName: fFirst.input.value,
+        lastName: fLast.input.value,
         phone: fPhone.input.value,
         subject: fSubject.input.value,
       });
@@ -1756,7 +1797,7 @@
       showToast(t("profileSaved"), false, null, "info");
     });
     body.appendChild(form);
-    fName.input.focus();
+    fFirst.input.focus();
   }
 
   /* ---------------- students rendering ---------------- */
@@ -4332,10 +4373,12 @@
     getProfile: function () {
       return Object.assign({}, profile);
     },
+    normalizeProfile: cleanProfile,
     setProfile: setProfile,
     openProfile: openProfileModal,
     setAccount: function (info) {
       accountInfo = info || null;
+      setHeaderDate();
       if (profileModalIsOpen() && !profileEditing) renderProfileModal();
     },
     toast: showToast,
