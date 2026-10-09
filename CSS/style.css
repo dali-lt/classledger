@@ -3854,16 +3854,6 @@ html.modal-open {
   outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }
-.me-cancel-btn {
-  padding: 10px 18px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
 
 /* ---------- Delete account (inside the cloud block) ---------- */
 .cloud-actions {

@@ -235,7 +235,6 @@
       pageTitlePayments: "Payments",
       profileEdit: "Edit",
       profileSave: "Save",
-      profileCancel: "Cancel",
       profileName: "Name",
       profilePhone: "Phone",
       profileSubject: "Subject / specialty",
@@ -479,7 +478,6 @@
       pageTitlePayments: "المدفوعات",
       profileEdit: "تعديل",
       profileSave: "حفظ",
-      profileCancel: "إلغاء",
       profileName: "الاسم",
       profilePhone: "الهاتف",
       profileSubject: "المادة / الاختصاص",
@@ -1740,18 +1738,11 @@
     var fPhone = field(t("profilePhone"), profile.phone, "tel", 30);
     fPhone.input.setAttribute("dir", "ltr");
     var fSubject = field(t("profileSubject"), profile.subject, "text", 60);
-    var cancel = pEl("button", "me-cancel-btn", t("profileCancel"));
-    cancel.type = "button";
-    cancel.addEventListener("click", function () {
-      profileEditing = false;
-      renderProfileModal();
-    });
     form.append(
       fName.label,
       fPhone.label,
       fSubject.label,
       profileButton(t("profileSave"), PROFILE_ICON_CHECK, null, "submit"),
-      cancel,
     );
     form.addEventListener("submit", function (e) {
       e.preventDefault();
