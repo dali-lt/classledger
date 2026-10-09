@@ -3778,84 +3778,24 @@ html.modal-open {
   }
 }
 
-/* ---------- Profile page ---------- */
-.me-card {
-  max-width: 640px;
-  margin: 0 auto 18px;
-  padding: 22px;
-  border: 1px solid var(--color-border);
-  border-radius: 20px;
-  background: var(--color-surface);
-}
-.me-top {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.me-avatar {
-  width: 72px;
-  height: 72px;
-  flex-shrink: 0;
+/* ---------- Teacher profile modal (My account) ---------- */
+.profile-avatar .me-initial {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border-radius: 50%;
   background: var(--color-light-blue);
   color: var(--color-primary);
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
 }
-.me-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.me-avatar svg {
-  width: 36px;
-  height: 36px;
-}
-.me-who {
-  flex: 1;
-  min-width: 140px;
-}
-.me-name {
-  margin: 0;
-  font-size: 20px;
-  overflow-wrap: anywhere;
-}
-.me-name.is-empty {
-  color: var(--color-text-muted);
-  font-weight: 600;
-}
-.me-subject {
-  margin: 4px 0 0;
-  font-size: 13.5px;
-  color: var(--color-text-muted);
-}
-.me-edit-btn {
-  flex-shrink: 0;
-  margin-inline-start: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px 8px 8px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.me-edit-btn:hover {
-  background: var(--color-sunken);
+.profile-avatar .me-initial svg {
+  width: 38px;
+  height: 38px;
 }
 .me-rows {
   display: flex;
   flex-direction: column;
-  margin-top: 18px;
+  margin-top: 16px;
   border-top: 1px solid var(--color-border);
 }
 .me-row {
@@ -3868,9 +3808,9 @@ html.modal-open {
 }
 .me-row:last-child {
   border-bottom: 0;
-  padding-bottom: 0;
 }
 .me-row-label {
+  flex-shrink: 0;
   font-size: 12.5px;
   font-weight: 700;
   color: var(--color-text-muted);
@@ -3888,6 +3828,10 @@ html.modal-open {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-top: 14px;
+}
+.me-form .profile-edit-btn {
+  margin-top: 6px;
 }
 .me-field {
   display: flex;
@@ -3910,47 +3854,37 @@ html.modal-open {
   outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }
-.me-form-actions {
-  display: flex;
-  gap: 10px;
-}
-.me-save-btn,
 .me-cancel-btn {
   padding: 10px 18px;
-  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
 }
-.me-save-btn {
-  border: 0;
-  background: var(--color-primary);
-  color: #fff;
-}
-.me-cancel-btn {
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text);
-}
 
-/* ---------- Account section (profile page) ---------- */
-.account-card {
+/* ---------- Delete account (inside the cloud block) ---------- */
+.cloud-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 14px;
-}
-.account-title {
-  margin: 0;
-  font-size: 15px;
-}
-.account-info {
-  display: flex;
-  align-items: center;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
-  min-width: 0;
-  max-width: 100%;
+}
+.acct-details {
+  width: 100%;
+  text-align: start;
+}
+.acct-summary {
+  cursor: pointer;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+.acct-details[open] .acct-summary {
+  margin-bottom: 10px;
 }
 .acct-field {
   display: flex;
@@ -3967,16 +3901,9 @@ html.modal-open {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 100%;
-  margin-top: 6px;
   padding: 14px;
   border: 1px solid var(--color-danger);
   border-radius: 14px;
-}
-.acct-danger-title {
-  margin: 0;
-  font-size: 14px;
-  color: var(--color-danger);
 }
 .acct-danger-text {
   margin: 0;

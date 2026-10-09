@@ -36,8 +36,8 @@ var STR = {
     domainHint:
       "This website address isn't authorized yet. Add it in Firebase → Authentication → Settings → Authorized domains.",
     rulesHint: "The cloud refused access. Check the Firestore security rules.",
-    acctTitle: "Account",
-    dangerTitle: "Delete account",
+    account: "My account",
+        dangerTitle: "Delete account",
     dangerText:
       "This permanently deletes all your data from the cloud (students, groups, details) and closes your account. It cannot be undone. Tip: use “Export data” first to keep a backup file.",
     eraseLocal: "Also erase the data stored on this device",
@@ -64,8 +64,8 @@ var STR = {
     domainHint:
       "عنوان الموقع هذا موش مصرّح بيه. زيدو في Firebase ← Authentication ← Settings ← Authorized domains.",
     rulesHint: "السحابة رفضت الوصول. تثبّت من قواعد أمان Firestore.",
-    acctTitle: "الحساب",
-    dangerTitle: "حذف الحساب",
+    account: "حسابي",
+        dangerTitle: "حذف الحساب",
     dangerText:
       "هذا يمسح بياناتك كلها من السحابة نهائياً (التلاميذ، المجموعات، المعلومات) ويغلق حسابك. ما ينجمش يتراجع. نصيحة: اعمل «إخراج البيانات» قبل باش تخزّن نسخة احتياطية.",
     eraseLocal: "امسح كذلك البيانات المخزّنة في الجهاز هذا",
@@ -180,7 +180,6 @@ async function main() {
   function render() {
     if (!authReady) return;
     syncAccountInfo();
-    renderAccountSection();
     mount.hidden = false;
     mount.textContent = "";
     if (!user) {
@@ -198,47 +197,34 @@ async function main() {
     var shownName = app.getProfile().name || user.email || user.displayName || "";
     account.append(el("span", "cloud-email", shownName));
     var status = currentStatus();
+    var actions = el("div", "cloud-actions");
+    actions.append(
+      button(t("account"), ICON_USER, function () {
+        app.openProfile();
+      }),
+      button(t("signOut"), ICON_OUT, function () {
+        sdk.signOut(auth);
+      }),
+    );
     mount.append(
       account,
       el("span", "cloud-status is-" + status, t("status_" + status)),
-      button(t("signOut"), ICON_OUT, function () {
-        sdk.signOut(auth);
-      }),
+      actions,
+      buildDeleteSection(),
     );
   }
 
-  /* ---------------- account section (on the Profile page) ---------------- */
-  var acctUi = { erase: false, text: "" }; // survives re-renders caused by sync status changes
-  function renderAccountSection() {
-    var host = document.getElementById("profileAccount");
-    if (!host) return;
-    host.textContent = "";
-    if (!authReady || !user) return;
-    var card = el("section", "me-card account-card");
-    card.append(el("h3", "account-title", t("acctTitle")));
-    var info = el("div", "account-info");
-    if (user.photoURL) {
-      var img = el("img", "cloud-avatar");
-      img.alt = "";
-      img.referrerPolicy = "no-referrer";
-      img.src = user.photoURL;
-      info.append(img);
-    }
-    info.append(el("span", "cloud-email", user.email || ""));
-    var status = currentStatus();
-    info.append(el("span", "cloud-status is-" + status, t("status_" + status)));
-    card.append(info);
-    card.append(
-      button(t("signOut"), ICON_OUT, function () {
-        sdk.signOut(auth);
-      }),
-    );
-
+  /* ---------------- delete account (collapsed section in the cloud block) ---------------- */
+  var acctUi = { open: false, erase: false, text: "" }; // survives re-renders caused by sync status changes
+  function buildDeleteSection() {
+    var details = el("details", "acct-details");
+    details.open = acctUi.open;
+    details.addEventListener("toggle", function () {
+      acctUi.open = details.open;
+    });
+    details.append(el("summary", "acct-summary", t("dangerTitle")));
     var danger = el("div", "acct-danger");
-    danger.append(
-      el("h3", "acct-danger-title", t("dangerTitle")),
-      el("p", "acct-danger-text", t("dangerText")),
-    );
+    danger.append(el("p", "acct-danger-text", t("dangerText")));
     var eraseWrap = el("label", "acct-check");
     var erase = el("input");
     erase.type = "checkbox";
@@ -267,8 +253,8 @@ async function main() {
       deleteAccount(erase.checked, del);
     });
     danger.append(eraseWrap, confirmWrap, del);
-    card.append(danger);
-    host.append(card);
+    details.append(danger);
+    return details;
   }
 
   async function deleteAccount(eraseLocal, delBtn) {
@@ -324,6 +310,7 @@ async function main() {
       app.applyRemote({ replaceAll: true });
       app.setProfile({}, { silent: true });
     }
+    acctUi.open = false;
     acctUi.erase = false;
     acctUi.text = "";
     app.toast(t("deleted"), false, null, "info");

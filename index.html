@@ -84,24 +84,6 @@
               />
             </svg>
           </button>
-          <button
-            class="nav-target rail-btn"
-            data-page="profile"
-            type="button"
-            title="Profile"
-            id="railProfileBtn"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-            >
-              <circle cx="12" cy="12" r="9" />
-<circle cx="12" cy="10" r="3" />
-<path d="M6.3 18.3c1.3-2.2 3.3-3.3 5.7-3.3s4.4 1.1 5.7 3.3" />
-            </svg>
-          </button>
         </nav>
       </aside>
       <button
@@ -177,19 +159,6 @@
                 />
               </svg>
               <span id="pillPaymentsLabel"></span>
-            </button>
-            <button class="nav-target pill" data-page="profile" type="button">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-              >
-                <circle cx="12" cy="12" r="9" />
-<circle cx="12" cy="10" r="3" />
-<path d="M6.3 18.3c1.3-2.2 3.3-3.3 5.7-3.3s4.4 1.1 5.7 3.3" />
-              </svg>
-              <span id="pillProfileLabel"></span>
             </button>
           </div>
           <div class="lang-switch" id="langSwitch">
@@ -458,10 +427,6 @@
               ></div>
             </section>
           </section>
-          <section class="page" id="page-profile">
-            <div class="me-card" id="profileCard"></div>
-            <div id="profileAccount"></div>
-          </section>
         </main>
         <div class="data-reset-area">
           <div class="cloud-sync" id="cloudSync" hidden></div>
@@ -656,6 +621,37 @@
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Teacher profile modal (My account) ============ -->
+    <div class="modal-overlay" id="profileModalOverlay">
+      <div
+        class="modal profile-modal modal-fixed"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profileModalTitle"
+      >
+        <button type="button" class="profile-close" id="profileModalClose">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+        <div class="modal-scroll profile-scroll">
+          <div class="profile-banner"></div>
+          <div class="profile-avatar" id="profileModalAvatar"></div>
+          <div class="profile-body">
+            <h2 class="profile-name" id="profileModalTitle"></h2>
+            <div id="profileModalBody"></div>
+          </div>
         </div>
       </div>
     </div>
