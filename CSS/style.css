@@ -610,8 +610,8 @@ body {
 }
 .month-end-event:hover,
 .month-end-event:focus-visible {
-  border-color: var(--color-primary);
-  background: var(--color-sunken);
+  border-color: rgba(224, 71, 62, 0.35);
+  background: rgba(224, 71, 62, 0.06);
 }
 .month-end-event-date {
   font-size: 13px;
@@ -626,6 +626,36 @@ body {
 }
 .month-end-modal {
   position: relative;
+  border: 1px solid rgba(224, 71, 62, 0.28);
+  border-radius: 20px;
+  box-shadow:
+    0 22px 56px rgba(1, 9, 45, 0.18),
+    0 0 0 7px rgba(224, 71, 62, 0.08);
+}
+.month-end-modal h2 {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--color-danger);
+  font-size: 18px;
+}
+.month-end-modal h2::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgba(224, 71, 62, 0.12);
+  color: var(--color-danger);
+  font-size: 18px;
+  font-weight: 900;
+}
+.month-end-modal .modal-x:hover {
+  background: #fdeeed;
+  color: var(--color-danger);
 }
 .toast-icon {
   width: 32px;
@@ -3896,15 +3926,18 @@ html.modal-open {
 .month-end-modal::after {
   content: "";
   position: absolute;
-  inset-block: 0;
-  inset-inline-end: -14%;
-  width: 62%;
-  background: var(--brand-lime);
-  opacity: 0.35;
-  -webkit-mask: url("../Images/logo-icon.svg") center / auto 230% no-repeat;
-  mask: url("../Images/logo-icon.svg") center / auto 230% no-repeat;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-danger);
+  opacity: 0.11;
+  -webkit-mask: url("../Images/logo-icon.svg") right -40px center / auto 200% no-repeat;
+  mask: url("../Images/logo-icon.svg") right -40px center / auto 200% no-repeat;
   pointer-events: none;
   z-index: 0;
+}
+html[dir="rtl"] .month-end-modal::after {
+  -webkit-mask-position: left -40px center;
+  mask-position: left -40px center;
 }
 .month-end-modal .modal-scroll {
   position: relative;
