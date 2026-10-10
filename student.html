@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>ClassLedger</title>
+    <link rel="icon" type="image/svg+xml" href="Images/logo-icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="CSS/style.css" />
+    <link rel="stylesheet" href="CSS/welcome.css" />
+  </head>
+  <body class="student-body">
+    <div class="student-wrap" id="studentApp" hidden>
+      <header class="student-top">
+        <img
+          class="welcome-logo"
+          src="Images/logo-wordmark.svg"
+          alt="ClassLedger"
+        />
+        <div class="student-top-right">
+          <div class="lang-switch" id="langSwitch">
+            <button type="button" class="lang-btn" data-lang="en">EN</button>
+            <button type="button" class="lang-btn" data-lang="ar">AR</button>
+          </div>
+          <div class="student-user" id="sUser"></div>
+          <button type="button" class="student-out" id="sSignOut"></button>
+        </div>
+      </header>
+
+      <section class="student-hero">
+        <img
+          class="hero-watermark"
+          src="Images/logo-icon.svg"
+          alt=""
+          aria-hidden="true"
+        />
+        <h1 id="sGreeting"></h1>
+        <p id="sSub"></p>
+      </section>
+
+      <section class="student-section">
+        <h2 id="sChaptersTitle"></h2>
+        <div class="student-chapters" id="sChapters"></div>
+      </section>
+    </div>
+
+    <script src="JS/firebase-config.js"></script>
+    <script type="module" src="JS/student.js"></script>
+  </body>
+</html>
