@@ -21,6 +21,9 @@ var STR = {
   en: {
     hint: "Sign in to back up your data and use it on your other devices.",
     signIn: "Sign in with Google",
+    createAccount: "Create account",
+    accountCreated: "Account created. Your details were saved.",
+    accountExists: "This Google account already exists, so you're signed in with its saved details.",
     signOut: "Sign out",
     status_syncing: "Syncing…",
     status_synced: "Saved to the cloud",
@@ -50,6 +53,9 @@ var STR = {
   ar: {
     hint: "سجّل دخولك باش تحفظ بياناتك وتستعملها في أجهزتك الأخرى.",
     signIn: "الدخول بحساب Google",
+    createAccount: "إنشاء حساب",
+    accountCreated: "تم إنشاء الحساب وحفظ معلوماتك.",
+    accountExists: "حساب Google هذا موجود من قبل، فدخلت بمعلوماتو المحفوظة.",
     signOut: "تسجيل الخروج",
     status_syncing: "جاري المزامنة…",
     status_synced: "محفوظ في السحابة",
@@ -196,7 +202,22 @@ async function main() {
     mark.setAttribute("aria-hidden", "true");
     mount.append(mark);
     if (!user) {
-      mount.append(el("p", "cloud-hint", t("hint")), button(t("signIn"), ICON_USER, signIn));
+      var row = el("div", "cloud-actions");
+      row.append(
+        button(t("signIn"), ICON_USER, function () {
+          signIn(false);
+        }),
+        button(t("createAccount"), ICON_USER, function () {
+          // details first (own form), then Google creates the account with them
+          app.openProfile({
+            create: true,
+            onSubmit: function () {
+              signIn(true);
+            },
+          });
+        }),
+      );
+      mount.append(el("p", "cloud-hint", t("hint")), row);
       return;
     }
     var account = el("div", "cloud-account");
@@ -333,11 +354,23 @@ async function main() {
   }
 
   /* ---------------- auth ---------------- */
-  async function signIn() {
+  var pendingCreate = null; // details typed in the "Create account" form, kept through an account switch
+  async function signIn(creating) {
     var provider = new sdk.GoogleAuthProvider();
+    pendingCreate = creating ? app.getProfile() : null;
     try {
-      await sdk.signInWithPopup(auth, provider);
-      app.toast(t("signedIn"), false, null, "info");
+      var result = await sdk.signInWithPopup(auth, provider);
+      var isNew = false;
+      try {
+        var extra = sdk.getAdditionalUserInfo && sdk.getAdditionalUserInfo(result);
+        isNew = !!(extra && extra.isNewUser);
+      } catch (e) {}
+      app.toast(
+        creating ? (isNew ? t("accountCreated") : t("accountExists")) : t("signedIn"),
+        false,
+        null,
+        "info",
+      );
     } catch (err) {
       var code = err && err.code;
       if (
@@ -346,13 +379,17 @@ async function main() {
       ) {
         try {
           await sdk.signInWithRedirect(auth, provider);
+          pendingCreate = null;
           return;
         } catch (err2) {
           err = err2;
           code = err2 && err2.code;
         }
       }
-      if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return;
+      if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+        pendingCreate = null;
+        return;
+      }
       app.toast(
         code === "auth/unauthorized-domain"
           ? t("domainHint")
@@ -360,6 +397,7 @@ async function main() {
         true,
       );
     }
+    pendingCreate = null;
   }
 
   function stopSync() {
@@ -385,7 +423,7 @@ async function main() {
         return;
       }
       app.applyRemote({ replaceAll: true });
-      app.setProfile({}, { silent: true, forget: true }); // the old account's personal details stay out of this one
+      app.setProfile(pendingCreate || {}, { silent: true, forget: !pendingCreate }); // the old account's details stay out; the ones just typed stay in
     }
     window.localStorage.setItem(UID_KEY, u.uid);
     user = u;

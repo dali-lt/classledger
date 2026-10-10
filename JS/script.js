@@ -249,6 +249,9 @@
       profileNotSet: "Not set",
       profileSaved: "Your profile was saved.",
       profileSyncing: "Loading your details from the cloud…",
+      createTitle: "Create your account",
+      createIntro: "Fill in your details, then continue with Google. Your account is created with them.",
+      createContinue: "Continue with Google",
       kpiMonthlyIncome: "Monthly income",
       kpiPaidAmount: "Paid amount",
       kpiUnpaidAmount: "Unpaid amount",
@@ -499,6 +502,9 @@
       profileNotSet: "موش محدد",
       profileSaved: "تم حفظ البروفايل.",
       profileSyncing: "جاري تحميل معلوماتك من السحابة…",
+      createTitle: "إنشاء حساب",
+      createIntro: "عمّر معلوماتك ثم كمّل بحساب Google. يتكوّن حسابك بيهم.",
+      createContinue: "المتابعة بحساب Google",
       kpiMonthlyIncome: "الدخل الشهري",
       kpiPaidAmount: "المبلغ المدفوع",
       kpiUnpaidAmount: "المتبقي غير المدفوع",
@@ -1740,14 +1746,18 @@
   function profileModalIsOpen() {
     return els.profileModalOverlay.classList.contains("open");
   }
-  function openProfileModal() {
-    profileEditing = false;
+  // opts.create: the "Create account" form (details first, then Google); opts.onSubmit runs after it
+  var profileCreate = null;
+  function openProfileModal(opts) {
+    profileCreate = opts && opts.create ? { onSubmit: opts.onSubmit } : null;
+    profileEditing = !!profileCreate;
     renderProfileModal();
     els.profileModalOverlay.classList.add("open");
   }
   function closeProfileModal() {
     els.profileModalOverlay.classList.remove("open");
     profileEditing = false;
+    profileCreate = null;
   }
   function profileRow(label, value, ltr) {
     var row = pEl("div", "me-row");
@@ -1770,16 +1780,17 @@
 
   function renderProfileModal() {
     // the Google name is only a fallback until the teacher saves their own
-    var google = splitFullName(accountInfo && accountInfo.displayName);
+    var creating = !!profileCreate;
+    var google = creating ? { firstName: "", lastName: "" } : splitFullName(accountInfo && accountInfo.displayName);
     var hasOwn = !!(profile.firstName || profile.lastName);
     var shownFirst = hasOwn ? profile.firstName : google.firstName;
     var shownLast = hasOwn ? profile.lastName : google.lastName;
     var shownName = [shownFirst, shownLast].filter(Boolean).join(" ");
-    els.profileModalTitle.textContent = shownName || t("profileNoName");
+    els.profileModalTitle.textContent = creating ? t("createTitle") : shownName || t("profileNoName");
 
     // avatar: Google photo when signed in, otherwise the first letter / a person icon
     els.profileModalAvatar.textContent = "";
-    if (accountInfo && accountInfo.photoURL) {
+    if (!creating && accountInfo && accountInfo.photoURL) {
       var img = pEl("img", "avatar");
       img.alt = "";
       img.referrerPolicy = "no-referrer";
@@ -1787,7 +1798,7 @@
       els.profileModalAvatar.appendChild(img);
     } else {
       var initial = pEl("div", "avatar me-initial");
-      if (shownName) initial.textContent = shownName.trim().charAt(0).toUpperCase();
+      if (shownName && !creating) initial.textContent = shownName.trim().charAt(0).toUpperCase();
       else initial.innerHTML = PROFILE_ICON_USER; // static, trusted SVG
       els.profileModalAvatar.appendChild(initial);
     }
@@ -1831,6 +1842,7 @@
     }
 
     var form = pEl("form", "me-form");
+    if (creating) form.appendChild(pEl("p", "me-hint me-intro", t("createIntro")));
     function field(labelText, value, type, max) {
       var label = pEl("label", "me-field");
       label.appendChild(pEl("span", "me-row-label", labelText));
@@ -1857,6 +1869,10 @@
     });
     genderSelect.value = profile.gender;
     genderLabel.appendChild(genderSelect);
+    if (creating) {
+      fFirst.input.required = true;
+      fLast.input.required = true;
+    }
     var fPhone = field(t("profilePhone"), profile.phone, "tel", 30);
     fPhone.input.setAttribute("dir", "ltr");
     var fSubject = field(t("profileSubject"), profile.subject, "text", 60);
@@ -1866,7 +1882,9 @@
       genderLabel,
       fPhone.label,
       fSubject.label,
-      profileButton(t("profileSave"), PROFILE_ICON_CHECK, null, "submit"),
+      creating
+        ? profileButton(t("createContinue"), PROFILE_ICON_USER, null, "submit")
+        : profileButton(t("profileSave"), PROFILE_ICON_CHECK, null, "submit"),
     );
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -1877,6 +1895,13 @@
         phone: fPhone.input.value,
         subject: fSubject.input.value,
       }, { forget: true }); // saving an empty form is a deliberate choice
+      if (creating) {
+        // details are kept on this device first; Google sign-in then creates the account with them
+        var next = profileCreate.onSubmit;
+        closeProfileModal();
+        if (next) next();
+        return;
+      }
       profileEditing = false;
       renderProfileModal();
       showToast(t("profileSaved"), false, null, "info");
