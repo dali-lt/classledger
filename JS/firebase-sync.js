@@ -691,17 +691,22 @@ async function main() {
     });
   }
 
+  var wasSignedIn = false;
   sdk.onAuthStateChanged(auth, async function (u) {
     if (u) {
+      wasSignedIn = true;
       var role = null;
       try {
         var snap = await sdk.getDoc(sdk.doc(db, "users", u.uid, "meta", "account"));
         role = snap.exists() ? snap.data().role : null;
       } catch (e) {}
       if (role === "student") {
-        window.location.replace("student.html");
+        window.location.replace("student");
         return;
       }
+    } else if (wasSignedIn) {
+      window.location.replace("./");
+      return;
     }
     authReady = true;
     if (u) startSync(u);

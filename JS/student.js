@@ -122,7 +122,7 @@ async function main() {
       return;
     }
     if (role === "teacher") {
-      window.location.replace("teach");
+      window.location.replace("teacher");
       return;
     }
     if (role !== "student") {
