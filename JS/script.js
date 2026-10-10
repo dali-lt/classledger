@@ -248,6 +248,7 @@
       profileNoName: "Add your name",
       profileNotSet: "Not set",
       profileSaved: "Your profile was saved.",
+      profileSyncing: "Loading your details from the cloud…",
       kpiMonthlyIncome: "Monthly income",
       kpiPaidAmount: "Paid amount",
       kpiUnpaidAmount: "Unpaid amount",
@@ -497,6 +498,7 @@
       profileNoName: "زيد اسمك",
       profileNotSet: "موش محدد",
       profileSaved: "تم حفظ البروفايل.",
+      profileSyncing: "جاري تحميل معلوماتك من السحابة…",
       kpiMonthlyIncome: "الدخل الشهري",
       kpiPaidAmount: "المبلغ المدفوع",
       kpiUnpaidAmount: "المتبقي غير المدفوع",
@@ -811,21 +813,58 @@
   function profileFullName(p) {
     return [p.firstName, p.lastName].filter(Boolean).join(" ");
   }
+  // A copy of the last filled-in profile, kept on this device. The personal details can never be
+  // blanked by accident (an empty copy arriving from the cloud, an empty import...): the copy is
+  // put back. Only the person saving an empty form, or leaving the account, clears it.
+  var PROFILE_BACKUP_KEY = "classledger:profile-backup";
+  function profileHasContent(p) {
+    return !!(p && (p.firstName || p.lastName || p.gender || p.phone || p.subject));
+  }
+  function readProfileBackup() {
+    try {
+      var saved = cleanProfile(JSON.parse(localStorage.getItem(PROFILE_BACKUP_KEY) || "null"));
+      return profileHasContent(saved) ? saved : null;
+    } catch (e) {
+      return null;
+    }
+  }
   function loadProfile() {
     try {
       profile = cleanProfile(JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}"));
     } catch (e) {
       profile = cleanProfile(null);
     }
+    if (!profileHasContent(profile)) {
+      var saved = readProfileBackup();
+      if (saved) {
+        profile = saved;
+        try {
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+        } catch (e) {}
+      }
+    }
   }
-  // opts.silent: don't tell the cloud-sync module (used when the change came from the cloud)
+  // opts.silent: the change came from the cloud, don't send it back
+  // opts.forget: really empty it (saving an empty form, switching or leaving the account)
   function setProfile(next, opts) {
+    opts = opts || {};
     profile = cleanProfile(next);
     try {
+      if (profileHasContent(profile)) {
+        localStorage.setItem(PROFILE_BACKUP_KEY, JSON.stringify(profile));
+      } else if (opts.forget) {
+        localStorage.removeItem(PROFILE_BACKUP_KEY);
+      } else {
+        var saved = readProfileBackup();
+        if (saved) {
+          profile = saved; // an accidental blank: keep the details and let the cloud get them back
+          opts = { silent: false };
+        }
+      }
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
     } catch (e) {}
     if (typeof setHeaderDate === "function" && els.heroGreeting) setHeaderDate();
-    if (!(opts && opts.silent)) {
+    if (!opts.silent) {
       try {
         window.dispatchEvent(new CustomEvent("classledger:profile-changed"));
       } catch (e) {}
@@ -1429,8 +1468,12 @@
           failTitle: t("importFailTitle"),
           failText: t("importError"),
           apply: function () {
-            if (backup.profile && typeof backup.profile === "object")
-              setProfile(backup.profile);
+            if (
+              backup.profile &&
+              typeof backup.profile === "object" &&
+              profileHasContent(cleanProfile(backup.profile))
+            )
+              setProfile(backup.profile); // an empty profile in the file never wipes the current one
             students = importedStudents;
             groups = importedGroups;
             activeGroup = "";
@@ -1772,12 +1815,18 @@
       if (accountInfo && accountInfo.email)
         rows.appendChild(profileRow(t("profileEmail"), accountInfo.email, true));
       body.appendChild(rows);
-      body.appendChild(
-        profileButton(t("profileEdit"), PROFILE_ICON_EDIT, function () {
-          profileEditing = true;
-          renderProfileModal();
-        }),
-      );
+      var editBtn = profileButton(t("profileEdit"), PROFILE_ICON_EDIT, function () {
+        profileEditing = true;
+        renderProfileModal();
+      });
+      if (accountInfo && accountInfo.profileReady === false) {
+        // wait for the cloud copy so a stale one can't be saved over it
+        editBtn.disabled = true;
+        body.appendChild(editBtn);
+        body.appendChild(pEl("p", "me-hint", t("profileSyncing")));
+      } else {
+        body.appendChild(editBtn);
+      }
       return;
     }
 
@@ -1827,7 +1876,7 @@
         gender: genderSelect.value,
         phone: fPhone.input.value,
         subject: fSubject.input.value,
-      });
+      }, { forget: true }); // saving an empty form is a deliberate choice
       profileEditing = false;
       renderProfileModal();
       showToast(t("profileSaved"), false, null, "info");

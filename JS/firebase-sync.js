@@ -171,7 +171,15 @@ async function main() {
   var lastAccountKey = "";
   function syncAccountInfo() {
     // tells the Profile page who is signed in (photo, email)
-    var info = user ? { email: user.email || "", photoURL: user.photoURL || "", displayName: user.displayName || "" } : null;
+    // profileReady: the cloud's copy of the details has arrived, so editing can't overwrite it with a stale one
+    var info = user
+      ? {
+          email: user.email || "",
+          photoURL: user.photoURL || "",
+          displayName: user.displayName || "",
+          profileReady: !!(sync && sync.profileReconciled) || !window.navigator.onLine,
+        }
+      : null;
     var key = JSON.stringify(info);
     if (key === lastAccountKey) return;
     lastAccountKey = key;
@@ -315,7 +323,7 @@ async function main() {
     } catch (e) {}
     if (eraseLocal) {
       app.applyRemote({ replaceAll: true });
-      app.setProfile({}, { silent: true });
+      app.setProfile({}, { silent: true, forget: true });
     }
     acctUi.open = false;
     acctUi.erase = false;
@@ -377,6 +385,7 @@ async function main() {
         return;
       }
       app.applyRemote({ replaceAll: true });
+      app.setProfile({}, { silent: true, forget: true }); // the old account's personal details stay out of this one
     }
     window.localStorage.setItem(UID_KEY, u.uid);
     user = u;
@@ -386,6 +395,7 @@ async function main() {
       groupsRef: sdk.doc(db, "users", u.uid, "meta", "groups"),
       profileRef: sdk.doc(db, "users", u.uid, "meta", "profile"),
       lastProfile: null, // stable string of the profile last known in the cloud
+      profileReconciled: false, // the server has answered for the profile
       lastSynced: new Map(), // student id -> stable string last known in the cloud
       lastGroups: null, // stable string of the groups last known in the cloud
       previousIds: readIds(u.uid), // students this device had synced in an earlier visit
@@ -500,6 +510,7 @@ async function main() {
   }
   function onProfile(snap) {
     if (!sync) return;
+    if (!snap.metadata.fromCache) sync.profileReconciled = true;
     if (snap.exists()) {
       var data = snap.data();
       var p = app.normalizeProfile(data); // also understands the older single "name" field
@@ -520,6 +531,8 @@ async function main() {
     var str = stableStringify(p);
     if (str === current.lastProfile) return;
     if (current.lastProfile === null && !hasProfile(p)) return;
+    // online: never write before the cloud's copy has been read (a stale copy must not replace it)
+    if (window.navigator.onLine && !current.profileReconciled) return;
     current.lastProfile = str;
     sdk
       .setDoc(current.profileRef, Object.assign({}, p, { updatedAt: sdk.serverTimestamp() }))
