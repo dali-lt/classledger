@@ -235,8 +235,13 @@
       pageTitlePayments: "Payments",
       profileEdit: "Edit",
       profileSave: "Save",
+      netOfflineTitle: "No internet connection",
+      netOfflineText: "Your data is safe on this device and will sync when you're back online.",
+      netOnlineTitle: "Back online",
+      netOnlineText: "The connection is restored.",
       profileFirstName: "First name",
       profileLastName: "Last name",
+      profileGender: "Gender",
       profilePhone: "Phone",
       profileSubject: "Subject / specialty",
       profileEmail: "Email",
@@ -479,8 +484,13 @@
       pageTitlePayments: "المدفوعات",
       profileEdit: "تعديل",
       profileSave: "حفظ",
+      netOfflineTitle: "ما فماش إنترنت",
+      netOfflineText: "بياناتك محفوظة في الجهاز وتتزامن كي ترجع الشبكة.",
+      netOnlineTitle: "رجع الإنترنت",
+      netOnlineText: "الاتصال رجع عادي.",
       profileFirstName: "الاسم",
       profileLastName: "اللقب",
+      profileGender: "الجنس",
       profilePhone: "الهاتف",
       profileSubject: "المادة / الاختصاص",
       profileEmail: "الإيميل",
@@ -767,7 +777,7 @@
 
   /* ---------------- profile (account details) ---------------- */
   var PROFILE_KEY = "classledger:profile";
-  var profile = { firstName: "", lastName: "", phone: "", subject: "" };
+  var profile = { firstName: "", lastName: "", gender: "", phone: "", subject: "" };
 
   function cleanProfile(raw) {
     raw = raw && typeof raw === "object" ? raw : {};
@@ -785,6 +795,7 @@
     return {
       firstName: firstName,
       lastName: lastName,
+      gender: raw.gender === "male" || raw.gender === "female" ? raw.gender : "",
       phone: field(raw.phone, 30),
       subject: field(raw.subject, 60),
     };
@@ -1556,6 +1567,7 @@
     els.pillCalendarLabel.textContent = t("navCalendar");
     els.pillPaymentsLabel.textContent = t("navPayments");
     els.profileModalClose.setAttribute("aria-label", t("close"));
+    if (netBanner) renderNetBanner();
     if (els.toastClose) els.toastClose.setAttribute("aria-label", t("close"));
     els.distributionTitleEl.textContent = t("distributionTitle");
     els.byLevelTitleEl.textContent = t("byLevelTitle");
@@ -1741,12 +1753,20 @@
     body.textContent = "";
 
     if (!profileEditing) {
-      if (profile.subject) {
+      var genderText =
+        profile.gender === "female"
+          ? t("genderFemale")
+          : profile.gender === "male"
+            ? t("genderMale")
+            : "";
+      if (profile.subject || genderText) {
         var meta = pEl("div", "profile-meta");
-        meta.appendChild(pEl("span", "profile-chip", profile.subject));
+        if (genderText) meta.appendChild(pEl("span", "profile-chip", genderText));
+        if (profile.subject) meta.appendChild(pEl("span", "profile-chip", profile.subject));
         body.appendChild(meta);
       }
       var rows = pEl("div", "me-rows");
+      rows.appendChild(profileRow(t("profileGender"), genderText, false));
       rows.appendChild(profileRow(t("profilePhone"), profile.phone, true));
       rows.appendChild(profileRow(t("profileSubject"), profile.subject, false));
       if (accountInfo && accountInfo.email)
@@ -1774,12 +1794,27 @@
     }
     var fFirst = field(t("profileFirstName"), shownFirst, "text", 40);
     var fLast = field(t("profileLastName"), shownLast, "text", 40);
+    var genderLabel = pEl("label", "me-field");
+    genderLabel.appendChild(pEl("span", "me-row-label", t("profileGender")));
+    var genderSelect = pEl("select", "me-input");
+    [
+      ["", "—"],
+      ["male", t("genderMale")],
+      ["female", t("genderFemale")],
+    ].forEach(function (pair) {
+      var opt = pEl("option", "", pair[1]);
+      opt.value = pair[0];
+      genderSelect.appendChild(opt);
+    });
+    genderSelect.value = profile.gender;
+    genderLabel.appendChild(genderSelect);
     var fPhone = field(t("profilePhone"), profile.phone, "tel", 30);
     fPhone.input.setAttribute("dir", "ltr");
     var fSubject = field(t("profileSubject"), profile.subject, "text", 60);
     form.append(
       fFirst.label,
       fLast.label,
+      genderLabel,
       fPhone.label,
       fSubject.label,
       profileButton(t("profileSave"), PROFILE_ICON_CHECK, null, "submit"),
@@ -1789,6 +1824,7 @@
       setProfile({
         firstName: fFirst.input.value,
         lastName: fLast.input.value,
+        gender: genderSelect.value,
         phone: fPhone.input.value,
         subject: fSubject.input.value,
       });
@@ -4032,6 +4068,59 @@
     revealedEventGroupKey = "";
     renderCalendar();
   }
+
+  /* ---------------- connection banner ---------------- */
+  // Stays visible while the connection is down; when it returns it turns green, says so, then leaves.
+  var netState = "hidden"; // "hidden" | "offline" | "online"
+  var netTimer = null;
+  var netBanner = null;
+  var NET_ICON_OFF =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M9 5.2a15 15 0 0 1 13 3.6M5 12.5a10 10 0 0 1 3.1-2M12.8 10.2a10 10 0 0 1 6.2 2.3M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r=".6" fill="currentColor"/><path d="m3 3 18 18"/></svg>';
+  var NET_ICON_ON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r=".6" fill="currentColor"/></svg>';
+
+  function ensureNetBanner() {
+    if (netBanner) return netBanner;
+    netBanner = pEl("div", "net-banner");
+    netBanner.setAttribute("role", "status");
+    netBanner.setAttribute("aria-live", "polite");
+    var icon = pEl("span", "net-banner-icon");
+    var text = pEl("div", "net-banner-text");
+    text.append(pEl("b"), pEl("span"));
+    netBanner.append(icon, text);
+    document.body.appendChild(netBanner);
+    return netBanner;
+  }
+  function renderNetBanner() {
+    var banner = ensureNetBanner();
+    var online = netState === "online";
+    banner.classList.toggle("show", netState !== "hidden");
+    banner.classList.toggle("is-online", online);
+    banner.classList.toggle("is-offline", netState === "offline");
+    banner.querySelector(".net-banner-icon").innerHTML = online ? NET_ICON_ON : NET_ICON_OFF; // static, trusted SVG
+    banner.querySelector("b").textContent = t(online ? "netOnlineTitle" : "netOfflineTitle");
+    banner.querySelector("span:not(.net-banner-icon)").textContent = t(
+      online ? "netOnlineText" : "netOfflineText",
+    );
+  }
+  function setNetState(next) {
+    clearTimeout(netTimer);
+    netState = next;
+    renderNetBanner();
+    if (next === "online") {
+      netTimer = setTimeout(function () {
+        netState = "hidden";
+        renderNetBanner();
+      }, 3500);
+    }
+  }
+  window.addEventListener("offline", function () {
+    setNetState("offline");
+  });
+  window.addEventListener("online", function () {
+    if (netState === "offline") setNetState("online");
+  });
+  if (window.navigator && window.navigator.onLine === false) setNetState("offline");
 
   /* ---------------- events ---------------- */
   window.addEventListener("classledger:profile-applied", function () {

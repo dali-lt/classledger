@@ -3,7 +3,7 @@
    mirrors the data to the signed-in user's own space in Firebase:
      users/{uid}/students/{studentId}   one document per student
      users/{uid}/meta/groups            one document with all groups
-     users/{uid}/meta/profile           the teacher's own details (first name, last name, phone, subject)
+     users/{uid}/meta/profile           the teacher's own details (first name, last name, gender, phone, subject)
    Loaded as <script type="module">. If the config is not filled in, or Firebase can't be
    reached, nothing here runs and the app behaves exactly as before. */
 import { stableStringify, diffStudents, mergeGroups } from "./sync-core.js";
@@ -496,7 +496,7 @@ async function main() {
   }
 
   function hasProfile(p) {
-    return !!(p && (p.firstName || p.lastName || p.phone || p.subject));
+    return !!(p && (p.firstName || p.lastName || p.gender || p.phone || p.subject));
   }
   function onProfile(snap) {
     if (!sync) return;

@@ -610,8 +610,8 @@ body {
 }
 .month-end-event:hover,
 .month-end-event:focus-visible {
-  border-color: rgba(224, 71, 62, 0.35);
-  background: rgba(224, 71, 62, 0.06);
+  border-color: var(--color-primary);
+  background: var(--color-sunken);
 }
 .month-end-event-date {
   font-size: 13px;
@@ -626,66 +626,6 @@ body {
 }
 .month-end-modal {
   position: relative;
-  border: 1px solid rgba(224, 71, 62, 0.2);
-  border-radius: 20px;
-  box-shadow:
-    0 22px 56px rgba(1, 9, 45, 0.18),
-    0 0 0 7px rgba(224, 71, 62, 0.06);
-}
-.month-end-modal h2 {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding-inline-end: 34px;
-  color: var(--color-danger);
-  font-size: 18px;
-}
-.month-end-modal h2::before {
-  content: "!";
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 30px;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: rgba(224, 71, 62, 0.1);
-  color: var(--color-danger);
-  font-size: 18px;
-  font-weight: 900;
-}
-.month-end-modal .btn-primary {
-  border: 1px solid rgba(224, 71, 62, 0.22);
-  background: rgba(224, 71, 62, 0.08);
-  color: var(--color-danger);
-}
-.month-end-modal .btn-primary:hover {
-  border-color: rgba(224, 71, 62, 0.35);
-  background: rgba(224, 71, 62, 0.14);
-}
-.month-end-modal-close {
-  position: absolute;
-  inset-block-start: 16px;
-  inset-inline-end: 16px;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 9px;
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  z-index: 2;
-}
-.month-end-modal-close:hover {
-  background: #fdeeed;
-  color: var(--color-danger);
-}
-.month-end-modal-close svg {
-  width: 17px;
-  height: 17px;
 }
 .toast-icon {
   width: 32px;
@@ -3950,4 +3890,104 @@ html.modal-open {
 .acct-delete:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* ---------- Notification box: same cropped logo mark, tinted to the alert colour ---------- */
+.month-end-modal::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: -14%;
+  width: 62%;
+  background: var(--brand-lime);
+  opacity: 0.35;
+  -webkit-mask: url("../Images/logo-icon.svg") center / auto 230% no-repeat;
+  mask: url("../Images/logo-icon.svg") center / auto 230% no-repeat;
+  pointer-events: none;
+  z-index: 0;
+}
+.month-end-modal .modal-scroll {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- Connection banner (offline / back online) ---------- */
+.net-banner {
+  position: fixed;
+  inset-block-start: calc(16px + env(safe-area-inset-top, 0px));
+  inset-inline-end: 16px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(340px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border: 1px solid rgba(224, 71, 62, 0.25);
+  border-radius: 16px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow:
+    0 14px 32px rgba(1, 9, 45, 0.13),
+    0 0 0 7px rgba(224, 71, 62, 0.08);
+  opacity: 0;
+  transform: translateY(-14px);
+  pointer-events: none;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.net-banner.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.net-banner-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: rgba(224, 71, 62, 0.12);
+  color: var(--color-danger);
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
+}
+.net-banner-icon svg {
+  width: 19px;
+  height: 19px;
+}
+.net-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.net-banner-text b {
+  font-size: 13.5px;
+}
+.net-banner-text span {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+.net-banner.is-online {
+  border-color: rgba(31, 175, 110, 0.3);
+  box-shadow:
+    0 14px 32px rgba(1, 9, 45, 0.13),
+    0 0 0 7px rgba(31, 175, 110, 0.1);
+}
+.net-banner.is-online .net-banner-icon {
+  background: rgba(31, 175, 110, 0.14);
+  color: #17924f;
+}
+@media (max-width: 720px) {
+  .net-banner {
+    inset-inline-end: 16px;
+    inset-inline-start: 16px;
+    width: auto;
+  }
 }
