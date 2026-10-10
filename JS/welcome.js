@@ -8,7 +8,7 @@ var SDK_VERSION = "10.14.1";
 var SDK_BASE = "https://www.gstatic.com/firebasejs/" + SDK_VERSION + "/";
 var LANG_KEY = "classledger:lang";
 var PICK_KEY = "classledger:picked-role";
-var HOME = { teacher: "teacher.html", student: "student.html" };
+var HOME = { teacher: "teach", student: "stud" };
 
 var STR = {
   en: {

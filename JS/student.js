@@ -1,5 +1,5 @@
 /* ClassLedger student space (shell).
-   Guards the page: signed out -> welcome.html, teacher -> index.html.
+   Guards the page: signed out -> ./ , teacher -> teach.
    The chapters list is empty on purpose: step 2 fills it from Firestore. */
 
 var SDK_VERSION = "10.14.1";
@@ -90,7 +90,7 @@ async function main() {
 
   var cfg = window.CLASSLEDGER_FIREBASE_CONFIG;
   if (!cfg || !cfg.apiKey || /^PASTE/i.test(cfg.apiKey)) {
-    window.location.replace("welcome.html");
+    window.location.replace("./");
     return;
   }
 
@@ -110,7 +110,7 @@ async function main() {
 
   sdk.onAuthStateChanged(auth, async function (u) {
     if (!u) {
-      window.location.replace("welcome.html");
+      window.location.replace("./");
       return;
     }
     var role = null;
@@ -118,15 +118,15 @@ async function main() {
       var snap = await sdk.getDoc(sdk.doc(db, "users", u.uid, "meta", "account"));
       role = snap.exists() ? snap.data().role : null;
     } catch (e) {
-      window.location.replace("welcome.html");
+      window.location.replace("./");
       return;
     }
     if (role === "teacher") {
-      window.location.replace("teacher.html");
+      window.location.replace("teach");
       return;
     }
     if (role !== "student") {
-      window.location.replace("welcome.html");
+      window.location.replace("./");
       return;
     }
     currentUser = u;
@@ -137,5 +137,5 @@ async function main() {
 
 main().catch(function (e) {
   console.warn("ClassLedger student page failed to start:", e);
-  window.location.replace("welcome.html");
+  window.location.replace("./");
 });
